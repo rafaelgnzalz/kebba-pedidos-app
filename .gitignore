@@ -1,0 +1,13 @@
+# Datos operativos: conservar fuera del repositorio.
+kebba-respaldo-*.json
+kebba-datos-a-recuperar-*.json
+kebba-dia-*.csv
+respaldos/
+
+# Configuración privada y archivos del sistema.
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+node_modules/

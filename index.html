@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="es-UY">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#11110f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="KEBBA">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./icons/kebba.svg">
+  <link rel="apple-touch-icon" href="./icons/kebba-192.png">
+  <title>KEBBA · Pedidos</title>
+  <style>
+    :root{--bg:#11110f;--panel:#1d1d19;--panel2:#292923;--line:#48473d;--text:#f8f5ee;--muted:#bdb8a9;--orange:#ff731c;--red:#d8402b;--green:#36b878;--yellow:#f2b84b;--focus:#fff2b8}
+    *{box-sizing:border-box}html{font-family:Arial,Helvetica,sans-serif;color:var(--text);background:var(--bg)}body{margin:0;min-width:320px}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:8px;color:var(--text);background:var(--panel2);font-weight:800}button:hover{filter:brightness(1.15)}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--focus);outline-offset:2px}input,textarea,select{color:var(--text);background:#10100e;border:2px solid var(--line);border-radius:7px;padding:11px}textarea{resize:vertical}label{font-size:.86rem;font-weight:800;color:var(--muted)}h1,h2,h3,p{margin-top:0}.hidden{display:none!important}.app{max-width:1800px;margin:auto;padding:16px 20px 50px}.topbar{display:flex;align-items:center;gap:18px;border-bottom:4px solid var(--orange);padding-bottom:13px;flex-wrap:wrap}.brand{font-size:2rem;font-weight:1000;letter-spacing:.08em;line-height:1}.brand span{color:var(--orange)}.nav{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}.nav button,.small-button{padding:11px 14px;border:1px solid var(--line)}.nav button.active{background:var(--orange);color:#111}.headline{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:22px 0 15px}.headline h1{font-size:clamp(1.6rem,3vw,2.8rem);line-height:1;margin:0}.subtle{color:var(--muted);font-size:.9rem}.section-title{color:var(--orange);font-size:1rem;letter-spacing:.11em;text-transform:uppercase;margin:20px 0 10px}.summary{display:flex;align-items:center;gap:12px;width:100%;border:1px solid #79503a;background:#291e18;padding:9px 14px;text-align:left;margin:15px 0;border-radius:7px}.summary strong{color:var(--orange);white-space:nowrap}.summary-items{display:flex;gap:15px;overflow:auto;white-space:nowrap;font-weight:600;font-size:.9rem}.summary-items b{color:var(--green)}.slot-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.slot{min-height:152px;padding:14px;border:2px solid var(--line);border-left:8px solid var(--line);text-align:left;display:flex;flex-direction:column;gap:8px;background:var(--panel)}.slot.open{border-left-color:var(--orange)}.slot.kitchen{border-left-color:var(--red)}.slot.ready{border-color:var(--green);background:#163725}.slot .slot-top{display:flex;justify-content:space-between;gap:5px;align-items:start}.slot-name{font-size:1.25rem;font-weight:900;text-transform:uppercase}.slot-number{font-size:1.15rem;color:var(--orange)}.slot.ready .slot-number{color:#a8f2c9}.slot-amount{font-size:1.7rem;font-weight:900}.slot-bottom{display:flex;justify-content:space-between;gap:6px;align-items:end;margin-top:auto;font-size:.85rem;color:var(--muted)}.status{display:inline-block;border-radius:4px;padding:4px 7px;font-size:.78rem;font-weight:900;letter-spacing:.04em;color:#15120f;background:var(--orange)}.status.free{background:#6d6b61;color:white}.status.kitchen{background:var(--red);color:white}.status.ready{background:var(--green)}.slot .client{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .order-title{font-size:clamp(1.75rem,3.8vw,3.4rem);font-weight:1000;text-transform:uppercase;line-height:1.08}.order-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(360px,1fr);gap:18px;align-items:start}.menu-panel,.ticket-panel,.k-card,.history-detail,.settings-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}.menu-panel{min-width:0}.menu-category{margin-top:14px}.menu-category:first-child{margin-top:0}.menu-category h2{color:var(--orange);font-size:1rem;letter-spacing:.1em;margin:0 0 9px}.product-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.product{min-height:91px;text-align:left;padding:11px;border:1px solid #58554a;display:flex;flex-direction:column;justify-content:space-between;gap:6px}.product-name{font-size:1.05rem;line-height:1.13;font-weight:900;text-transform:uppercase}.product-meta{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:.9rem}.key{background:#4c3a2a;color:#ffba88;border-radius:4px;padding:2px 7px;font-weight:900}.ticket-panel{position:sticky;top:12px}.ticket-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:10px;border-bottom:2px solid var(--line)}.ticket-head h2{margin:0;font-size:1.3rem}.ticket-list{max-height:46vh;overflow:auto}.line{border-bottom:1px solid var(--line);padding:12px 0}.line.selected{background:#30291f;margin:0 -9px;padding:12px 9px;border-left:5px solid var(--orange)}.line-main{display:flex;align-items:start;justify-content:space-between;gap:6px}.line-name{font-weight:900;font-size:1.03rem}.line-price{white-space:nowrap;font-weight:900}.line-mods{color:#ffe0b0;font-size:.93rem;margin:5px 0 5px 20px;line-height:1.35;white-space:pre-wrap}.line-controls{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.line-controls button{padding:7px 10px;border:1px solid var(--line);min-height:35px}.danger-text{color:#ff9b8f}.ticket-total{display:flex;justify-content:space-between;align-items:center;border-top:3px solid var(--orange);font-size:1.5rem;font-weight:1000;padding:14px 0}.primary{background:var(--orange);color:#16110d}.success{background:var(--green);color:#061b10}.danger{background:var(--red);color:white}.action-large{width:100%;padding:16px 12px;font-size:1.16rem;margin-bottom:8px}.action-row{display:flex;gap:8px}.action-row button{flex:1;padding:12px 8px}.separated{border-top:1px solid var(--line);margin-top:14px;padding-top:14px}.separated button{padding:9px 12px}.edit-box{background:#2b2923;border:2px solid var(--orange);padding:13px;margin-top:12px;border-radius:8px}.edit-box h3{margin-bottom:9px}.chip-row{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0 13px}.chip{padding:9px 10px;border:1px solid #756d5e}.chip.on{background:var(--orange);color:#17100b;border-color:var(--orange)}.edit-box textarea{width:100%;min-height:60px}.edit-actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:8px}.edit-actions button{padding:10px}.note{color:var(--muted);font-size:.83rem;line-height:1.4}.form-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.form-row input{flex:1;min-width:160px}.k-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.k-card{border-top:7px solid var(--red)}.k-card.alert{border-top-color:var(--yellow)}.k-head{font-size:1.65rem;font-weight:1000;text-transform:uppercase;line-height:1.1}.k-time{font-weight:900;color:#ffa373;margin:7px 0 15px}.k-line{padding:9px 0;border-top:1px solid var(--line)}.k-label{display:inline-block;background:var(--yellow);color:#1b150c;padding:3px 7px;border-radius:3px;font-size:.77rem;font-weight:1000;margin-bottom:5px}.k-label.cancel{background:var(--red);color:white}.k-label.new{background:var(--green)}.k-product{font-size:1.15rem;font-weight:900;text-transform:uppercase}.k-mods{white-space:pre-wrap;color:#ffcc83;font-size:1rem;font-weight:800;line-height:1.4;margin:4px 0 0 15px}.k-old{color:#bbb6a7;text-decoration:line-through;font-size:.9rem}.k-card button{width:100%;font-size:1.1rem;padding:15px;margin-top:16px}.ready-list{display:flex;gap:8px;flex-wrap:wrap}.ready-pill{padding:10px;background:#173e28;border:1px solid var(--green);border-radius:7px;font-weight:900}.empty{padding:28px;color:var(--muted);text-align:center;border:1px dashed var(--line);border-radius:8px}.history-tools{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.history-tools button{padding:11px;border:1px solid var(--line)}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:700px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{color:var(--orange);font-size:.8rem;letter-spacing:.07em}tbody tr{cursor:pointer}tbody tr:hover{background:#302b21}.stats{display:flex;gap:12px;flex-wrap:wrap;margin:15px 0}.stat{padding:15px;background:var(--panel);border:1px solid var(--line);min-width:180px}.stat strong{display:block;font-size:1.5rem}.history-detail{margin-top:14px}.settings-panel{max-width:780px}.settings-panel h2{color:var(--orange)}.settings-panel button{padding:12px;margin:5px}.modal-backdrop{position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:15px;z-index:50}.modal{background:#24231e;border:2px solid var(--orange);border-radius:10px;padding:22px;width:min(500px,100%);max-height:90vh;overflow:auto}.modal h2{font-size:1.5rem}.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}.modal-actions button{padding:13px}.pay-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}.pay-grid button{padding:14px;border:1px solid var(--line)}.pay-grid button.on{background:var(--orange);color:#111}.toast{position:fixed;bottom:18px;right:18px;background:#2a3a28;color:white;border:2px solid var(--green);border-radius:8px;padding:12px 18px;font-weight:900;z-index:70;max-width:min(440px,90vw)}.toast.error{background:#4a201e;border-color:var(--red)}
+    @media(max-width:1250px){.slot-grid{grid-template-columns:repeat(4,1fr)}.product-grid{grid-template-columns:repeat(3,1fr)}.k-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:950px){.order-layout{grid-template-columns:1fr}.ticket-panel{position:static}.ticket-list{max-height:none}.slot-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:650px){.app{padding:12px}.slot-grid{grid-template-columns:repeat(2,1fr);gap:8px}.slot{min-height:145px}.product-grid{grid-template-columns:repeat(2,1fr)}.k-grid{grid-template-columns:1fr}.nav{margin-left:0}.nav button{font-size:.85rem;padding:9px}.order-title{font-size:1.65rem}}@media(max-width:420px){.slot-grid{grid-template-columns:1fr 1fr}.slot{padding:9px;min-height:139px}.slot-name{font-size:1rem}.slot-amount{font-size:1.3rem}.slot-bottom{font-size:.73rem}}
+/* Ajustes para servicio: controles táctiles, acciones visibles y ayuda en contexto. */
+button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{color:#292013}.app{padding-bottom:24px}
+.saved-indicator{display:block;color:#b2bcad;font-size:.78rem;margin-top:9px}.storage-alert{padding:14px;border:2px solid var(--red);background:#411e18;margin-top:12px;border-radius:8px;line-height:1.5}.storage-alert button{padding:8px 12px;margin:8px 8px 0 0}
+.service-guide{display:flex;flex-wrap:wrap;gap:12px 24px;border:1px solid var(--line);border-radius:8px;padding:12px 15px;font-size:.9rem}.service-guide strong{color:#ffb17f}.legend{display:flex;gap:12px 22px;flex-wrap:wrap;font-size:.83rem;color:var(--muted);margin:14px 0}.legend span{display:flex;align-items:center;gap:7px}.legend i{display:inline-block;width:10px;height:10px;border-radius:2px}.legend .free{background:#6d6b61}.legend .open{background:var(--orange)}.legend .kitchen{background:var(--red)}.legend .ready{background:var(--green)}
+.slot.ready .status{font-size:1rem}.slot .status{align-self:flex-start}.slot-bottom{flex-wrap:wrap}.slot-number{white-space:nowrap}.summary-arrow{margin-left:auto;font-size:.8rem;white-space:nowrap}.summary .notice-count{color:#ffd18a}.order-heading h1{font-size:clamp(1.7rem,3vw,2.6rem);overflow-wrap:anywhere}.customer-row{margin-bottom:14px}.customer-row input{max-width:440px}.order-layout{grid-template-columns:minmax(0,1.35fr) minmax(395px,1fr)}
+.ticket-panel{display:flex;flex-direction:column;max-height:calc(100dvh - 24px);padding:14px;min-height:350px;overflow:hidden}.ticket-head{flex-shrink:0;align-items:baseline}.ticket-head h2{font-size:1.1rem}.ticket-head>span{font-size:.8rem;white-space:nowrap}.ticket-list{flex:1;min-height:85px;max-height:none;overflow:auto;overscroll-behavior:contain;padding:0 4px;scrollbar-color:#7e6652 #23231f}.ticket-footer{flex-shrink:0}.ticket-total{padding:10px 0;font-size:1.4rem}.line-controls{gap:6px}.line-controls button{min-width:42px;padding:8px;font-size:.85rem;min-height:42px}.line-meta{color:#bdb8a9;font-size:.77rem;margin-top:5px}.line-mods:empty{display:none}.line.selected{margin:0;padding-left:8px;padding-right:7px}.combo-on{background:#6a3a14;border-color:var(--orange)!important;color:#ffd6ac}.edit-box{margin-top:10px;padding:10px}.edit-box h3{font-size:1rem}.edit-box .note{margin-bottom:8px}.modifier-group>strong{font-size:.8rem;color:var(--muted)}.chip-row{gap:6px;margin:7px 0 10px}.chip{font-size:.84rem}.edit-box textarea{font-size:1rem}.edit-actions{align-items:center}.edit-actions .note{margin:0}.order-hint{font-size:.82rem;line-height:1.45;padding:9px 10px;background:#2c2a21;border-left:3px solid var(--orange);margin:9px 0}.action-large{padding:12px 10px;font-size:1rem}.action-row button{font-size:.86rem}.secondary-actions{margin-top:9px;padding-top:8px;display:flex;justify-content:space-between;gap:5px}.secondary-actions button{font-size:.78rem;padding:6px 8px;min-height:36px}.menu-panel>.note{margin-bottom:12px}.menu-category{scroll-margin-top:15px}
+.k-changes{border:2px solid #866536;border-radius:6px;padding:10px;margin-top:12px;background:#27231b}.k-changes h3{font-size:.86rem;color:#ffd18a;margin:0 0 8px}.k-change{font-size:1rem;font-weight:700;padding:9px 0;border-top:1px solid #615238;line-height:1.4}.k-change time{font-size:.8rem;color:var(--muted)}.k-change .k-mods{font-size:.9rem}.cancelled-line .k-product,.cancelled-line{color:#ffafa3}.k-old{text-decoration:none;font-size:.9rem;color:#bdb8a9}.k-old .k-mods{color:#bdb8a9}.k-card .k-head{overflow-wrap:anywhere}.ready-pill{font-size:1rem}.help-modal{width:min(720px,100%)}.help-steps{padding-left:25px;line-height:1.5}.help-steps li{margin-bottom:12px}.help-steps strong{color:#ffb17f}.modal:focus{outline:none}.modal summary,.maintenance summary{cursor:pointer;font-weight:800;padding:13px 0}.modal details p{line-height:1.5}.maintenance{margin-top:26px;border-top:1px solid var(--line)}.settings-panel{line-height:1.55}.settings-panel h2{margin:24px 0 10px}.settings-panel h2:first-child{margin-top:0}.history-link{padding:8px 10px;color:#ffcda8}.table-wrap tbody tr{cursor:default}.history-detail:focus{outline:2px solid var(--orange);outline-offset:3px}.history-detail h2{margin:0}
+@media(min-width:760px) and (max-width:1100px){.order-layout{grid-template-columns:minmax(0,1fr) minmax(340px,1fr);gap:12px}.product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ticket-panel{position:sticky;top:12px}.product-name{font-size:1rem}.menu-panel{padding:12px}.order-title{font-size:2rem}}
+@media(max-width:759px){.order-layout{display:flex;flex-direction:column}.menu-panel,.ticket-panel{width:100%}.ticket-panel{position:static;max-height:none!important;min-height:0;overflow:visible}.ticket-list{max-height:none;overflow:visible}.summary{flex-wrap:wrap}.summary-items{max-width:100%}.service-guide{gap:9px;font-size:.82rem}.secondary-actions button{min-height:42px}.slot .slot-top{flex-wrap:wrap}.nav{gap:6px}.nav button{min-height:42px}.modal-actions button{flex:1}.product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+    .ticket-list{min-height:0}
+    @media(min-width:760px) and (max-height:649px){.ticket-panel{position:static;max-height:none!important;overflow:visible}.ticket-list{max-height:55vh;min-height:100px}}
+    .mobile-order-switch{display:none}
+    @media(max-width:759px){
+      .app{padding:calc(10px + env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+      button{touch-action:manipulation}.topbar{display:block;padding-bottom:10px}.brand{font-size:1.65rem}.topbar>.subtle{display:none}
+      .nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;margin:10px 0 0;gap:5px}.nav button{min-width:0;min-height:48px;padding:7px 2px;font-size:.74rem;line-height:1.15;overflow-wrap:anywhere}.nav button .subtle,.nav [data-action="fullscreen"],.nav [data-action="help"]{display:none}
+      .headline{margin:14px 0 10px}.summary{margin:10px 0;padding:10px;gap:7px}.summary-items{white-space:normal;max-width:100%}.summary-arrow{display:none}.saved-indicator{margin-top:7px}
+      .slot{min-height:122px}.slot .key,.product .key{display:none}.product{min-height:84px}.product-name{overflow-wrap:anywhere}.product-meta{font-size:.85rem}
+      .mobile-order-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;position:sticky;top:0;z-index:15;background:var(--bg);padding:8px 0}.mobile-order-switch button{min-width:0;min-height:50px;padding:7px 8px;border:1px solid var(--line);text-align:center}.mobile-order-switch button.active{background:var(--orange);color:#111}.mobile-order-switch .pane-detail{display:block;font-size:.76rem;font-weight:600;margin-top:2px}
+      .order-layout.mobile-pane-menu .ticket-panel,.order-layout.mobile-pane-ticket .menu-panel{display:none}.order-layout .menu-panel,.order-layout .ticket-panel{padding:12px}.line-controls button,.chip{min-height:44px}
+      .table-wrap{overflow:visible}table{min-width:0}thead{display:none}tbody,tbody tr{display:block}tbody tr{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:7px 12px;margin-bottom:9px}td{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:8px 0;overflow-wrap:anywhere}td:before{font-size:.78rem;font-weight:800;color:var(--muted);flex:0 0 32%}td:nth-child(1):before{content:"Pedido"}td:nth-child(2):before{content:"Hora"}td:nth-child(3):before{content:"Lugar"}td:nth-child(4):before{content:"Nombre"}td:nth-child(5):before{content:"Total"}td:nth-child(6):before{content:"Pago"}
+      .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.stat{min-width:0;padding:12px}.stat:first-child{grid-column:1/-1}.history-tools button{flex:1 1 100%;min-height:48px}.settings-panel button{max-width:100%;min-height:48px;margin:5px 0}.modal-backdrop{padding:calc(10px + env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}.modal{max-height:calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));padding:16px}.toast{left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));max-width:none}
+      input,textarea,select{font-size:16px}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">KEBBA<span>.</span></div>
+    <div class="subtle">PEDIDOS · SISTEMA LOCAL</div>
+    <nav class="nav" aria-label="Vistas">
+      <button data-action="view" data-view="home" id="nav-home">Mesas / Pedidos <span class="subtle">F1</span></button>
+      <button data-action="view" data-view="kitchen" id="nav-kitchen">Cocina <span class="subtle">F2</span></button>
+      <button data-action="view" data-view="history" id="nav-history">Historial</button>
+      <button data-action="view" data-view="settings" id="nav-settings">Configuración</button>
+      <button data-action="fullscreen" class="small-button" title="Pantalla completa (F11)">⛶ Pantalla completa</button>
+      <button data-action="help" class="small-button" title="Guía de uso y atajos (?)">Cómo usar</button>
+    </nav>
+  </header>
+  <div id="storage-status"></div>
+  <main id="main"></main>
+</div>
+<div id="modal-root"></div><div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<input id="import-file" type="file" accept="application/json,.json" class="hidden">
+<script>
+"use strict";
+
+// CONFIGURACIÓN CENTRAL: editar esta sección para cambiar carta, precios y atajos.
+const CONFIG = { nombreLocal: "KEBBA", cantidadMesas: 9, cantidadPedidosSinMesa: 10, dataVersion: 1, almacenamiento: "kebba-pedidos-v1", comboPrecio: 50, comboDescripcion: "Papas fritas + Coca-Cola" };
+const productos = [
+  {id:"shawarma-pollo",categoria:"Shawarmas",nombre:"Shawarma Pollo",precio:260,shortcut:"Q",permiteCombo:true},
+  {id:"shawarma-carne",categoria:"Shawarmas",nombre:"Shawarma Carne",precio:290,shortcut:"W",permiteCombo:true},
+  {id:"shawarma-mixto",categoria:"Shawarmas",nombre:"Shawarma Mixto",precio:280,shortcut:"E",permiteCombo:true},
+  {id:"shawarma-vegetal",categoria:"Shawarmas",nombre:"Shawarma Vegetal",precio:260,shortcut:"R",permiteCombo:true},
+  {id:"combo-shawarma",categoria:"Shawarmas",nombre:"Combo Shawarma",precio:330,shortcut:"",permiteCombo:false},
+  {id:"kebab-pollo",categoria:"Kebabs",nombre:"Kebab Pollo",precio:250,shortcut:"A",permiteCombo:true},
+  {id:"kebab-carne",categoria:"Kebabs",nombre:"Kebab Carne",precio:280,shortcut:"S",permiteCombo:true},
+  {id:"kebab-mixto",categoria:"Kebabs",nombre:"Kebab Mixto",precio:270,shortcut:"D",permiteCombo:true},
+  {id:"kebab-vegetal",categoria:"Kebabs",nombre:"Kebab Vegetal",precio:260,shortcut:"F",permiteCombo:true},
+  {id:"combo-kebab",categoria:"Kebabs",nombre:"Combo Kebab",precio:320,shortcut:"",permiteCombo:false},
+  {id:"plato-pollo",categoria:"Kebab al plato",nombre:"Kebab al Plato Pollo",precio:310,shortcut:"",permiteCombo:false},
+  {id:"plato-carne",categoria:"Kebab al plato",nombre:"Kebab al Plato Carne",precio:340,shortcut:"",permiteCombo:false},
+  {id:"plato-mixto",categoria:"Kebab al plato",nombre:"Kebab al Plato Mixto",precio:330,shortcut:"",permiteCombo:false},
+  {id:"plato-vegetariano",categoria:"Kebab al plato",nombre:"Kebab al Plato Vegetariano",precio:310,shortcut:"",permiteCombo:false},
+  {id:"coxinha-pollo-1",categoria:"Coxinhas",nombre:"Coxinha de Pollo · 1 unidad",precio:70,shortcut:"Z",permiteCombo:false},
+  {id:"coxinha-pollo-3",categoria:"Coxinhas",nombre:"Coxinha de Pollo · 3 unidades",precio:200,shortcut:"",permiteCombo:false},
+  {id:"coxinha-ternera-1",categoria:"Coxinhas",nombre:"Coxinha de Ternera · 1 unidad",precio:80,shortcut:"X",permiteCombo:false},
+  {id:"coxinha-ternera-3",categoria:"Coxinhas",nombre:"Coxinha de Ternera · 3 unidades",precio:230,shortcut:"",permiteCombo:false},
+  {id:"papas",categoria:"Acompañamientos",nombre:"Papas fritas",precio:100,shortcut:"",permiteCombo:false},
+  {id:"boniato",categoria:"Acompañamientos",nombre:"Boniato frito",precio:150,shortcut:"",permiteCombo:false}
+];
+const modificadores = [
+  {id:"sin-cebolla",nombre:"Sin cebolla",precio:0,grupo:"Rápidos"},
+  {id:"sin-tomate",nombre:"Sin tomate",precio:0,grupo:"Rápidos"},
+  {id:"sin-salsa",nombre:"Sin salsa",precio:0,grupo:"Rápidos"},
+  {id:"salsa-aparte",nombre:"Salsa aparte",precio:0,grupo:"Rápidos"},
+  {id:"extra-salsa",nombre:"Extra salsa",precio:0,grupo:"Rápidos"},
+  {id:"picante",nombre:"Picante",precio:0,grupo:"Rápidos"},
+  {id:"sin-picante",nombre:"Sin picante",precio:0,grupo:"Rápidos"},
+  {id:"salsa-yogur",nombre:"Salsa yogur",precio:0,grupo:"Salsas"},
+  {id:"picante-suave",nombre:"Picante suave",precio:0,grupo:"Salsas"},
+  {id:"sweet-chili",nombre:"Sweet chili",precio:0,grupo:"Salsas"},
+  {id:"especial-casa",nombre:"Especial de la casa",precio:0,grupo:"Salsas"},
+  {id:"hacer-combo",nombre:"HACER COMBO",precio:CONFIG.comboPrecio,grupo:"Combo",descripcion:CONFIG.comboDescripcion}
+];
+const shortcuts = { principalMesas:"1–9", principalPedidos:"A–J", cambiarMesas:"F1", cambiarCocina:"F2", ayuda:"?", deshacer:"z" };
+
+// Utilidades. Los importes se calculan desde las líneas, nunca desde texto de pantalla.
+const $ = selector => document.querySelector(selector);
+const deepCopy = value => JSON.parse(JSON.stringify(value));
+const safe = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+const money = value => "$" + Number(value || 0).toLocaleString("es-UY");
+const numberLabel = value => "#" + String(value).padStart(3,"0");
+const now = () => Date.now();
+const uid = () => globalThis.crypto?.randomUUID?.() || `id-${now()}-${Math.random().toString(36).slice(2)}`;
+const fmtTime = value => value ? new Date(value).toLocaleTimeString("es-UY",{hour:"2-digit",minute:"2-digit"}) : "—";
+const fmtDate = value => new Date(value).toLocaleDateString("es-UY");
+const dayKey = value => {const d=new Date(value);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");};
+const minutes = value => Math.max(0,Math.floor((now()-value)/60000));
+const elapsed = value => `Hace ${minutes(value)} min`;
+const lineTotal = line => line.qty*(line.unitPrice+line.mods.reduce((sum,mod)=>sum+mod.price,0));
+const orderTotal = order => order.lines.reduce((sum,line)=>sum+lineTotal(line),0);
+const countItems = order => order.lines.reduce((sum,line)=>sum+line.qty,0);
+const sameLine = (a,b) => a.qty===b.qty && a.name===b.name && a.note===b.note && JSON.stringify(a.mods)===JSON.stringify(b.mods);
+const emptyData = () => ({dataVersion:1,nextNumber:1,orders:{},history:[],kitchenNotices:[],catalog:deepCopy(productos),modifierCatalog:deepCopy(modificadores),settings:{nombreLocal:CONFIG.nombreLocal,cantidadMesas:CONFIG.cantidadMesas,cantidadPedidosSinMesa:CONFIG.cantidadPedidosSinMesa}});
+const slotLabel = id => /^m\d+$/.test(id) ? `Mesa ${Number(id.slice(1))}` : /^p\d+$/.test(id) ? `Pedido ${String.fromCharCode(65+Number(id.slice(1)))}` : String(id);
+function slotsFor(settings){return [...Array(settings.cantidadMesas)].map((_,i)=>({id:`m${i+1}`,label:`Mesa ${i+1}`,key:i<9?String(i+1):""})).concat([...Array(settings.cantidadPedidosSinMesa)].map((_,i)=>({id:`p${i}`,label:`Pedido ${String.fromCharCode(65+i)}`,key:String.fromCharCode(65+i)})));}
+
+// Conserva cada aviso enviado a Cocina, incluso si un alta se elimina más tarde.
+function lineChanges(before,after,at=now()){
+  const result=[];
+  for(const old of before){
+    const line=after.find(item=>item.id===old.id);
+    if(!line)result.push({kind:"CANCELADO",before:deepCopy(old),after:null,at});
+    else if(!sameLine(old,line))result.push({kind:"MODIFICADO",before:deepCopy(old),after:deepCopy(line),at});
+  }
+  for(const line of after)if(!before.some(item=>item.id===line.id))result.push({kind:"NUEVO",before:null,after:deepCopy(line),at});
+  return result;
+}
+function validateImport(raw){
+  const fail=message=>{throw Error(message || "El archivo no es un respaldo compatible de KEBBA.");};
+  const object=value=>value && typeof value==="object" && !Array.isArray(value);
+  const text=value=>typeof value==="string";
+  const integer=value=>Number.isSafeInteger(value) && value>=0;
+  const timestamp=value=>Number.isFinite(value) && value>0;
+  if(!object(raw)||raw.dataVersion!==1||!integer(raw.nextNumber)||raw.nextNumber<1||!object(raw.orders)||!Array.isArray(raw.history)||!Array.isArray(raw.catalog)||!Array.isArray(raw.modifierCatalog)||!object(raw.settings))fail();
+  const {cantidadMesas,cantidadPedidosSinMesa}=raw.settings;
+  if(!integer(cantidadMesas)||cantidadMesas<1||cantidadMesas>99||!integer(cantidadPedidosSinMesa)||cantidadPedidosSinMesa<1||cantidadPedidosSinMesa>26)fail("La cantidad de lugares del respaldo es inválida.");
+  const unique=items=>new Set(items).size===items.length;
+  for(const p of raw.catalog)if(!object(p)||!text(p.id)||!text(p.nombre)||!text(p.categoria)||!integer(p.precio)||(p.shortcut!=null&&!text(p.shortcut)))fail("La carta del respaldo es inválida.");
+  if(!unique(raw.catalog.map(p=>p.id)))fail("Hay productos repetidos en la configuración.");
+  for(const m of raw.modifierCatalog)if(!object(m)||!text(m.id)||!text(m.nombre)||!text(m.grupo)||!integer(m.precio))fail("Los modificadores del respaldo son inválidos.");
+  if(!unique(raw.modifierCatalog.map(m=>m.id)))fail("Hay modificadores repetidos en la configuración.");
+  function checkLine(line){
+    if(!object(line)||!text(line.id)||!text(line.productId)||!text(line.name)||!integer(line.qty)||line.qty<1||!integer(line.unitPrice)||!Array.isArray(line.mods)||!text(line.note))fail("Una línea del respaldo es inválida.");
+    for(const mod of line.mods)if(!object(mod)||!text(mod.id)||!text(mod.name)||!integer(mod.price))fail("Una modificación del respaldo es inválida.");
+    if(!unique(line.mods.map(m=>m.id))||!integer(lineTotal(line)))fail("Una línea contiene importes o modificadores repetidos inválidos.");
+  }
+  function checkLines(lines){if(!Array.isArray(lines))fail();lines.forEach(checkLine);if(!unique(lines.map(line=>line.id)))fail("Una comanda tiene líneas repetidas.");}
+  const validSlots=new Set(slotsFor(raw.settings).map(s=>s.id)),numbers=new Set();
+  for(const [slot,order] of Object.entries(raw.orders))if(!object(order)||!validSlots.has(slot)||order.slot!==slot||!["ABIERTO","EN COCINA","LISTO"].includes(order.status))fail("Hay pedidos en lugares inválidos.");
+  for(const order of [...Object.values(raw.orders),...raw.history]){
+    if(!object(order)||!integer(order.number)||order.number<1||numbers.has(order.number)||!text(order.slot)||!/^([mp])\d+$/.test(order.slot)||!text(order.name)||!timestamp(order.openedAt))fail("Hay pedidos inválidos o números repetidos.");
+    numbers.add(order.number);checkLines(order.lines);checkLines(order.sentSnapshot);
+    if(order.status!=="ABIERTO"&&!timestamp(order.sentAt)&&order.status!=="CERRADO")fail("Falta la hora de envío de un pedido.");
+    if(order.status==="LISTO"&&!timestamp(order.readyAt))fail("Falta la hora de preparación de un pedido.");
+    // Migración compatible con la primera versión, sin borrar pedidos existentes.
+    if(!Array.isArray(order.kitchenEvents))order.kitchenEvents=order.sentAt?lineChanges(order.sentSnapshot,order.lines,order.sentAt):[];
+    for(const event of order.kitchenEvents){
+      if(!object(event)||!["NUEVO","MODIFICADO","CANCELADO"].includes(event.kind)||!timestamp(event.at))fail("Los avisos de Cocina son inválidos.");
+      if(event.before)checkLine(event.before);if(event.after)checkLine(event.after);
+      if((event.kind==="NUEVO"&&!event.after)||(event.kind==="CANCELADO"&&!event.before)||(event.kind==="MODIFICADO"&&(!event.before||!event.after)))fail();
+    }
+    if(order.kitchenAck==null)order.kitchenAck=order.status==="LISTO"?order.kitchenEvents.length:0;
+    if(!integer(order.kitchenAck)||order.kitchenAck>order.kitchenEvents.length)fail();
+    if(!Array.isArray(order.preparedSnapshot))order.preparedSnapshot=order.status==="LISTO"?deepCopy(order.lines):[];
+    checkLines(order.preparedSnapshot);
+    order.pendingSinceAt=order.pendingSinceAt||order.sentAt;
+    order.total=orderTotal(order);
+    if(!integer(order.total))fail("El total del pedido es inválido.");
+  }
+  for(const order of raw.history)if(order.status!=="CERRADO"||!timestamp(order.closedAt)||!text(order.payment))fail("El historial del respaldo es inválido.");
+  if(raw.kitchenNotices==null)raw.kitchenNotices=[];
+  if(!Array.isArray(raw.kitchenNotices))fail();
+  for(const notice of raw.kitchenNotices){if(!object(notice)||!text(notice.id)||!text(notice.label)||!text(notice.reason)||!timestamp(notice.at)||!integer(notice.number))fail("Hay avisos de Cocina inválidos.");checkLines(notice.lines);}
+  const maxNumber=Math.max(0,...numbers,...raw.kitchenNotices.map(n=>n.number));
+  raw.nextNumber=Math.max(raw.nextNumber,maxNumber+1);
+  return raw;
+}
+
+let savedRaw=null,storageWarning="",recoveryRaw=null,readBlocked=false,storageConflict=false;
+function loadData(){
+  try{savedRaw=localStorage.getItem(CONFIG.almacenamiento);return savedRaw?validateImport(JSON.parse(savedRaw)):emptyData();}
+  catch{recoveryRaw=savedRaw;readBlocked=!!savedRaw;storageWarning=readBlocked?"No pudimos leer los datos guardados. Se conservaron sin cambios. Importá un respaldo desde Configuración para recuperarlos.":"El navegador no permite guardar. Exportá un respaldo antes de salir y revisá su configuración.";return emptyData();}
+}
+let data=loadData(),view="home",selectedSlot=null,selectedLine=null,mobileOrderPane="menu",modal=null,payment=null,historyDetail=null,historyDate=dayKey(now()),toastTimer=null;
+let focusBeforeModal=null,inputSession=null,lastActivation={key:"",at:0},lastOpenNumber=null;
+const undoStacks=new Map();
+const settings=()=>data.settings;
+const slots=()=>slotsFor(settings());
+const slotInfo=id=>slots().find(slot=>slot.id===id);
+const current=()=>selectedSlot?data.orders[selectedSlot]:null;
+const findLine=id=>current()?.lines.find(line=>line.id===id);
+const stackFor=order=>{if(!undoStacks.has(order.number))undoStacks.set(order.number,[]);return undoStacks.get(order.number);};
+function renderStorage(){const el=$("#storage-status");if(!el)return;el.innerHTML=storageWarning?`<div class="storage-alert" role="alert"><strong>${safe(storageWarning)}</strong><div><button data-action="export-backup">Guardar copia ahora</button>${storageConflict?`<button data-action="reload">Recargar</button>`:readBlocked?`<button data-action="view" data-view="settings">Recuperar datos</button>`:`<button data-action="retry-save">Reintentar guardado</button>`}</div></div>`:`<span class="saved-indicator">● Guardado automático en este dispositivo</span>`;}
+function persist(next,{replaceBlocked=false}={}){
+  if((readBlocked||storageConflict)&&!replaceBlocked){renderStorage();return false;}
+  try{
+    const existing=localStorage.getItem(CONFIG.almacenamiento);
+    if(existing!==savedRaw){storageConflict=true;storageWarning="Otra ventana cambió los pedidos. Guardá una copia de esta pantalla y recargá para seguir con los datos más recientes.";renderStorage();return false;}
+    for(const order of Object.values(next.orders))order.total=orderTotal(order);
+    const raw=JSON.stringify(next);localStorage.setItem(CONFIG.almacenamiento,raw);savedRaw=raw;storageWarning="";readBlocked=false;recoveryRaw=null;renderStorage();return true;
+  }catch{storageWarning="ATENCIÓN: los últimos cambios no se pudieron guardar. Dejá esta pantalla abierta y exportá un respaldo antes de salir.";renderStorage();return false;}
+}
+function save(){return persist(data);}
+function commitData(next,options){if(!persist(next,options)){toast("No se completó la acción porque no se pudo guardar.",true);return false;}data=next;return true;}
+function canEdit(){if(readBlocked||storageConflict){toast("Revisá el aviso de guardado antes de continuar.",true);return false;}return true;}
+function toast(message,error=false){const el=$("#toast");el.textContent=message;el.className="toast"+(error?" error":"");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add("hidden"),3800);}
+function pushUndo(order){const stack=stackFor(order);stack.push({lines:deepCopy(order.lines),name:order.name});if(stack.length>25)stack.shift();}
+function recordKitchenChanges(order,before){
+  if(!order.sentAt)return;
+  const changes=lineChanges(before,order.lines);
+  if(!changes.length)return;
+  order.kitchenEvents.push(...changes);
+  if(order.status==="LISTO"){order.status="EN COCINA";order.readyAt=null;order.pendingSinceAt=now();}
+}
+function mutateOrder(fn,{renderNow=true,remember=true}={}){
+  const order=current();if(!order||!canEdit())return false;
+  const before=deepCopy(order.lines);if(remember)pushUndo(order);fn(order);recordKitchenChanges(order,before);save();if(renderNow)render();return true;
+}
+function openSlot(id){
+  if(!slotInfo(id)||!canEdit())return;
+  if(!data.orders[id]){data.orders[id]={number:data.nextNumber++,slot:id,name:"",status:"ABIERTO",openedAt:now(),sentAt:null,readyAt:null,closedAt:null,payment:null,lines:[],sentSnapshot:[],kitchenEvents:[],kitchenAck:0,preparedSnapshot:[],pendingSinceAt:null,movedFrom:null};save();}
+  selectedSlot=id;selectedLine=null;mobileOrderPane=current().lines.length?"ticket":"menu";lastOpenNumber=current().number;view="order";modal=null;render();window.scrollTo?.(0,0);
+}
+function releaseEmptyDraft(){const order=current();if(order&&!order.sentAt&&!order.lines.length&&!order.name.trim()){delete data.orders[selectedSlot];save();}}
+function go(target){if(!["home","kitchen","history","settings"].includes(target))return;releaseEmptyDraft();modal=null;selectedSlot=null;selectedLine=null;view=target;if(target==="history")historyDate=dayKey(now());render();window.scrollTo?.(0,0);}
+function undo(){
+  const order=current();if(!order||!canEdit())return;const previous=stackFor(order).pop();if(!previous)return;
+  mutateOrder(item=>{item.lines=previous.lines;item.name=previous.name;},{remember:false});selectedLine=null;render();toast(order.sentAt?"Cambio deshecho. Cocina también recibió la corrección.":"Último cambio deshecho");
+}
+function addProduct(id){
+  const product=data.catalog.find(item=>item.id===id);if(!product||!current())return;
+  selectedLine=null;
+  if(mutateOrder(order=>order.lines.push({id:uid(),productId:id,name:product.nombre,unitPrice:product.precio,qty:1,mods:[],note:"",permiteCombo:!!product.permiteCombo}))){$(".ticket-list")?.scrollTo?.({top:999999});toast(`${product.nombre} agregado${current().sentAt?" · Cocina avisada":""}`);}
+}
+function modifyLine(id,fn){if(findLine(id))mutateOrder(order=>fn(order.lines.find(line=>line.id===id)));}
+function removeLine(id){if(!findLine(id))return;selectedLine=null;mutateOrder(order=>{order.lines=order.lines.filter(line=>line.id!==id);});toast(current()?.sentAt?"Producto eliminado · Cancelación visible en Cocina":"Producto eliminado · Podés deshacer");}
+function changeQty(id,delta){const line=findLine(id);if(!line)return;if(line.qty+delta<=0)removeLine(id);else modifyLine(id,item=>item.qty+=delta);}
+function allowsCombo(line){return data.modifierCatalog.some(m=>m.id==="hacer-combo") && (line.permiteCombo ?? !!data.catalog.find(p=>p.id===line.productId)?.permiteCombo);}
+function toggleMod(lineId,modId){
+  const mod=data.modifierCatalog.find(item=>item.id===modId),line=findLine(lineId);if(!mod||!line||(modId==="hacer-combo"&&!allowsCombo(line)))return;
+  modifyLine(lineId,item=>{
+    if(item.mods.some(m=>m.id===modId)){item.mods=item.mods.filter(m=>m.id!==modId);return;}
+    const conflicts={"picante":["sin-picante"],"picante-suave":["sin-picante","sin-salsa"],"sin-picante":["picante","picante-suave"],"sin-salsa":data.modifierCatalog.filter(m=>m.grupo==="Salsas").map(m=>m.id).concat(["salsa-aparte","extra-salsa"])};
+    const remove=new Set(conflicts[modId]||[]);if(mod.grupo==="Salsas"||["salsa-aparte","extra-salsa"].includes(modId))remove.add("sin-salsa");
+    item.mods=item.mods.filter(m=>!remove.has(m.id));item.mods.push({id:mod.id,name:mod.nombre,price:mod.precio,description:mod.descripcion||""});
+  });
+}
+function splitLine(id){const line=findLine(id);if(!line||line.qty<2)return;const newId=uid();mutateOrder(order=>{const target=order.lines.find(item=>item.id===id);target.qty--;order.lines.splice(order.lines.indexOf(target)+1,0,{...deepCopy(target),id:newId,qty:1});});selectedLine=newId;render();toast("Unidad separada. Ahora podés cambiar solo esta.");}
+function sendKitchen(){
+  const order=current();if(!order||!canEdit()||order.sentAt)return;
+  if(!order.lines.length){toast("Primero agregá un producto.",true);return;}
+  const next=deepCopy(data),item=next.orders[selectedSlot];item.sentAt=now();item.pendingSinceAt=item.sentAt;item.sentSnapshot=deepCopy(item.lines);item.status="EN COCINA";
+  if(!commitData(next))return;render();beep();toast(`${numberLabel(item.number)} enviado a Cocina`);
+}
+function beep(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ctx=new AC(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.frequency.value=700;gain.gain.setValueAtTime(.0001,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.06,ctx.currentTime+.015);gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.13);osc.connect(gain).connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.14);osc.onended=()=>ctx.close();}catch{}}
+function markReady(id){
+  const order=data.orders[id];if(!order||order.status!=="EN COCINA"||!canEdit())return;
+  const next=deepCopy(data),item=next.orders[id];item.status="LISTO";item.readyAt=now();item.kitchenAck=item.kitchenEvents.length;item.preparedSnapshot=deepCopy(item.lines);
+  if(!commitData(next))return;render();toast(`${numberLabel(item.number)} · ${slotLabel(id)} LISTO`);
+}
+function kitchenNotice(target,order,reason){
+  const known=new Map();for(const line of order.sentSnapshot)known.set(line.id,line);
+  for(const event of order.kitchenEvents){if(event.before)known.set(event.before.id,event.before);if(event.after)known.set(event.after.id,event.after);}
+  for(const line of order.lines)known.set(line.id,line);
+  target.kitchenNotices.push({id:uid(),number:order.number,label:slotLabel(order.slot),name:order.name,at:now(),reason,lines:deepCopy([...known.values()])});
+}
+function deleteOrder(){const order=current();if(!order||!canEdit())return;const warning=order.sentAt?"\n\nYa fue enviado a Cocina. El cocinero verá un aviso de cancelación.":"";if(!confirm(`¿Seguro que querés eliminar el pedido completo de ${slotLabel(selectedSlot)}?${warning}`))return;const next=deepCopy(data);if(order.sentAt)kitchenNotice(next,order,"PEDIDO CANCELADO");delete next.orders[selectedSlot];if(!commitData(next))return;undoStacks.delete(order.number);selectedSlot=null;go("home");toast("Pedido eliminado. El número no se reutiliza.");}
+function openModal(type){focusBeforeModal=document.activeElement;modal=type;renderModal();}
+function closeModal(){modal=null;payment=null;renderModal();focusBeforeModal?.focus?.();}
+function startClose(){if(!current()?.lines.length){toast("Un pedido vacío no se puede cobrar.",true);return;}payment=null;openModal("payment");}
+function confirmClose(){
+  const order=current();if(!order||!order.lines.length||!payment||!canEdit())return;
+  if(order.status==="EN COCINA"&&!confirm("Este pedido todavía figura EN COCINA. ¿Querés cerrarlo igualmente?"))return;
+  if(!order.sentAt&&!confirm("Este pedido no fue enviado a Cocina. ¿Ya fue entregado y querés registrar el cobro?"))return;
+  const next=deepCopy(data);if(order.status==="EN COCINA")kitchenNotice(next,order,"CERRADO ANTES DE LISTO");
+  next.history.push({...deepCopy(order),label:slotLabel(order.slot),total:orderTotal(order),status:"CERRADO",payment,closedAt:now()});delete next.orders[selectedSlot];
+  if(!commitData(next))return;undoStacks.delete(order.number);selectedSlot=null;modal=null;go("home");toast(`${numberLabel(order.number)} cobrado · ${money(orderTotal(order))} · Lugar libre`);
+}
+function moveOrder(destination){
+  const order=current(),target=slotInfo(destination);if(!order||!canEdit())return;
+  if(!target||data.orders[destination]){toast("Ese lugar está ocupado. Elegí uno libre.",true);return;}
+  const next=deepCopy(data),item=next.orders[selectedSlot];delete next.orders[selectedSlot];item.movedFrom=slotLabel(selectedSlot);item.slot=destination;next.orders[destination]=item;
+  if(!commitData(next))return;selectedSlot=destination;modal=null;render();toast(`${numberLabel(item.number)} movido a ${target.label}`);
+}
+
+// Vistas. Cocina usa detalles sin importes; la caja muestra precios por unidad.
+function statusClass(status){return status==="EN COCINA"?"kitchen":status==="LISTO"?"ready":"open";}
+function timer(at){return `<span data-elapsed="${at}">${elapsed(at)}</span>`;}
+function render(){
+  const scroll=$(".ticket-list")?.scrollTop||0;
+  $("#main").innerHTML=view==="home"?renderHome():view==="order"?renderOrder():view==="kitchen"?renderKitchen():view==="history"?renderHistory():renderSettings();
+  const ticket=$(".ticket-list");if(ticket)ticket.scrollTop=scroll;
+  for(const name of ["home","kitchen","history","settings"]){const button=$("#nav-"+name);button.classList.toggle("active",view===name);if(view===name)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");}
+  renderStorage();renderModal();fitTicket();
+}
+function fitTicket(){const panel=$(".ticket-panel");if(panel&&window.innerWidth>=760&&window.innerHeight>=650)panel.style.maxHeight=Math.max(420,window.innerHeight-Math.max(12,panel.getBoundingClientRect().top)-12)+"px";}
+function pendingOrders(){return Object.values(data.orders).filter(o=>o.status==="EN COCINA").sort((a,b)=>(a.pendingSinceAt||a.sentAt)-(b.pendingSinceAt||b.sentAt));}
+function kitchenSummary(){
+  const pending=pendingOrders(),ready=Object.values(data.orders).filter(o=>o.status==="LISTO");
+  const content=pending.slice(0,3).map(o=>`<span>${numberLabel(o.number)} ${safe(slotLabel(o.slot))} · ${timer(o.pendingSinceAt||o.sentAt)}</span>`).concat(ready.slice(0,2).map(o=>`<span>${numberLabel(o.number)} ${safe(slotLabel(o.slot))} · <b>LISTO</b></span>`));
+  if(data.kitchenNotices.length)content.unshift(`<b class="notice-count">${data.kitchenNotices.length} aviso(s) por revisar</b>`);
+  return `<button class="summary" data-action="view" data-view="kitchen"><strong>COCINA · ${pending.length} pendiente(s)</strong><span class="summary-items">${content.join("")||"Sin pendientes"}</span><span class="summary-arrow">VER →</span></button>`;
+}
+function renderHome(){
+  const card=slot=>{const order=data.orders[slot.id];if(!order)return `<button class="slot" data-action="open" data-slot="${slot.id}"><div class="slot-top"><span class="slot-name">${safe(slot.label)}</span><span class="key">${slot.key}</span></div><span class="status free">LIBRE</span><span class="slot-bottom">Tocá para cargar un pedido</span></button>`;
+    return `<button class="slot ${statusClass(order.status)}" data-action="open" data-slot="${slot.id}"><div class="slot-top"><span class="slot-name">${safe(slot.label)}</span><span class="slot-number">${numberLabel(order.number)}</span></div>${order.name?`<div class="client">${safe(order.name)}</div>`:""}<div class="slot-amount">${money(orderTotal(order))}</div><span class="status ${statusClass(order.status)}">${order.status}</span><div class="slot-bottom"><span>${countItems(order)} productos · ${fmtTime(order.openedAt)}</span>${timer(order.openedAt)}</div></button>`;};
+  return `${kitchenSummary()}<div class="headline"><h1>Mesas / Pedidos</h1><button class="small-button" data-action="help">¿Primera vez? Cómo usar</button></div><div class="service-guide"><strong>1. Elegí un lugar</strong><span>2. Cargá y mandá a Cocina</span><span>3. Cocina marca LISTO</span><span>4. Cobrá y liberá</span></div><div class="legend"><span><i class="free"></i>Libre</span><span><i class="open"></i>Abierto · sin enviar</span><span><i class="kitchen"></i>En cocina</span><span><i class="ready"></i>Listo · falta cobrar</span></div><h2 class="section-title">Mesas · ${settings().cantidadMesas}</h2><div class="slot-grid">${slots().filter(s=>s.id[0]==="m").map(card).join("")}</div><h2 class="section-title">Sin mesa · para retirar, llevar o WhatsApp</h2><div class="slot-grid">${slots().filter(s=>s.id[0]==="p").map(card).join("")}</div>`;
+}
+function renderProductButton(product){return `<button class="product" data-action="add-product" data-product="${safe(product.id)}" aria-label="Agregar ${safe(product.nombre)} por ${money(product.precio)}"><span class="product-name">${safe(product.nombre)}</span><span class="product-meta"><span>${product.shortcut?`<span class="key">${safe(product.shortcut)}</span>`:""}</span><span>${money(product.precio)}</span></span></button>`;}
+function mobileOrderSwitch(order){return `<div class="mobile-order-switch" role="group" aria-label="Vista del pedido"><button data-action="order-pane" data-pane="menu" class="${mobileOrderPane==="menu"?"active":""}" aria-pressed="${mobileOrderPane==="menu"}">Carta<span class="pane-detail">Elegir productos</span></button><button data-action="order-pane" data-pane="ticket" class="${mobileOrderPane==="ticket"?"active":""}" aria-pressed="${mobileOrderPane==="ticket"}">Comanda<span class="pane-detail">${countItems(order)} productos · ${money(orderTotal(order))}</span></button></div>`;}
+function lineDetails(line,showPrices=true){return line.mods.map(mod=>`${safe(mod.name)}${showPrices&&mod.price?` +${money(mod.price)} c/u`:""}${mod.description?` · ${safe(mod.description)}`:""}`).concat(line.note?[`✎ ${safe(line.note)}`]:[]).join("<br>");}
+function renderEditor(line){
+  const groups=["Rápidos","Salsas",...(allowsCombo(line)?["Combo"]:[])];
+  return `<div class="edit-box"><h3>Cambios de esta línea</h3>${line.qty>1?`<p class="note">Se aplican a las <strong>${line.qty} unidades</strong>. Para cambiar solo una, separala primero.</p><button class="small-button" data-action="split-line" data-line="${line.id}">Separar 1 unidad para editar</button>`:`<p class="note">Solo afectan a este producto. Tocá un cambio marcado para quitarlo.</p>`}${groups.map(group=>`<div class="modifier-group"><strong>${group}</strong><div class="chip-row">${data.modifierCatalog.filter(mod=>mod.grupo===group).map(mod=>`<button class="chip ${line.mods.some(m=>m.id===mod.id)?"on":""}" aria-pressed="${line.mods.some(m=>m.id===mod.id)}" data-action="toggle-mod" data-line="${line.id}" data-mod="${safe(mod.id)}">${safe(mod.nombre)}${mod.precio?` +${money(mod.precio)} c/u`:""}</button>`).join("")}</div></div>`).join("")}<label for="line-note">Observación para Cocina</label><textarea id="line-note" data-line="${line.id}" rows="2" maxlength="500" placeholder="Ej.: bien dorado">${safe(line.note)}</textarea><div class="edit-actions"><span class="note">Se guarda mientras escribís.</span><button data-action="done-edit">Cerrar cambios</button></div></div>`;
+}
+function renderLine(line,index){
+  const combo=line.mods.some(m=>m.id==="hacer-combo"),open=selectedLine===line.id;
+  return `<div class="line ${open?"selected":""}" data-line-row="${line.id}"><div class="line-main"><span class="line-name">${line.qty} × ${safe(line.name)}</span><span class="line-price">${money(lineTotal(line))}</span></div><div class="line-meta">Línea ${index+1} · ${line.qty===1?"1 unidad":`${line.qty} unidades con los mismos cambios`}</div><div class="line-mods" data-line-details="${line.id}">${lineDetails(line)}</div><div class="line-controls"><button data-action="qty" data-line="${line.id}" data-delta="-1" aria-label="Quitar una unidad de ${safe(line.name)}">−</button><button data-action="qty" data-line="${line.id}" data-delta="1" aria-label="Sumar una unidad de ${safe(line.name)}">+</button><button data-action="edit-line" data-line="${line.id}" aria-expanded="${open}">Cambios / salsa</button>${allowsCombo(line)?`<button class="${combo?"combo-on":""}" data-action="toggle-mod" data-line="${line.id}" data-mod="hacer-combo" aria-pressed="${combo}">${combo?"✓ Combo":`+ Combo ${money(data.modifierCatalog.find(m=>m.id==="hacer-combo")?.precio||0)}`}</button>`:""}<button class="danger-text" data-action="remove-line" data-line="${line.id}">Eliminar línea</button></div>${open?renderEditor(line):""}</div>`;
+}
+function orderStatusHint(order){return order.sentAt&&!order.lines.length?"No quedan productos. Cocina conserva los avisos de cancelación. Usá Eliminar pedido completo para liberar el lugar.":!order.sentAt?"Todavía no está en Cocina. Revisá la comanda y mandala cuando esté completa.":order.status==="LISTO"?"Cocina terminó. Cuando cobres, cerrá el pedido para liberar el lugar.":"Cocina ya lo recibió. Cada cambio se avisa automáticamente; no hace falta reenviar.";}
+function renderOrder(){
+  const order=current();if(!order){view="home";return renderHome();}
+  const categories=[...new Set(data.catalog.map(p=>p.categoria))];
+  return `${kitchenSummary()}<div class="headline order-heading"><div><h1 class="order-title">${numberLabel(order.number)} · ${safe(slotLabel(order.slot))}<span id="order-customer">${order.name?` · ${safe(order.name)}`:""}</span></h1><div class="subtle">Abierto ${fmtTime(order.openedAt)} · ${timer(order.openedAt)} · <span class="status ${statusClass(order.status)}" id="order-status">${order.status}</span></div></div><button class="small-button" data-action="view" data-view="home">← Mesas / Pedidos</button></div>${order.slot[0]==="p"?`<div class="form-row customer-row"><label for="customer-name">Nombre del cliente (opcional)</label><input id="customer-name" maxlength="50" value="${safe(order.name)}" placeholder="Ej.: Juan" autocomplete="off"></div>`:""}${mobileOrderSwitch(order)}<div class="order-layout mobile-pane-${mobileOrderPane}"><section class="menu-panel" aria-label="Productos"><p class="note">Cada toque agrega 1 producto. Usá + en la comanda para repetirlo con los mismos cambios.</p>${categories.map(category=>`<div class="menu-category"><h2>${safe(category)}</h2><div class="product-grid">${data.catalog.filter(p=>p.categoria===category).map(renderProductButton).join("")}</div></div>`).join("")}</section><aside class="ticket-panel"><div class="ticket-head"><h2>${numberLabel(order.number)} · ${safe(slotLabel(order.slot))}</h2><span>${countItems(order)} productos</span></div><div class="ticket-list">${order.lines.length?order.lines.map(renderLine).join(""):`<div class="empty">Tocá un producto de la carta para empezar.<br>Un pedido vacío sin nombre se libera al volver.</div>`}</div><div class="ticket-footer"><p class="order-hint" id="order-hint">${orderStatusHint(order)}</p><div class="ticket-total"><span>TOTAL</span><span>${money(orderTotal(order))}</span></div>${!order.sentAt?`<button class="action-large primary" data-action="send" ${order.lines.length?"":"disabled"}>MANDAR A COCINA</button>`:`<button class="action-large" data-action="view" data-view="kitchen">VER EN COCINA →</button>`}<div class="action-row"><button class="success" data-action="close-start" ${order.lines.length?"":"disabled"}>COBRAR Y CERRAR</button><button data-action="undo" ${stackFor(order).length?"":"disabled"}>DESHACER</button></div><div class="separated secondary-actions"><button data-action="move-start">Mover pedido</button><button class="danger-text" data-action="delete-order">Eliminar pedido completo</button></div></div></aside></div>`;
+}
+
+function kitchenItem(line,tag="",cancelled=false){return `<div class="k-line ${cancelled?"cancelled-line":""}">${tag?`<span class="k-label ${tag==="CANCELADO"?"cancel":tag==="NUEVO"?"new":""}">${tag}</span>`:""}<div class="k-product">${line.qty} × ${safe(line.name)}</div>${line.mods.length||line.note?`<div class="k-mods">${lineDetails(line,false)}</div>`:""}</div>`;}
+function kitchenLines(order){
+  const events=order.kitchenEvents.slice(order.kitchenAck),latest=new Map();for(const event of events)latest.set((event.after||event.before).id,event);
+  let html=order.lines.map(line=>{const event=latest.get(line.id),prepared=order.preparedSnapshot.find(old=>old.id===line.id&&sameLine(old,line));return kitchenItem(line,event?.kind||((prepared&&order.status==="EN COCINA")?"YA PREPARADO":""));}).join("");
+  if(!order.lines.length)html='<p class="order-hint">Todos los productos fueron cancelados.</p>';
+  // El registro no se borra al editar de nuevo: el cocinero puede seguir cada corrección.
+  if(events.length)html+=`<section class="k-changes"><h3>CAMBIOS AVISADOS · ${events.length}</h3><p class="note">Son correcciones de la comanda de arriba, no productos adicionales.</p>${events.map(event=>`<div class="k-change"><span class="k-label ${event.kind==="CANCELADO"?"cancel":event.kind==="NUEVO"?"new":""}">${event.kind}</span> <time>${fmtTime(event.at)}</time>${event.before?`<div class="${event.kind==="CANCELADO"?"cancelled-line":"k-old"}">${event.kind==="MODIFICADO"?"Antes: ":""}${event.before.qty} × ${safe(event.before.name)}${lineDetails(event.before,false)?`<div class="k-mods">${lineDetails(event.before,false)}</div>`:""}</div>`:""}${event.after?`<div>${event.kind==="MODIFICADO"?"Ahora: ":""}${event.after.qty} × ${safe(event.after.name)}${lineDetails(event.after,false)?`<div class="k-mods">${lineDetails(event.after,false)}</div>`:""}</div>`:""}</div>`).join("")}</section>`;
+  return html;
+}
+function renderKitchen(){
+  const pending=pendingOrders(),ready=Object.values(data.orders).filter(o=>o.status==="LISTO").sort((a,b)=>b.readyAt-a.readyAt),last=Object.values(data.orders).find(o=>o.number===lastOpenNumber);
+  return `<div class="headline"><h1>COCINA · ${pending.length} pendiente(s)</h1>${last?`<button class="small-button" data-action="open" data-slot="${last.slot}">Volver a ${numberLabel(last.number)} · ${safe(slotLabel(last.slot))}</button>`:""}</div><p class="subtle">Prepará la comanda actual. Revisá los avisos antes de marcar LISTO.</p>${data.kitchenNotices.length?`<h2 class="section-title">Avisos que requieren atención</h2><div class="k-grid">${data.kitchenNotices.map(n=>`<article class="k-card alert"><div class="k-head">${numberLabel(n.number)} · ${safe(n.label)}${n.name?` · ${safe(n.name)}`:""}</div><div class="k-time">${safe(n.reason)} · ${fmtTime(n.at)}</div><p>Este pedido ya no está activo. Confirmá que viste el aviso.</p>${n.lines.map(line=>kitchenItem(line,"CANCELADO",true)).join("")}<button data-action="ack-notice" data-notice="${n.id}">VI EL AVISO · QUITAR</button></article>`).join("")}</div>`:""}<h2 class="section-title">En preparación · más antiguo primero</h2>${pending.length?`<div class="k-grid">${pending.map(order=>`<article class="k-card"><div class="k-head">${numberLabel(order.number)} · ${safe(slotLabel(order.slot))}${order.name?` · ${safe(order.name)}`:""}</div><div class="k-time">${timer(order.pendingSinceAt||order.sentAt)} · Enviado ${fmtTime(order.sentAt)}${order.movedFrom?`<br>Movido desde ${safe(order.movedFrom)}`:""}</div>${order.preparedSnapshot.length?'<p class="order-hint">Este pedido ya tuvo una preparación. Prepará los cambios nuevos; lo anterior aparece como YA PREPARADO.</p>':""}${kitchenLines(order)}<button class="success" data-action="ready" data-slot="${order.slot}">${order.lines.length?"MARCAR LISTO":"CANCELACIONES VISTAS"}</button></article>`).join("")}</div>`:'<div class="empty">No hay pedidos pendientes. Los pedidos aparecen acá cuando se mandan a Cocina.</div>'}<h2 class="section-title">Listos · pendientes de cobro</h2>${ready.length?`<div class="ready-list">${ready.map(order=>`<button class="ready-pill" data-action="open" data-slot="${order.slot}">${numberLabel(order.number)} · ${safe(slotLabel(order.slot))}${order.name?` · ${safe(order.name)}`:""} · LISTO ${fmtTime(order.readyAt)} →</button>`).join("")}</div>`:'<p class="subtle">Ningún pedido listo.</p>'}`;
+}
+function historyForDate(){return data.history.filter(order=>dayKey(order.closedAt)===historyDate).sort((a,b)=>b.closedAt-a.closedAt);}
+function renderHistory(){
+  const rows=historyForDate(),sales=rows.reduce((sum,o)=>sum+o.total,0),detail=data.history.find(o=>o.number===historyDetail);
+  return `<div class="headline"><h1>Historial de ventas</h1><label>Fecha <input id="history-date" type="date" value="${historyDate}"></label></div><div class="history-tools"><button data-action="history-today">Ver hoy</button><button data-action="export-csv">EXPORTAR ESTE DÍA · CSV</button><button data-action="export-backup">GUARDAR RESPALDO COMPLETO</button></div><div class="stats"><div class="stat">VENTAS DEL DÍA<strong>${money(sales)}</strong></div><div class="stat">PEDIDOS<strong>${rows.length}</strong></div><div class="stat">TICKET PROMEDIO<strong>${money(rows.length?Math.round(sales/rows.length):0)}</strong></div></div>${rows.length?`<div class="table-wrap"><table><thead><tr><th>NÚMERO / DETALLE</th><th>HORA DE CIERRE</th><th>MESA / PEDIDO</th><th>NOMBRE</th><th>TOTAL</th><th>PAGO</th></tr></thead><tbody>${rows.map(o=>`<tr><td><button class="history-link" data-action="history-detail" data-number="${o.number}">${numberLabel(o.number)} · Ver detalle</button></td><td>${fmtTime(o.closedAt)}</td><td>${safe(o.label||slotLabel(o.slot))}</td><td>${safe(o.name)}</td><td>${money(o.total)}</td><td>${safe(o.payment)}</td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No hay pedidos cerrados en esta fecha.</div>'}${detail?`<section class="history-detail" tabindex="-1"><div class="headline"><h2>${numberLabel(detail.number)} · ${safe(detail.label||slotLabel(detail.slot))}${detail.name?` · ${safe(detail.name)}`:""}</h2><button class="small-button" data-action="hide-history">Cerrar detalle</button></div><p class="subtle">${fmtDate(detail.closedAt)} · ${fmtTime(detail.closedAt)} · ${safe(detail.payment)} · Solo lectura</p>${detail.lines.map(line=>`<div class="line"><div class="line-main"><strong>${line.qty} × ${safe(line.name)}</strong><strong>${money(lineTotal(line))}</strong></div><div class="line-mods">${lineDetails(line)}</div></div>`).join("")}<div class="ticket-total"><span>TOTAL</span><span>${money(detail.total)}</span></div></section>`:""}`;
+}
+function renderSettings(){return `<div class="headline"><h1>Respaldo y configuración</h1></div><section class="settings-panel"><h2>Al terminar el turno</h2><p>Tocá <strong>Guardar respaldo</strong>. Se descarga un archivo con todos los pedidos, ventas y precios. Guardalo donde puedas encontrarlo después.</p><button class="primary" data-action="export-backup">GUARDAR RESPALDO · JSON</button><p class="note">Los datos se guardan solo en este dispositivo. Usá siempre el mismo navegador o el mismo ícono instalado. No uses una ventana privada.</p><h2>Recuperar un respaldo</h2><p>Elegí un respaldo JSON anterior. Verás cuántos pedidos y ventas contiene antes de confirmar el reemplazo.</p><button data-action="import-start">ELEGIR RESPALDO PARA RECUPERAR</button><h2>Ayuda para quien cubre el turno</h2><button data-action="help">CÓMO USAR · GUÍA RÁPIDA</button><h2>Usar en el teléfono</h2><p>En Android, elegí Instalar aplicación desde el menú del navegador. En iPhone, abrí esta página en Safari y tocá Compartir → Agregar a pantalla de inicio. Abrila una vez con internet para usarla después sin conexión.</p><details class="maintenance"><summary>Carta y mantenimiento</summary><p>La carta y los atajos están al comienzo del JavaScript de index.html. Después de editar el archivo, aplicá la carta. Los productos ya cargados conservan sus precios.</p><p>${data.catalog.length} productos · ${settings().cantidadMesas} mesas · ${settings().cantidadPedidosSinMesa} pedidos sin mesa</p><button data-action="restore-catalog">APLICAR CARTA DEL ARCHIVO</button><hr><p>Borrar los datos elimina pedidos y ventas. Guardá un respaldo antes de hacerlo.</p><button class="danger" data-action="reset">BORRAR TODOS LOS DATOS</button></details></section>`;}
+
+function helpContent(){return `<h2 id="dialog-title">Cómo atender con KEBBA</h2><ol class="help-steps"><li><strong>Elegí el lugar.</strong> Una Mesa para quien se sienta; Pedido A–J para retirar, llevar o WhatsApp. Podés anotar el nombre.</li><li><strong>Cargá la comanda.</strong> Cada producto suma una unidad. + repite la línea con sus cambios. “Cambios / salsa” permite personalizarla y “+ Combo” agrega papas y Coca-Cola.</li><li><strong>Mandá a Cocina.</strong> Antes del envío nadie está preparando el pedido. Después, los cambios y cancelaciones se avisan automáticamente.</li><li><strong>Prepará y marcá LISTO.</strong> En Cocina aparecen los pedidos más antiguos primero. Revisá también los avisos NUEVO, MODIFICADO y CANCELADO.</li><li><strong>Cobrá y cerrá.</strong> Abrí el pedido, tocá “Cobrar y cerrar”, elegí cómo pagó el cliente y confirmá. El lugar queda libre y la venta pasa al historial.</li></ol><p class="order-hint"><strong>Si te equivocás:</strong> usá Deshacer. Para trasladar una comanda usá Mover pedido y elegí un lugar libre. Al terminar el turno, guardá un respaldo desde Configuración.</p><details><summary>Atajos de teclado (opcionales)</summary><p><strong>${safe(shortcuts.cambiarMesas)}</strong> Mesas / Pedidos · <strong>${safe(shortcuts.cambiarCocina)}</strong> Cocina · <strong>Esc</strong> volver · <strong>${safe(shortcuts.ayuda)}</strong> ayuda · <strong>F11</strong> pantalla completa · <strong>Ctrl+${safe(shortcuts.deshacer.toUpperCase())}</strong> deshacer</p><p>Desde Mesas / Pedidos: 1–9 abre las mesas y A–J abre los pedidos sin mesa. En la comanda, cada botón muestra su tecla. Mientras escribís un nombre u observación, las letras no agregan productos.</p></details><div class="modal-actions"><button class="primary" data-action="modal-close">ENTENDIDO · VOLVER</button></div>`;}
+function renderModal(){
+  const root=$("#modal-root"),wasOpen=root.childElementCount>0;let content="";
+  if(modal==="payment"&&current()){
+    const order=current(),methods=["Efectivo","Débito","Crédito","Transferencia","Otro"];
+    content=`<h2 id="dialog-title">Cobrar ${numberLabel(order.number)} · ${safe(slotLabel(order.slot))}</h2><div class="ticket-total"><span>TOTAL</span><span>${money(orderTotal(order))}</span></div><p>Elegí cómo pagó el cliente. Confirmá después de recibir el pago.</p><div class="pay-grid">${methods.map(method=>`<button aria-pressed="${payment===method}" class="${payment===method?"on":""}" data-action="payment" data-payment="${method}">${method.toUpperCase()}</button>`).join("")}</div><p class="order-hint">${order.status==="EN COCINA"?"Este pedido sigue EN COCINA. Si lo cerrás ahora, el cocinero recibirá un aviso.":!order.sentAt?"Este pedido todavía no fue enviado a Cocina.":"Al confirmar, se registra la venta y se libera el lugar."}</p><div class="modal-actions"><button data-action="modal-close">VOLVER SIN CERRAR</button><button class="success" data-action="close-confirm" ${payment?"":"disabled"}>CONFIRMAR COBRO Y LIBERAR</button></div>`;
+  }else if(modal==="move"&&current())content=`<h2 id="dialog-title">Mover ${numberLabel(current().number)} · ${safe(slotLabel(selectedSlot))}</h2><p>Elegí el nuevo lugar. Solo se muestran destinos libres; la comanda y el número se conservan.</p><div class="chip-row">${slots().filter(s=>s.id!==selectedSlot&&!data.orders[s.id]).map(s=>`<button class="chip" data-action="move-confirm" data-destination="${s.id}">${safe(s.label)}</button>`).join("")||"No hay lugares libres."}</div><div class="modal-actions"><button data-action="modal-close">VOLVER SIN MOVER</button></div>`;
+  else if(modal==="help")content=helpContent();
+  if(!content){root.innerHTML="";$(".app").inert=false;return;}
+  const focused=document.activeElement?.dataset?.payment;
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal ${modal==="help"?"help-modal":""}" role="dialog" aria-modal="true" aria-labelledby="dialog-title" tabindex="-1">${content}</div></div>`;$(".app").inert=true;
+  if(!wasOpen)root.querySelector(".modal")?.focus();else if(focused)[...root.querySelectorAll("[data-payment]")].find(b=>b.dataset.payment===focused)?.focus();
+}
+
+function csvValue(value){let text=String(value??"");if(/^[=+@\-\t\r]/.test(text))text="'"+text;return `"${text.replace(/"/g,'""')}"`;}
+async function download(text,filename,type){
+  const blob=new Blob([text],{type});
+  if(window.matchMedia?.("(pointer: coarse)")?.matches&&typeof File!=="undefined"&&typeof navigator!=="undefined"&&navigator.canShare&&navigator.share){
+    const file=new File([blob],filename,{type});
+    try{if(navigator.canShare({files:[file]})){await navigator.share({files:[file],title:filename});return true;}}
+    catch(error){if(error?.name==="AbortError")return false;}
+  }
+  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);return true;
+}
+function buildDayCsv(){const headers=["Número de pedido","Fecha","Hora apertura","Hora cocina","Hora listo","Hora cierre","Mesa/Pedido","Nombre","Productos","Total","Forma de pago"],rows=historyForDate().map(o=>[numberLabel(o.number),fmtDate(o.closedAt),fmtTime(o.openedAt),fmtTime(o.sentAt),fmtTime(o.readyAt),fmtTime(o.closedAt),o.label||slotLabel(o.slot),o.name,o.lines.map(line=>`${line.qty} x ${line.name}${line.mods.length?" ["+line.mods.map(m=>m.name+(m.description?" · "+m.description:"")).join("; ")+"]":""}${line.note?" ("+line.note+")":""}`).join(" | "),o.total,o.payment]);return "\ufeff"+[headers,...rows].map(row=>row.map(csvValue).join(",")).join("\r\n");}
+async function exportDay(){if(await download(buildDayCsv(),`kebba-dia-${historyDate}.csv`,"text/csv;charset=utf-8"))toast("CSV listo. Guardalo en el dispositivo.");}
+async function exportBackup(){if(await download(recoveryRaw||JSON.stringify(data,null,2),`kebba-${recoveryRaw?"datos-a-recuperar":"respaldo"}-${dayKey(now())}-${fmtTime(now()).replace(":","")}.json`,"application/json"))toast("Copia lista. Guardala para poder recuperar los datos.");}
+function resetAll(){if(!confirm("Esta acción borrará pedidos activos e historial. ¿Seguro?"))return;if(prompt("Para confirmar, escribí BORRAR en mayúsculas:")!=="BORRAR")return;if(!commitData(emptyData(),{replaceBlocked:true}))return;undoStacks.clear();selectedSlot=null;historyDetail=null;modal=null;go("home");toast("Datos borrados");}
+function restoreCatalog(){
+  if(!canEdit())return;const next=deepCopy(data),newSettings={nombreLocal:CONFIG.nombreLocal,cantidadMesas:CONFIG.cantidadMesas,cantidadPedidosSinMesa:CONFIG.cantidadPedidosSinMesa};
+  const valid=new Set(slotsFor(newSettings).map(s=>s.id));if(Object.keys(next.orders).some(slot=>!valid.has(slot))){toast("Primero mové o cerrá los pedidos en los lugares que vas a quitar.",true);return;}
+  if(!confirm("¿Aplicar los productos y precios definidos en este archivo? Los productos ya cargados conservarán sus precios."))return;
+  next.catalog=deepCopy(productos);next.modifierCatalog=deepCopy(modificadores);next.settings=newSettings;if(commitData(next)){render();toast("Carta actualizada");}
+}
+function importData(imported){if(!commitData(imported,{replaceBlocked:true}))return false;undoStacks.clear();selectedSlot=null;selectedLine=null;historyDetail=null;modal=null;go("home");toast("Respaldo recuperado correctamente");return true;}
+function handleAction(element,event){
+  const action=element.dataset.action;
+  // La identidad se conserva aunque un render sustituya el botón entre dos clics.
+  const key=JSON.stringify(element.dataset),time=now();
+  if(event.detail>1||((action==="add-product"||action==="send"||action==="close-confirm"||action==="move-confirm")&&lastActivation.key===key&&time-lastActivation.at<250))return;
+  lastActivation={key,at:time};
+  switch(action){
+    case "view":go(element.dataset.view);break;
+    case "order-pane":if(["menu","ticket"].includes(element.dataset.pane)){mobileOrderPane=element.dataset.pane;render();window.scrollTo?.(0,0);}break;
+    case "open":openSlot(element.dataset.slot);break;
+    case "add-product":addProduct(element.dataset.product);break;
+    case "qty":changeQty(element.dataset.line,Number(element.dataset.delta));break;
+    case "edit-line":selectedLine=selectedLine===element.dataset.line?null:element.dataset.line;render();if(selectedLine)$(".edit-box")?.scrollIntoView?.({block:"nearest"});break;
+    case "done-edit":selectedLine=null;render();break;
+    case "remove-line":removeLine(element.dataset.line);break;
+    case "split-line":splitLine(element.dataset.line);break;
+    case "toggle-mod":toggleMod(element.dataset.line,element.dataset.mod);break;
+    case "send":sendKitchen();break;
+    case "ready":markReady(element.dataset.slot);break;
+    case "undo":undo();break;
+    case "delete-order":deleteOrder();break;
+    case "close-start":startClose();break;
+    case "close-confirm":confirmClose();break;
+    case "payment":payment=element.dataset.payment;renderModal();break;
+    case "move-start":openModal("move");break;
+    case "move-confirm":moveOrder(element.dataset.destination);break;
+    case "modal-close":closeModal();break;
+    case "history-detail":historyDetail=Number(element.dataset.number);render();$(".history-detail")?.focus();$(".history-detail")?.scrollIntoView?.({block:"nearest"});break;
+    case "hide-history":historyDetail=null;render();break;
+    case "history-today":historyDate=dayKey(now());historyDetail=null;render();break;
+    case "ack-notice":{const next=deepCopy(data);next.kitchenNotices=next.kitchenNotices.filter(n=>n.id!==element.dataset.notice);if(commitData(next))render();break;}
+    case "export-csv":exportDay();break;
+    case "export-backup":exportBackup();break;
+    case "import-start":$("#import-file").click();break;
+    case "reset":resetAll();break;
+    case "restore-catalog":restoreCatalog();break;
+    case "help":openModal("help");break;
+    case "retry-save":if(save())toast("Cambios guardados correctamente");break;
+    case "reload":window.location.reload();break;
+    case "fullscreen":if(!document.fullscreenElement){if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>toast("Usá F11 para pantalla completa.",true));else toast("Usá F11 para pantalla completa.");}else document.exitFullscreen?.().catch(()=>{});break;
+  }
+}
+document.addEventListener("click",event=>{const element=event.target.closest("[data-action]");if(element&&!element.disabled)handleAction(element,event);});
+document.addEventListener("focusin",event=>{if(["customer-name","line-note"].includes(event.target.id))inputSession=null;});
+document.addEventListener("input",event=>{
+  const input=event.target,order=current();if(!order||!["customer-name","line-note"].includes(input.id)||!canEdit())return;
+  const line=input.id==="line-note"?findLine(input.dataset.line):null;if(input.id==="line-note"&&!line)return;
+  const previous=line?line.note:order.name;if(previous===input.value)return;
+  if(!inputSession||inputSession.element!==input){pushUndo(order);inputSession={element:input,before:line?deepCopy(line):null,eventIndex:null};}
+  if(line){
+    line.note=input.value;
+    // Una sola revisión por edición de texto: se actualiza mientras escribe, sin perder foco.
+    if(order.sentAt){const change={kind:"MODIFICADO",before:inputSession.before,after:deepCopy(line),at:now()};if(inputSession.eventIndex==null){inputSession.eventIndex=order.kitchenEvents.length;order.kitchenEvents.push(change);}else order.kitchenEvents[inputSession.eventIndex]=change;if(order.status==="LISTO"){order.status="EN COCINA";order.readyAt=null;order.pendingSinceAt=now();}}
+    const details=[...document.querySelectorAll("[data-line-details]")].find(el=>el.dataset.lineDetails===line.id);if(details)details.innerHTML=lineDetails(line);
+  }else{order.name=input.value;const name=$("#order-customer");if(name)name.textContent=order.name?` · ${order.name}`:"";}
+  save();const undoButton=document.querySelector('[data-action="undo"]');if(undoButton)undoButton.disabled=false;
+  const status=$("#order-status");if(status){status.textContent=order.status;status.className="status "+statusClass(order.status);}const hint=$("#order-hint");if(hint)hint.textContent=orderStatusHint(order);
+});
+document.addEventListener("change",event=>{if(event.target.id==="history-date"&&/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)){historyDate=event.target.value;historyDetail=null;render();}});
+$("#import-file").addEventListener("change",async event=>{
+  const file=event.target.files?.[0];event.target.value="";if(!file)return;
+  try{const imported=validateImport(JSON.parse(await file.text()));if(!confirm(`Este respaldo contiene ${Object.keys(imported.orders).length} pedidos activos y ${imported.history.length} ventas.\n\n¿Recuperarlo? Reemplazará los datos actuales. Guardá un respaldo actual antes de continuar si los necesitás.`))return;importData(imported);}catch{toast("No se pudo recuperar: el archivo no es un respaldo válido de KEBBA. Los datos actuales siguen intactos.",true);}
+});
+document.addEventListener("keydown",event=>{
+  if(event.isComposing)return;
+  if(modal){
+    if(event.key==="Escape"){event.preventDefault();closeModal();}
+    if(event.key==="Tab"){const items=[...$("#modal-root").querySelectorAll('button:not(:disabled),input,select,textarea,summary,[tabindex="0"]')],first=items[0],last=items.at(-1);if(event.shiftKey&&(document.activeElement===first||document.activeElement?.classList.contains("modal"))){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}
+    if([shortcuts.cambiarMesas,shortcuts.cambiarCocina].includes(event.key))event.preventDefault();return;
+  }
+  if(event.key===shortcuts.cambiarMesas||event.key===shortcuts.cambiarCocina){event.preventDefault();go(event.key===shortcuts.cambiarMesas?"home":"kitchen");return;}
+  if(event.key==="Escape"){event.preventDefault();if(selectedLine){selectedLine=null;render();}else if(view!=="home")go("home");return;}
+  const typing=event.target.isContentEditable||["INPUT","TEXTAREA","SELECT"].includes(event.target.tagName);if(typing)return;
+  if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()===shortcuts.deshacer.toLowerCase()&&view==="order"){event.preventDefault();if(!event.repeat)undo();return;}
+  if(event.ctrlKey||event.metaKey||event.altKey||event.repeat)return;
+  if(event.key===shortcuts.ayuda){event.preventDefault();openModal("help");return;}
+  const key=event.key.toUpperCase();if(view==="home"){const slot=slots().find(s=>s.key===key);if(slot){event.preventDefault();openSlot(slot.id);}}else if(view==="order"){const product=data.catalog.find(p=>p.shortcut&&p.shortcut.toUpperCase()===key);if(product){event.preventDefault();addProduct(product.id);}}
+});
+window.addEventListener("storage",event=>{if(event.key===CONFIG.almacenamiento&&event.newValue!==savedRaw){storageConflict=true;storageWarning="Otra ventana cambió los pedidos. Guardá una copia si tenés cambios acá y recargá para continuar.";renderStorage();}});
+window.addEventListener("beforeunload",event=>{if(storageWarning&&!readBlocked){event.preventDefault();event.returnValue="";}});
+window.addEventListener("resize",fitTicket);
+window.addEventListener("scroll",fitTicket,{passive:true});
+// Actualiza solamente relojes: no recrea botones, no mueve el foco y no escribe datos.
+setInterval(()=>document.querySelectorAll("[data-elapsed]").forEach(el=>{el.textContent=elapsed(Number(el.dataset.elapsed));}),15000);
+render();
+if(typeof navigator!=="undefined"&&"serviceWorker" in navigator&&["https:","http:"].includes(window.location.protocol))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+
+</script>
+</body>
+</html>
