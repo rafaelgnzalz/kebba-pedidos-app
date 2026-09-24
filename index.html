@@ -67,6 +67,14 @@ button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{co
 
 // CONFIGURACIÓN CENTRAL: editar esta sección para cambiar carta, precios y atajos.
 const CONFIG = { nombreLocal: "KEBBA", cantidadMesas: 9, cantidadPedidosSinMesa: 10, dataVersion: 1, almacenamiento: "kebba-pedidos-v1", comboPrecio: 50, comboDescripcion: "Papas fritas + Coca-Cola" };
+// La clave publicable identifica la app; el acceso a los pedidos requiere el token del enlace.
+const SHARED_CONFIG = { url: "https://rlkbzqorlwpqfhuphuje.supabase.co", publishableKey: "sb_publishable_w_eTGTtzexFMnVPPCIGrGA_zuCu72tP" };
+const SHARED_TOKEN_KEY = "kebba-shared-token-v1";
+const sharedTokenMatch=(window.location?.hash||"").match(/(?:^#|&)clave=([0-9a-f]{64})(?:&|$)/);
+let sharedToken=sharedTokenMatch?.[1]||null;
+if(!sharedToken){try{sharedToken=localStorage.getItem(SHARED_TOKEN_KEY);}catch{}}
+const sharedMode = !!sharedToken && !SHARED_CONFIG.url.startsWith("__");
+if(sharedMode){try{localStorage.setItem(SHARED_TOKEN_KEY,sharedToken);}catch{}}
 const productos = [
   {id:"shawarma-pollo",categoria:"Shawarmas",nombre:"Shawarma Pollo",precio:260,shortcut:"Q",permiteCombo:true},
   {id:"shawarma-carne",categoria:"Shawarmas",nombre:"Shawarma Carne",precio:290,shortcut:"W",permiteCombo:true},
@@ -189,7 +197,9 @@ function validateImport(raw){
 }
 
 let savedRaw=null,storageWarning="",recoveryRaw=null,readBlocked=false,storageConflict=false;
+let sharedReady=false,sharedVersion=0,sharedBase=null,sharedPending=null,sharedWriting=false;
 function loadData(){
+  if(sharedMode){readBlocked=true;storageWarning="Conectando con los pedidos compartidos…";return emptyData();}
   try{savedRaw=localStorage.getItem(CONFIG.almacenamiento);return savedRaw?validateImport(JSON.parse(savedRaw)):emptyData();}
   catch{recoveryRaw=savedRaw;readBlocked=!!savedRaw;storageWarning=readBlocked?"No pudimos leer los datos guardados. Se conservaron sin cambios. Importá un respaldo desde Configuración para recuperarlos.":"El navegador no permite guardar. Exportá un respaldo antes de salir y revisá su configuración.";return emptyData();}
 }
@@ -202,8 +212,21 @@ const slotInfo=id=>slots().find(slot=>slot.id===id);
 const current=()=>selectedSlot?data.orders[selectedSlot]:null;
 const findLine=id=>current()?.lines.find(line=>line.id===id);
 const stackFor=order=>{if(!undoStacks.has(order.number))undoStacks.set(order.number,[]);return undoStacks.get(order.number);};
-function renderStorage(){const el=$("#storage-status");if(!el)return;el.innerHTML=storageWarning?`<div class="storage-alert" role="alert"><strong>${safe(storageWarning)}</strong><div><button data-action="export-backup">Guardar copia ahora</button>${storageConflict?`<button data-action="reload">Recargar</button>`:readBlocked?`<button data-action="view" data-view="settings">Recuperar datos</button>`:`<button data-action="retry-save">Reintentar guardado</button>`}</div></div>`:`<span class="saved-indicator">● Guardado automático en este dispositivo</span>`;}
+function renderStorage(){
+  const el=$("#storage-status");if(!el)return;
+  const subtitle=$(".topbar>.subtle");if(subtitle&&sharedMode)subtitle.textContent="PEDIDOS · SISTEMA COMPARTIDO";
+  if(sharedMode){
+    el.innerHTML=storageWarning?`<div class="storage-alert" role="alert"><strong>${safe(storageWarning)}</strong><div>${sharedReady?`<button data-action="export-backup">Guardar copia ahora</button>`:""}${storageConflict?`<button data-action="reload">Recargar</button>`:`<button data-action="retry-save">Reintentar conexión</button>`}</div></div>`:`<span class="saved-indicator">● ${sharedWriting||sharedPending?"Guardando para todos…":"Sincronizado entre dispositivos"}</span>`;
+    return;
+  }
+  el.innerHTML=storageWarning?`<div class="storage-alert" role="alert"><strong>${safe(storageWarning)}</strong><div><button data-action="export-backup">Guardar copia ahora</button>${storageConflict?`<button data-action="reload">Recargar</button>`:readBlocked?`<button data-action="view" data-view="settings">Recuperar datos</button>`:`<button data-action="retry-save">Reintentar guardado</button>`}</div></div>`:`<span class="saved-indicator">● Guardado en este dispositivo · No compartido ${window.location?.protocol==="https:"?`<button data-action="view" data-view="settings">Conectar al espacio compartido</button>`:""}</span>`;
+}
 function persist(next,{replaceBlocked=false}={}){
+  if(sharedMode){
+    if(!sharedReady||storageConflict||readBlocked){renderStorage();return false;}
+    for(const order of Object.values(next.orders))order.total=orderTotal(order);
+    sharedPending=deepCopy(next);readBlocked=false;storageWarning="";renderStorage();void flushShared();return true;
+  }
   if((readBlocked||storageConflict)&&!replaceBlocked){renderStorage();return false;}
   try{
     const existing=localStorage.getItem(CONFIG.almacenamiento);
@@ -215,6 +238,103 @@ function persist(next,{replaceBlocked=false}={}){
 function save(){return persist(data);}
 function commitData(next,options){if(!persist(next,options)){toast("No se completó la acción porque no se pudo guardar.",true);return false;}data=next;return true;}
 function canEdit(){if(readBlocked||storageConflict){toast("Revisá el aviso de guardado antes de continuar.",true);return false;}return true;}
+async function sharedRpc(name,body){
+  const response=await fetch(`${SHARED_CONFIG.url}/rest/v1/rpc/${name}`,{method:"POST",headers:{apikey:SHARED_CONFIG.publishableKey,"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const payload=await response.json().catch(()=>null);
+  if(!response.ok)throw Error(payload?.message||`Error de conexión (${response.status})`);
+  return payload;
+}
+function applySharedState(snapshot){
+  data=validateImport(deepCopy(snapshot.state));sharedVersion=snapshot.version;sharedReady=true;
+  sharedBase=deepCopy(data);
+  readBlocked=false;storageWarning="";storageConflict=false;undoStacks.clear();
+  if(selectedSlot&&!data.orders[selectedSlot]){selectedSlot=null;selectedLine=null;modal=null;view="home";}
+  render();
+}
+function mergeSharedState(base,local,remote){
+  if(!base)return null;
+  const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),merged=deepCopy(remote);
+  for(const key of ["nextNumber","history","kitchenNotices","catalog","modifierCatalog","settings"]){
+    if(!same(local[key],base[key])){
+      if(!same(remote[key],base[key]))return null;
+      merged[key]=deepCopy(local[key]);
+    }
+  }
+  const keys=new Set([...Object.keys(base.orders),...Object.keys(local.orders)]);
+  for(const key of keys){
+    if(!same(local.orders[key],base.orders[key])){
+      if(!same(remote.orders[key],base.orders[key]))return null;
+      if(local.orders[key]===undefined)delete merged.orders[key];
+      else merged.orders[key]=deepCopy(local.orders[key]);
+    }
+  }
+  try{return validateImport(merged);}catch{return null;}
+}
+async function rebaseShared(){
+  const latest=await sharedRpc("kebba_read",{access_token:sharedToken});
+  const remote=validateImport(deepCopy(latest.state));
+  const merged=mergeSharedState(sharedBase,data,remote);
+  if(!merged)return false;
+  sharedVersion=latest.version;sharedBase=remote;data=merged;sharedPending=deepCopy(merged);
+  storageWarning="";readBlocked=false;render();return true;
+}
+async function refreshShared(){
+  if(sharedWriting||sharedPending||document.activeElement?.id==="customer-name"||document.activeElement?.id==="line-note")return;
+  try{
+    const snapshot=await sharedRpc("kebba_read",{access_token:sharedToken});
+    if(sharedWriting||sharedPending)return;
+    if(snapshot.state===null){
+      const initial=emptyData();
+      const created=await sharedRpc("kebba_write",{access_token:sharedToken,expected_version:snapshot.version,next_state:initial});
+      if(!created.ok){void refreshShared();return;}
+      applySharedState({version:created.version,state:initial});return;
+    }
+    if(!sharedReady||snapshot.version!==sharedVersion)applySharedState(snapshot);
+    else if(readBlocked){readBlocked=false;storageWarning="";renderStorage();}
+  }catch(error){
+    readBlocked=true;
+    storageWarning=error.message.includes("inválido")?"El enlace compartido no es válido. Pedí uno nuevo.":"No hay conexión con los pedidos compartidos. Reintentá antes de trabajar.";
+    renderStorage();
+  }
+}
+async function flushShared(){
+  if(sharedWriting||!sharedPending||storageConflict||!sharedReady)return;
+  const snapshot=sharedPending,expected=sharedVersion;sharedPending=null;sharedWriting=true;renderStorage();
+  try{
+    const result=await sharedRpc("kebba_write",{access_token:sharedToken,expected_version:expected,next_state:snapshot});
+    if(!result.ok){
+      if(await rebaseShared())return;
+      storageConflict=true;storageWarning="Otro dispositivo cambió los pedidos al mismo tiempo. Guardá una copia de esta pantalla y recargá para revisar los datos más recientes.";
+      renderStorage();return;
+    }
+    sharedVersion=result.version;sharedBase=validateImport(deepCopy(snapshot));readBlocked=false;storageWarning="";
+  }catch{
+    try{
+      const latest=await sharedRpc("kebba_read",{access_token:sharedToken});
+      if(latest.version===expected+1&&JSON.stringify(latest.state)===JSON.stringify(snapshot)){
+        sharedVersion=latest.version;readBlocked=false;storageWarning="";
+      }else if(latest.version===expected){
+        sharedPending=deepCopy(data);readBlocked=true;
+        storageWarning="No pudimos guardar los últimos cambios. Dejá esta pantalla abierta, guardá una copia y reintentá.";
+      }else{
+        if(!await rebaseShared()){
+          storageConflict=true;storageWarning="No pudimos confirmar el guardado y otro dispositivo cambió los datos. Guardá una copia y recargá para revisar.";
+        }
+      }
+    }catch{
+      sharedPending=deepCopy(data);readBlocked=true;
+      storageWarning="Sin conexión. Hay cambios sin guardar para los demás. Dejá esta pantalla abierta, guardá una copia y reintentá.";
+    }
+  }finally{
+    sharedWriting=false;renderStorage();
+    if(sharedPending&&!readBlocked&&!storageConflict)void flushShared();
+  }
+}
+function retryShared(){
+  if(!sharedMode)return;
+  if(sharedPending&&sharedReady){readBlocked=false;storageWarning="";void flushShared();}
+  else void refreshShared();
+}
 function toast(message,error=false){const el=$("#toast");el.textContent=message;el.className="toast"+(error?" error":"");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add("hidden"),3800);}
 function pushUndo(order){const stack=stackFor(order);stack.push({lines:deepCopy(order.lines),name:order.name});if(stack.length>25)stack.shift();}
 function recordKitchenChanges(order,before){
@@ -354,7 +474,12 @@ function renderHistory(){
   const rows=historyForDate(),sales=rows.reduce((sum,o)=>sum+o.total,0),detail=data.history.find(o=>o.number===historyDetail);
   return `<div class="headline"><h1>Historial de ventas</h1><label>Fecha <input id="history-date" type="date" value="${historyDate}"></label></div><div class="history-tools"><button data-action="history-today">Ver hoy</button><button data-action="export-csv">EXPORTAR ESTE DÍA · CSV</button><button data-action="export-backup">GUARDAR RESPALDO COMPLETO</button></div><div class="stats"><div class="stat">VENTAS DEL DÍA<strong>${money(sales)}</strong></div><div class="stat">PEDIDOS<strong>${rows.length}</strong></div><div class="stat">TICKET PROMEDIO<strong>${money(rows.length?Math.round(sales/rows.length):0)}</strong></div></div>${rows.length?`<div class="table-wrap"><table><thead><tr><th>NÚMERO / DETALLE</th><th>HORA DE CIERRE</th><th>MESA / PEDIDO</th><th>NOMBRE</th><th>TOTAL</th><th>PAGO</th></tr></thead><tbody>${rows.map(o=>`<tr><td><button class="history-link" data-action="history-detail" data-number="${o.number}">${numberLabel(o.number)} · Ver detalle</button></td><td>${fmtTime(o.closedAt)}</td><td>${safe(o.label||slotLabel(o.slot))}</td><td>${safe(o.name)}</td><td>${money(o.total)}</td><td>${safe(o.payment)}</td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No hay pedidos cerrados en esta fecha.</div>'}${detail?`<section class="history-detail" tabindex="-1"><div class="headline"><h2>${numberLabel(detail.number)} · ${safe(detail.label||slotLabel(detail.slot))}${detail.name?` · ${safe(detail.name)}`:""}</h2><button class="small-button" data-action="hide-history">Cerrar detalle</button></div><p class="subtle">${fmtDate(detail.closedAt)} · ${fmtTime(detail.closedAt)} · ${safe(detail.payment)} · Solo lectura</p>${detail.lines.map(line=>`<div class="line"><div class="line-main"><strong>${line.qty} × ${safe(line.name)}</strong><strong>${money(lineTotal(line))}</strong></div><div class="line-mods">${lineDetails(line)}</div></div>`).join("")}<div class="ticket-total"><span>TOTAL</span><span>${money(detail.total)}</span></div></section>`:""}`;
 }
-function renderSettings(){return `<div class="headline"><h1>Respaldo y configuración</h1></div><section class="settings-panel"><h2>Al terminar el turno</h2><p>Tocá <strong>Guardar respaldo</strong>. Se descarga un archivo con todos los pedidos, ventas y precios. Guardalo donde puedas encontrarlo después.</p><button class="primary" data-action="export-backup">GUARDAR RESPALDO · JSON</button><p class="note">Los datos se guardan solo en este dispositivo. Usá siempre el mismo navegador o el mismo ícono instalado. No uses una ventana privada.</p><h2>Recuperar un respaldo</h2><p>Elegí un respaldo JSON anterior. Verás cuántos pedidos y ventas contiene antes de confirmar el reemplazo.</p><button data-action="import-start">ELEGIR RESPALDO PARA RECUPERAR</button><h2>Ayuda para quien cubre el turno</h2><button data-action="help">CÓMO USAR · GUÍA RÁPIDA</button><h2>Usar en el teléfono</h2><p>En Android, elegí Instalar aplicación desde el menú del navegador. En iPhone, abrí esta página en Safari y tocá Compartir → Agregar a pantalla de inicio. Abrila una vez con internet para usarla después sin conexión.</p><details class="maintenance"><summary>Carta y mantenimiento</summary><p>La carta y los atajos están al comienzo del JavaScript de index.html. Después de editar el archivo, aplicá la carta. Los productos ya cargados conservan sus precios.</p><p>${data.catalog.length} productos · ${settings().cantidadMesas} mesas · ${settings().cantidadPedidosSinMesa} pedidos sin mesa</p><button data-action="restore-catalog">APLICAR CARTA DEL ARCHIVO</button><hr><p>Borrar los datos elimina pedidos y ventas. Guardá un respaldo antes de hacerlo.</p><button class="danger" data-action="reset">BORRAR TODOS LOS DATOS</button></details></section>`;}
+function renderSettings(){
+  const storageHelp=sharedMode
+    ?`<p class="note">Los pedidos y ventas se guardan para todos los dispositivos que usen el enlace compartido. Necesitás conexión para trabajar. Quien tenga el enlace puede ver y modificar todo.</p>${hasLocalData()?`<p>Hay datos de la versión anterior guardados solo en este navegador. Podés descargarlos e importarlos al espacio compartido si querés conservarlos.</p><button data-action="export-local-backup">GUARDAR DATOS ANTERIORES · JSON</button>`:""}<p>Si recibiste un enlace nuevo, pegalo para cambiar el acceso de este dispositivo.</p><div class="form-row"><input id="shared-link-input" type="url" inputmode="url" placeholder="Nuevo enlace compartido de KEBBA" aria-label="Nuevo enlace compartido de KEBBA"><button data-action="connect-shared">CAMBIAR ENLACE</button></div>`
+    :`<p class="note">Los datos se guardan solo en este dispositivo. Para compartir pedidos entre teléfonos, pegá el enlace compartido de KEBBA acá.</p><div class="form-row"><input id="shared-link-input" type="url" inputmode="url" placeholder="Enlace compartido de KEBBA" aria-label="Enlace compartido de KEBBA"><button data-action="connect-shared">CONECTAR ESTE DISPOSITIVO</button></div>`;
+  return `<div class="headline"><h1>Respaldo y configuración</h1></div><section class="settings-panel"><h2>Al terminar el turno</h2><p>Tocá <strong>Guardar respaldo</strong>. Se descarga un archivo con todos los pedidos, ventas y precios. Guardalo donde puedas encontrarlo después.</p><button class="primary" data-action="export-backup">GUARDAR RESPALDO · JSON</button>${storageHelp}<h2>Recuperar un respaldo</h2><p>Elegí un respaldo JSON anterior. Verás cuántos pedidos y ventas contiene antes de confirmar el reemplazo${sharedMode?" para todos los dispositivos":""}.</p><button data-action="import-start">ELEGIR RESPALDO PARA RECUPERAR</button><h2>Ayuda para quien cubre el turno</h2><button data-action="help">CÓMO USAR · GUÍA RÁPIDA</button><h2>Usar en el teléfono</h2><p>En Android, elegí Instalar aplicación desde el menú del navegador. En iPhone, abrí esta página en Safari y tocá Compartir → Agregar a pantalla de inicio.${sharedMode?" La app abre desde el ícono, pero necesita internet para guardar pedidos compartidos.":" Abrila una vez con internet para usarla después sin conexión."}</p><details class="maintenance"><summary>Carta y mantenimiento</summary><p>La carta y los atajos están al comienzo del JavaScript de index.html. Después de editar el archivo, aplicá la carta. Los productos ya cargados conservan sus precios.</p><p>${data.catalog.length} productos · ${settings().cantidadMesas} mesas · ${settings().cantidadPedidosSinMesa} pedidos sin mesa</p><button data-action="restore-catalog">APLICAR CARTA DEL ARCHIVO</button><hr><p>Borrar los datos elimina pedidos y ventas${sharedMode?" para todos los dispositivos":""}. Guardá un respaldo antes de hacerlo.</p><button class="danger" data-action="reset">BORRAR TODOS LOS DATOS</button></details></section>`;
+}
 
 function helpContent(){return `<h2 id="dialog-title">Cómo atender con KEBBA</h2><ol class="help-steps"><li><strong>Elegí el lugar.</strong> Una Mesa para quien se sienta; Pedido A–J para retirar, llevar o WhatsApp. Podés anotar el nombre.</li><li><strong>Cargá la comanda.</strong> Cada producto suma una unidad. + repite la línea con sus cambios. “Cambios / salsa” permite personalizarla y “+ Combo” agrega papas y Coca-Cola.</li><li><strong>Mandá a Cocina.</strong> Antes del envío nadie está preparando el pedido. Después, los cambios y cancelaciones se avisan automáticamente.</li><li><strong>Prepará y marcá LISTO.</strong> En Cocina aparecen los pedidos más antiguos primero. Revisá también los avisos NUEVO, MODIFICADO y CANCELADO.</li><li><strong>Cobrá y cerrá.</strong> Abrí el pedido, tocá “Cobrar y cerrar”, elegí cómo pagó el cliente y confirmá. El lugar queda libre y la venta pasa al historial.</li></ol><p class="order-hint"><strong>Si te equivocás:</strong> usá Deshacer. Para trasladar una comanda usá Mover pedido y elegí un lugar libre. Al terminar el turno, guardá un respaldo desde Configuración.</p><details><summary>Atajos de teclado (opcionales)</summary><p><strong>${safe(shortcuts.cambiarMesas)}</strong> Mesas / Pedidos · <strong>${safe(shortcuts.cambiarCocina)}</strong> Cocina · <strong>Esc</strong> volver · <strong>${safe(shortcuts.ayuda)}</strong> ayuda · <strong>F11</strong> pantalla completa · <strong>Ctrl+${safe(shortcuts.deshacer.toUpperCase())}</strong> deshacer</p><p>Desde Mesas / Pedidos: 1–9 abre las mesas y A–J abre los pedidos sin mesa. En la comanda, cada botón muestra su tecla. Mientras escribís un nombre u observación, las letras no agregan productos.</p></details><div class="modal-actions"><button class="primary" data-action="modal-close">ENTENDIDO · VOLVER</button></div>`;}
 function renderModal(){
@@ -382,7 +507,16 @@ async function download(text,filename,type){
 }
 function buildDayCsv(){const headers=["Número de pedido","Fecha","Hora apertura","Hora cocina","Hora listo","Hora cierre","Mesa/Pedido","Nombre","Productos","Total","Forma de pago"],rows=historyForDate().map(o=>[numberLabel(o.number),fmtDate(o.closedAt),fmtTime(o.openedAt),fmtTime(o.sentAt),fmtTime(o.readyAt),fmtTime(o.closedAt),o.label||slotLabel(o.slot),o.name,o.lines.map(line=>`${line.qty} x ${line.name}${line.mods.length?" ["+line.mods.map(m=>m.name+(m.description?" · "+m.description:"")).join("; ")+"]":""}${line.note?" ("+line.note+")":""}`).join(" | "),o.total,o.payment]);return "\ufeff"+[headers,...rows].map(row=>row.map(csvValue).join(",")).join("\r\n");}
 async function exportDay(){if(await download(buildDayCsv(),`kebba-dia-${historyDate}.csv`,"text/csv;charset=utf-8"))toast("CSV listo. Guardalo en el dispositivo.");}
-async function exportBackup(){if(await download(recoveryRaw||JSON.stringify(data,null,2),`kebba-${recoveryRaw?"datos-a-recuperar":"respaldo"}-${dayKey(now())}-${fmtTime(now()).replace(":","")}.json`,"application/json"))toast("Copia lista. Guardala para poder recuperar los datos.");}
+async function exportBackup(){if(sharedMode&&!sharedReady){toast("Esperá a conectar antes de guardar un respaldo.",true);return;}if(await download(recoveryRaw||JSON.stringify(data,null,2),`kebba-${recoveryRaw?"datos-a-recuperar":"respaldo"}-${dayKey(now())}-${fmtTime(now()).replace(":","")}.json`,"application/json"))toast("Copia lista. Guardala para poder recuperar los datos.");}
+function hasLocalData(){try{return !!localStorage.getItem(CONFIG.almacenamiento);}catch{return false;}}
+async function exportLocalBackup(){try{const raw=localStorage.getItem(CONFIG.almacenamiento);if(raw&&await download(raw,`kebba-datos-anteriores-${dayKey(now())}.json`,"application/json"))toast("Datos anteriores descargados.");}catch{toast("No se pudieron descargar los datos anteriores.",true);}}
+function connectShared(){
+  const value=$("#shared-link-input")?.value?.trim()||"";
+  const match=value.match(/#clave=([0-9a-f]{64})(?:&|$)/)||value.match(/^([0-9a-f]{64})$/);
+  if(!match){toast("Pegá el enlace compartido completo de KEBBA.",true);return;}
+  try{localStorage.setItem(SHARED_TOKEN_KEY,match[1]);}catch{toast("Este navegador no permite recordar el enlace. Usá el enlace completo cada vez.",true);}
+  window.location.hash=`clave=${match[1]}`;window.location.reload();
+}
 function resetAll(){if(!confirm("Esta acción borrará pedidos activos e historial. ¿Seguro?"))return;if(prompt("Para confirmar, escribí BORRAR en mayúsculas:")!=="BORRAR")return;if(!commitData(emptyData(),{replaceBlocked:true}))return;undoStacks.clear();selectedSlot=null;historyDetail=null;modal=null;go("home");toast("Datos borrados");}
 function restoreCatalog(){
   if(!canEdit())return;const next=deepCopy(data),newSettings={nombreLocal:CONFIG.nombreLocal,cantidadMesas:CONFIG.cantidadMesas,cantidadPedidosSinMesa:CONFIG.cantidadPedidosSinMesa};
@@ -424,11 +558,13 @@ function handleAction(element,event){
     case "ack-notice":{const next=deepCopy(data);next.kitchenNotices=next.kitchenNotices.filter(n=>n.id!==element.dataset.notice);if(commitData(next))render();break;}
     case "export-csv":exportDay();break;
     case "export-backup":exportBackup();break;
+    case "export-local-backup":exportLocalBackup();break;
+    case "connect-shared":connectShared();break;
     case "import-start":$("#import-file").click();break;
     case "reset":resetAll();break;
     case "restore-catalog":restoreCatalog();break;
     case "help":openModal("help");break;
-    case "retry-save":if(save())toast("Cambios guardados correctamente");break;
+    case "retry-save":if(sharedMode)retryShared();else if(save())toast("Cambios guardados correctamente");break;
     case "reload":window.location.reload();break;
     case "fullscreen":if(!document.fullscreenElement){if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>toast("Usá F11 para pantalla completa.",true));else toast("Usá F11 para pantalla completa.");}else document.exitFullscreen?.().catch(()=>{});break;
   }
@@ -452,7 +588,7 @@ document.addEventListener("input",event=>{
 document.addEventListener("change",event=>{if(event.target.id==="history-date"&&/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)){historyDate=event.target.value;historyDetail=null;render();}});
 $("#import-file").addEventListener("change",async event=>{
   const file=event.target.files?.[0];event.target.value="";if(!file)return;
-  try{const imported=validateImport(JSON.parse(await file.text()));if(!confirm(`Este respaldo contiene ${Object.keys(imported.orders).length} pedidos activos y ${imported.history.length} ventas.\n\n¿Recuperarlo? Reemplazará los datos actuales. Guardá un respaldo actual antes de continuar si los necesitás.`))return;importData(imported);}catch{toast("No se pudo recuperar: el archivo no es un respaldo válido de KEBBA. Los datos actuales siguen intactos.",true);}
+  try{const imported=validateImport(JSON.parse(await file.text()));if(!confirm(`Este respaldo contiene ${Object.keys(imported.orders).length} pedidos activos y ${imported.history.length} ventas.\n\n¿Recuperarlo? Reemplazará los datos actuales${sharedMode?" para todos los dispositivos":""}. Guardá un respaldo actual antes de continuar si los necesitás.`))return;importData(imported);}catch{toast("No se pudo recuperar: el archivo no es un respaldo válido de KEBBA. Los datos actuales siguen intactos.",true);}
 });
 document.addEventListener("keydown",event=>{
   if(event.isComposing)return;
@@ -469,13 +605,14 @@ document.addEventListener("keydown",event=>{
   if(event.key===shortcuts.ayuda){event.preventDefault();openModal("help");return;}
   const key=event.key.toUpperCase();if(view==="home"){const slot=slots().find(s=>s.key===key);if(slot){event.preventDefault();openSlot(slot.id);}}else if(view==="order"){const product=data.catalog.find(p=>p.shortcut&&p.shortcut.toUpperCase()===key);if(product){event.preventDefault();addProduct(product.id);}}
 });
-window.addEventListener("storage",event=>{if(event.key===CONFIG.almacenamiento&&event.newValue!==savedRaw){storageConflict=true;storageWarning="Otra ventana cambió los pedidos. Guardá una copia si tenés cambios acá y recargá para continuar.";renderStorage();}});
-window.addEventListener("beforeunload",event=>{if(storageWarning&&!readBlocked){event.preventDefault();event.returnValue="";}});
+window.addEventListener("storage",event=>{if(!sharedMode&&event.key===CONFIG.almacenamiento&&event.newValue!==savedRaw){storageConflict=true;storageWarning="Otra ventana cambió los pedidos. Guardá una copia si tenés cambios acá y recargá para continuar.";renderStorage();}});
+window.addEventListener("beforeunload",event=>{if((sharedMode&&(sharedPending||sharedWriting||storageConflict))||(storageWarning&&!readBlocked)){event.preventDefault();event.returnValue="";}});
 window.addEventListener("resize",fitTicket);
 window.addEventListener("scroll",fitTicket,{passive:true});
 // Actualiza solamente relojes: no recrea botones, no mueve el foco y no escribe datos.
 setInterval(()=>document.querySelectorAll("[data-elapsed]").forEach(el=>{el.textContent=elapsed(Number(el.dataset.elapsed));}),15000);
 render();
+if(sharedMode){void refreshShared();setInterval(()=>void refreshShared(),1800);window.addEventListener("focus",()=>void refreshShared());}
 if(typeof navigator!=="undefined"&&"serviceWorker" in navigator&&["https:","http:"].includes(window.location.protocol))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 
 </script>
