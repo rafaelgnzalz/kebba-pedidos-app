@@ -70,7 +70,7 @@ button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{co
 
 // CONFIGURACIÓN CENTRAL: editar esta sección para cambiar carta, precios y atajos.
 const CONFIG = { nombreLocal: "KEBBA", cantidadMesas: 9, cantidadPedidosSinMesa: 10, dataVersion: 1, almacenamiento: "kebba-pedidos-v1", comboPrecio: 70, comboDescripcion: "Papas fritas + Coca-Cola" };
-const CATALOG_REVISION = 2;
+const CATALOG_REVISION = 3;
 // La clave publicable identifica la app; el acceso a los pedidos requiere el token del enlace.
 const SHARED_CONFIG = { url: "https://rlkbzqorlwpqfhuphuje.supabase.co", publishableKey: "sb_publishable_w_eTGTtzexFMnVPPCIGrGA_zuCu72tP" };
 const SHARED_TOKEN_KEY = "kebba-shared-token-v1";
@@ -95,7 +95,7 @@ const productos = [
   {id:"coxinha-pollo-1",categoria:"Coxinhas",nombre:"Coxinha de Pollo · 1 unidad",precio:70,shortcut:"Z",permiteCombo:false},
   {id:"coxinha-pollo-3",categoria:"Coxinhas",nombre:"Coxinha de Pollo · 3 unidades",precio:180,shortcut:"",permiteCombo:false},
   {id:"coxinha-ternera-1",categoria:"Coxinhas",nombre:"Coxinha de Carne · 1 unidad",precio:80,shortcut:"X",permiteCombo:false},
-  {id:"coxinha-ternera-3",categoria:"Coxinhas",nombre:"Coxinha de Carne · 3 unidades",precio:200,shortcut:"",permiteCombo:false},
+  {id:"coxinha-ternera-3",categoria:"Coxinhas",nombre:"Coxinha de Carne · 3 unidades",precio:210,shortcut:"",permiteCombo:false},
   {id:"papas",categoria:"Acompañamientos",nombre:"Papas fritas",precio:100,shortcut:"",permiteCombo:false},
   {id:"boniato",categoria:"Acompañamientos",nombre:"Boniato frito",precio:150,shortcut:"",permiteCombo:false},
   {id:"trago-caipirinha-250",categoria:"Tragos",trago:"Caipirinha",medida:"250 ml",nombre:"Caipirinha · 250 ml",precio:110,shortcut:"",permiteCombo:false},
@@ -118,10 +118,10 @@ const productos = [
   {id:"trago-vodka-mixer-500",categoria:"Tragos",trago:"Vodka + mixer",medida:"500 ml",nombre:"Vodka + mixer · 500 ml",precio:190,shortcut:"",permiteCombo:false},
   {id:"trago-ron-mixer-250",categoria:"Tragos",trago:"Ron + mixer",medida:"250 ml",nombre:"Ron + mixer · 250 ml",precio:120,shortcut:"",permiteCombo:false},
   {id:"trago-ron-mixer-500",categoria:"Tragos",trago:"Ron + mixer",medida:"500 ml",nombre:"Ron + mixer · 500 ml",precio:190,shortcut:"",permiteCombo:false},
-  {id:"cerveza-corona-355",categoria:"Cervezas",nombre:"Corona 355 ml",precio:80,shortcut:"",permiteCombo:false},
-  {id:"cerveza-nortena-473",categoria:"Cervezas",nombre:"Norteña 473 ml",precio:90,shortcut:"",permiteCombo:false},
-  {id:"cerveza-patricia-473",categoria:"Cervezas",nombre:"Patricia 473 ml",precio:120,shortcut:"",permiteCombo:false},
-  {id:"cerveza-patricia-1000",categoria:"Cervezas",nombre:"Patricia 1 L",precio:220,shortcut:"",permiteCombo:false},
+  {id:"cerveza-corona-355",categoria:"Cervezas",nombre:"Corona 355 ml",precio:100,shortcut:"",permiteCombo:false},
+  {id:"cerveza-nortena-473",categoria:"Cervezas",nombre:"Norteña 473 ml",precio:100,shortcut:"",permiteCombo:false},
+  {id:"cerveza-patricia-473",categoria:"Cervezas",nombre:"Patricia 473 ml",precio:130,shortcut:"",permiteCombo:false},
+  {id:"cerveza-patricia-1000",categoria:"Cervezas",nombre:"Patricia 1 L",precio:250,shortcut:"",permiteCombo:false},
   {id:"bebida-coca-cola-350",categoria:"Bebidas",nombre:"Coca Cola · lata 350 ml",precio:50,shortcut:"",permiteCombo:false},
   {id:"bebida-coca-cola-zero-350",categoria:"Bebidas",nombre:"Coca Cola Zero · lata 350 ml",precio:50,shortcut:"",permiteCombo:false},
   {id:"bebida-fanta-350",categoria:"Bebidas",nombre:"Fanta · lata 350 ml",precio:50,shortcut:"",permiteCombo:false},
