@@ -17,3 +17,5 @@ La página pública sin clave sigue guardando los datos solo en ese navegador. G
 ## Pruebas
 
 `node --test tests/kebba.test.cjs`
+
+Las pruebas usan almacenamiento, red y un DOM simulados. Cubren pedidos, Cocina, pagos, errores de guardado, sincronización y conservación del foco; no crean ventas reales ni sustituyen una revisión visual en el navegador.

@@ -53,7 +53,7 @@ button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{co
     .home-groups{display:grid;grid-template-columns:1fr 1fr;gap:8px}.home-groups button,.k-overview button{min-height:44px;border:1px solid var(--line);padding:8px 10px}.home-groups button.active,.k-overview button.active{background:var(--orange);border-color:var(--orange);color:#16110d}.home-groups small{display:block;font-size:.75rem;font-weight:600}.view-home{display:grid;grid-template-rows:auto auto auto minmax(0,1fr);gap:7px}.view-home .summary{margin:0;min-height:40px}.home-slots{min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px;scrollbar-color:#7e6652 #23231f}.home-slots .slot-grid{height:100%;grid-auto-rows:minmax(105px,1fr);align-content:start}.slot{min-height:0;padding:10px;gap:5px}.slot-name{font-size:1.1rem}.slot-amount{font-size:1.35rem}.slot-bottom{font-size:.78rem}
     .view-order{display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:7px}.view-order>.summary{display:none}.order-heading{margin:0;align-items:center}.order-heading .subtle{font-size:.8rem}.customer-row{margin:0;display:flex;align-items:center;gap:8px}.customer-row label{flex:0 0 auto}.customer-row input{flex:1;max-width:520px;padding:8px 10px}.order-layout{height:100%;min-height:0;grid-template-columns:minmax(0,1.3fr) minmax(340px,.9fr);gap:10px;align-items:stretch}.menu-panel,.ticket-panel{height:100%;min-height:0;max-height:none;overflow:hidden;padding:11px}.menu-panel{display:flex;flex-direction:column}.menu-sections,.menu-tabs{flex-shrink:0;position:static}.menu-sections{margin-bottom:6px}.menu-sections button{min-height:43px}.menu-tabs{padding-bottom:6px}.menu-tabs button{min-height:40px;padding:7px 10px}.menu-category.single{min-height:0;flex:1;overflow:auto;margin-top:6px;overscroll-behavior:contain;scrollbar-color:#7e6652 #23231f}.menu-category .note{display:none}.menu-category h2{margin-bottom:7px}.ticket-panel{position:static;min-height:0!important;max-height:none!important}.ticket-list{min-height:0;max-height:none;overflow:auto}.ticket-footer{flex-shrink:0}.ticket-footer .order-hint{margin:5px 0;padding:6px 8px}.ticket-total{padding:6px 0}.action-large{margin-bottom:5px;padding:9px}.secondary-actions{margin-top:5px;padding-top:5px}.product{min-height:74px;padding:8px}.product-grid{gap:7px}
     .view-kitchen{display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:8px}.k-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:0}.k-overview strong{color:inherit}.k-overview button.alert:not(.active){border-color:var(--yellow);color:#ffd18a}.kitchen-panel{min-height:0;overflow:auto;overscroll-behavior:contain;padding:1px 3px 10px;scrollbar-color:#7e6652 #23231f}.kitchen-panel .section-title{margin:4px 0 10px}.kitchen-panel .k-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.k-card{padding:12px}.k-card button{margin-top:7px;padding:9px}.k-time{margin:5px 0 8px}
-    .view-history{display:flex;flex-direction:column;min-height:0}.view-history .headline,.view-history .history-tools,.view-history .stats{flex-shrink:0}.view-history .history-tools{margin:5px 0}.view-history .stats{margin:6px 0}.view-history .stat{padding:9px}.view-history .table-wrap{min-height:0;flex:1;overflow:auto}.view-history .history-detail{max-height:50%;overflow:auto;flex-shrink:0}.view-settings{overflow:auto;overscroll-behavior:contain}
+    .view-history{display:flex;flex-direction:column;min-height:0}.view-history .headline,.view-history .history-tools,.view-history .stats{flex-shrink:0}.view-history .history-tools{margin:5px 0}.view-history .stats{margin:6px 0}.view-history .stat{padding:9px}.view-history .table-wrap{min-height:0;flex:1;overflow:auto}.view-history .history-detail{max-height:50%;overflow:auto;flex-shrink:0}#main.view-settings{overflow:auto;overscroll-behavior:contain}
   }
   @media(min-width:760px) and (max-width:1100px){.topbar>.subtle,.nav [data-action="fullscreen"],.nav [data-action="help"]{display:none}.order-layout{grid-template-columns:minmax(0,1fr) minmax(340px,1fr)}.product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.slot-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
   @media(min-width:760px){.payment-modal{width:min(1000px,100%);height:min(90dvh,850px);display:flex;flex-direction:column;overflow:hidden}.payment-modal>h2{margin-bottom:5px}.payment-modal>.ticket-total{padding:5px 0}.payment-modal>p:not(.order-hint){margin:5px 0;font-size:.85rem}.payment-modal>.payment-tools{margin:5px 0}.payment-body{min-height:0;flex:1;overflow:auto}.payment-body.split{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(250px,.85fr);gap:10px;overflow:hidden}.payment-body.split .payment-allocation,.payment-body.split .payment-parts{min-height:0;overflow:auto;overscroll-behavior:contain;margin:0;padding:4px}.payment-body:not(.split) .payment-parts{max-width:480px;margin:auto}.payment-allocation h3{margin-bottom:4px}.payment-modal>.payment-summary{margin:6px 0 0}.payment-modal>.order-hint{margin:5px 0}.payment-modal>.modal-actions{margin-top:5px}.payment-modal>.modal-actions button{padding:9px}}
@@ -165,6 +165,12 @@ const shortcuts = { principalMesas:"1–9", principalPedidos:"A–J", cambiarMes
 // Utilidades. Los importes se calculan desde las líneas, nunca desde texto de pantalla.
 const $ = selector => document.querySelector(selector);
 const deepCopy = value => JSON.parse(JSON.stringify(value));
+// Postgres JSONB puede devolver las mismas propiedades en otro orden.
+function sameValue(a,b){
+  if(a===b)return true;
+  if(!a||!b||typeof a!=="object"||typeof b!=="object"||Array.isArray(a)!==Array.isArray(b))return false;
+  const keys=Object.keys(a);return keys.length===Object.keys(b).length&&keys.every(key=>Object.prototype.hasOwnProperty.call(b,key)&&sameValue(a[key],b[key]));
+}
 const safe = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 const money = value => "$" + Number(value || 0).toLocaleString("es-UY");
 const cashAmount = value => {const digits=String(value).trim();if(!/^\d+$/.test(digits))return null;const amount=Number(digits);return Number.isSafeInteger(amount)?amount:null;};
@@ -279,7 +285,7 @@ function validateImport(raw){
 }
 
 let savedRaw=null,storageWarning="",recoveryRaw=null,readBlocked=false,storageConflict=false;
-let sharedReady=false,sharedVersion=0,sharedBase=null,sharedPending=null,sharedWriting=false;
+let sharedReady=false,sharedVersion=0,sharedBase=null,sharedPending=null,sharedWriting=false,sharedReading=false;
 function loadData(){
   if(sharedMode){readBlocked=true;storageWarning="Conectando con los pedidos compartidos…";return emptyData();}
   try{savedRaw=localStorage.getItem(CONFIG.almacenamiento);return savedRaw?validateImport(JSON.parse(savedRaw)):emptyData();}
@@ -315,16 +321,19 @@ function persist(next,{replaceBlocked=false}={}){
     if(existing!==savedRaw){storageConflict=true;storageWarning="Otra ventana cambió los pedidos. Guardá una copia de esta pantalla y recargá para seguir con los datos más recientes.";renderStorage();return false;}
     for(const order of Object.values(next.orders))order.total=orderTotal(order);
     const raw=JSON.stringify(next);localStorage.setItem(CONFIG.almacenamiento,raw);savedRaw=raw;storageWarning="";readBlocked=false;recoveryRaw=null;renderStorage();return true;
-  }catch{storageWarning="ATENCIÓN: los últimos cambios no se pudieron guardar. Dejá esta pantalla abierta y exportá un respaldo antes de salir.";renderStorage();return false;}
+  }catch{storageWarning="No se pudo guardar. El cambio no se aplicó; revisá el espacio disponible del navegador y reintentá.";renderStorage();return false;}
 }
 function save(){return persist(data);}
 function commitData(next,options){if(!persist(next,options)){toast("No se completó la acción porque no se pudo guardar.",true);return false;}data=next;return true;}
 function canEdit(){if(readBlocked||storageConflict){toast("Revisá el aviso de guardado antes de continuar.",true);return false;}return true;}
 async function sharedRpc(name,body){
-  const response=await fetch(`${SHARED_CONFIG.url}/rest/v1/rpc/${name}`,{method:"POST",headers:{apikey:SHARED_CONFIG.publishableKey,"Content-Type":"application/json"},body:JSON.stringify(body)});
-  const payload=await response.json().catch(()=>null);
-  if(!response.ok)throw Error(payload?.message||`Error de conexión (${response.status})`);
-  return payload;
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),15000);
+  try{
+    const response=await fetch(`${SHARED_CONFIG.url}/rest/v1/rpc/${name}`,{method:"POST",headers:{apikey:SHARED_CONFIG.publishableKey,"Content-Type":"application/json"},body:JSON.stringify(body),signal:controller.signal});
+    const payload=await response.json().catch(()=>null);
+    if(!response.ok)throw Error(payload?.message||`Error de conexión (${response.status})`);
+    return payload;
+  }finally{clearTimeout(timeout);}
 }
 function applySharedState(snapshot){
   data=validateImport(deepCopy(snapshot.state));sharedVersion=snapshot.version;sharedReady=true;
@@ -336,7 +345,7 @@ function applySharedState(snapshot){
 }
 function mergeSharedState(base,local,remote){
   if(!base)return null;
-  const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),merged=deepCopy(remote);
+  const same=sameValue,merged=deepCopy(remote);
   for(const key of ["nextNumber","history","kitchenNotices","catalog","modifierCatalog","catalogRevision","settings"]){
     if(!same(local[key],base[key])){
       if(!same(remote[key],base[key])&&!same(remote[key],local[key]))return null;
@@ -346,7 +355,7 @@ function mergeSharedState(base,local,remote){
   const keys=new Set([...Object.keys(base.orders),...Object.keys(local.orders)]);
   for(const key of keys){
     if(!same(local.orders[key],base.orders[key])){
-      if(!same(remote.orders[key],base.orders[key]))return null;
+      if(!same(remote.orders[key],base.orders[key])&&!same(remote.orders[key],local.orders[key]))return null;
       if(local.orders[key]===undefined)delete merged.orders[key];
       else merged.orders[key]=deepCopy(local.orders[key]);
     }
@@ -362,23 +371,26 @@ async function rebaseShared(){
   storageWarning="";readBlocked=false;render();return true;
 }
 async function refreshShared(){
-  if(sharedWriting||sharedPending||modal==="payment"||["customer-name","line-note"].includes(document.activeElement?.id))return;
+  const busy=()=>sharedWriting||sharedPending||storageConflict||modal==="payment"||["customer-name","line-note","shared-link-input"].includes(document.activeElement?.id);
+  if(sharedReading||busy())return;
+  const readVersion=sharedVersion,readState=data;sharedReading=true;
   try{
     const snapshot=await sharedRpc("kebba_read",{access_token:sharedToken});
-    if(sharedWriting||sharedPending||modal==="payment")return;
+    if(busy()||sharedVersion!==readVersion||data!==readState)return;
     if(snapshot.state===null){
       const initial=emptyData();
       const created=await sharedRpc("kebba_write",{access_token:sharedToken,expected_version:snapshot.version,next_state:initial});
-      if(!created.ok){void refreshShared();return;}
+      if(!created.ok)return;
       applySharedState({version:created.version,state:initial});return;
     }
     if(!sharedReady||snapshot.version!==sharedVersion)applySharedState(snapshot);
     else if(readBlocked){readBlocked=false;storageWarning="";renderStorage();}
   }catch(error){
+    if(busy()||sharedVersion!==readVersion||data!==readState)return;
     readBlocked=true;
     storageWarning=error.message.includes("inválido")?"El enlace compartido no es válido. Pedí uno nuevo.":"No hay conexión con los pedidos compartidos. Reintentá antes de trabajar.";
     renderStorage();
-  }
+  }finally{sharedReading=false;}
 }
 async function flushShared(){
   if(sharedWriting||!sharedPending||storageConflict||!sharedReady)return;
@@ -394,8 +406,8 @@ async function flushShared(){
   }catch{
     try{
       const latest=await sharedRpc("kebba_read",{access_token:sharedToken});
-      if(latest.version===expected+1&&JSON.stringify(latest.state)===JSON.stringify(snapshot)){
-        sharedVersion=latest.version;readBlocked=false;storageWarning="";
+      if(latest.version===expected+1&&sameValue(latest.state,snapshot)){
+        sharedVersion=latest.version;sharedBase=validateImport(deepCopy(snapshot));readBlocked=false;storageWarning="";
       }else if(latest.version===expected){
         sharedPending=deepCopy(data);readBlocked=true;
         storageWarning="No pudimos guardar los últimos cambios. Dejá esta pantalla abierta, guardá una copia y reintentá.";
@@ -429,18 +441,21 @@ function recordKitchenChanges(order,before){
 }
 function mutateOrder(fn,{renderNow=true,remember=true}={}){
   const order=current();if(!order||!canEdit())return false;
-  const before=deepCopy(order.lines);if(remember)pushUndo(order);fn(order);recordKitchenChanges(order,before);save();if(renderNow)render();return true;
+  const next=deepCopy(data),item=next.orders[selectedSlot];fn(item);recordKitchenChanges(item,order.lines);
+  if(!commitData(next))return false;
+  if(remember)pushUndo(order);if(renderNow)render();return true;
 }
 function openSlot(id){
   if(!slotInfo(id)||!canEdit())return;
-  if(!data.orders[id]){data.orders[id]={number:data.nextNumber++,slot:id,name:"",status:"ABIERTO",openedAt:now(),sentAt:null,readyAt:null,closedAt:null,payment:null,lines:[],sentSnapshot:[],kitchenEvents:[],kitchenAck:0,preparedSnapshot:[],pendingSinceAt:null,movedFrom:null};save();}
+  if(!data.orders[id]){const next=deepCopy(data);next.orders[id]={number:next.nextNumber++,slot:id,name:"",status:"ABIERTO",openedAt:now(),sentAt:null,readyAt:null,closedAt:null,payment:null,lines:[],sentSnapshot:[],kitchenEvents:[],kitchenAck:0,preparedSnapshot:[],pendingSinceAt:null,movedFrom:null};if(!commitData(next))return;}
   homeGroup=id[0];selectedSlot=id;selectedLine=null;mobileOrderPane=current().lines.length?"ticket":"menu";lastOpenNumber=current().number;view="order";modal=null;render();window.scrollTo?.(0,0);
 }
-function releaseEmptyDraft(){const order=current();if(order&&!order.sentAt&&!order.lines.length&&!order.name.trim()){delete data.orders[selectedSlot];save();}}
+function releaseEmptyDraft(){const order=current();if(order&&!order.sentAt&&!order.lines.length&&!order.name.trim()){const next=deepCopy(data);delete next.orders[selectedSlot];return commitData(next);}return true;}
 function go(target){if(!["home","kitchen","history","settings"].includes(target))return;releaseEmptyDraft();modal=null;selectedSlot=null;selectedLine=null;view=target;if(target==="history")historyDate=dayKey(now());render();window.scrollTo?.(0,0);}
 function undo(){
-  const order=current();if(!order||!canEdit())return;const previous=stackFor(order).pop();if(!previous)return;
-  mutateOrder(item=>{item.lines=previous.lines;item.name=previous.name;},{remember:false});selectedLine=null;render();toast(order.sentAt?"Cambio deshecho. Cocina también recibió la corrección.":"Último cambio deshecho");
+  const order=current();if(!order||!canEdit())return;const previous=stackFor(order).at(-1);if(!previous)return;
+  if(!mutateOrder(item=>{item.lines=deepCopy(previous.lines);item.name=previous.name;},{remember:false,renderNow:false}))return;
+  stackFor(order).pop();selectedLine=null;render();toast(order.sentAt?"Cambio deshecho. Cocina también recibió la corrección.":"Último cambio deshecho");
 }
 function addProduct(id){
   const product=data.catalog.find(item=>item.id===id);if(!product||!current())return;
@@ -448,7 +463,7 @@ function addProduct(id){
   if(mutateOrder(order=>order.lines.push({id:uid(),productId:id,name:product.nombre,unitPrice:product.precio,qty:1,mods:[],note:"",permiteCombo:!!product.permiteCombo}))){$(".ticket-list")?.scrollTo?.({top:999999});toast(`${product.nombre} agregado${current().sentAt?" · Cocina avisada":""}`);}
 }
 function modifyLine(id,fn){if(findLine(id))mutateOrder(order=>fn(order.lines.find(line=>line.id===id)));}
-function removeLine(id){if(!findLine(id))return;selectedLine=null;mutateOrder(order=>{order.lines=order.lines.filter(line=>line.id!==id);});toast(current()?.sentAt?"Producto eliminado · Cancelación visible en Cocina":"Producto eliminado · Podés deshacer");}
+function removeLine(id){if(!findLine(id))return;if(!mutateOrder(order=>{order.lines=order.lines.filter(line=>line.id!==id);}))return;selectedLine=null;toast(current()?.sentAt?"Producto eliminado · Cancelación visible en Cocina":"Producto eliminado · Podés deshacer");}
 function changeQty(id,delta){const line=findLine(id);if(!line)return;if(line.qty+delta<=0)removeLine(id);else modifyLine(id,item=>item.qty+=delta);}
 function allowsCombo(line){return data.modifierCatalog.some(m=>m.id==="hacer-combo") && (line.permiteCombo ?? !!data.catalog.find(p=>p.id===line.productId)?.permiteCombo);}
 function toggleMod(lineId,modId){
@@ -460,7 +475,7 @@ function toggleMod(lineId,modId){
     item.mods=item.mods.filter(m=>!remove.has(m.id));item.mods.push({id:mod.id,name:mod.nombre,price:mod.precio,description:mod.descripcion||""});
   });
 }
-function splitLine(id){const line=findLine(id);if(!line||line.qty<2)return;const newId=uid();mutateOrder(order=>{const target=order.lines.find(item=>item.id===id);target.qty--;order.lines.splice(order.lines.indexOf(target)+1,0,{...deepCopy(target),id:newId,qty:1});});selectedLine=newId;render();toast("Unidad separada. Ahora podés cambiar solo esta.");}
+function splitLine(id){const line=findLine(id);if(!line||line.qty<2)return;const newId=uid();if(!mutateOrder(order=>{const target=order.lines.find(item=>item.id===id);target.qty--;order.lines.splice(order.lines.indexOf(target)+1,0,{...deepCopy(target),id:newId,qty:1});},{renderNow:false}))return;selectedLine=newId;render();toast("Unidad separada. Ahora podés cambiar solo esta.");}
 function sendKitchen(){
   const order=current();if(!order||!canEdit()||order.sentAt)return;
   if(!order.lines.length){toast("Primero agregá un producto.",true);return;}
@@ -498,6 +513,7 @@ function cashFeedback(amount,receivedText){
   return {message:`CAMBIO A ENTREGAR: ${money(received-amount)}`,valid:true,short:false};
 }
 function paymentStatus(order){
+  if(!paymentParts.length||paymentParts.some(part=>Object.entries(part.assigned).some(([id,qty])=>!Number.isSafeInteger(qty)||qty<1||!order.lines.some(line=>line.id===id))))return {valid:false,message:"La comanda cambió. Volvé a abrir el cobro y revisá los productos."};
   if(order.lines.some(line=>remainingUnits(line)<0))return {valid:false,message:"Hay más unidades asignadas que las cargadas en la comanda."};
   const remaining=order.lines.reduce((sum,line)=>sum+remainingUnits(line),0);
   if(remaining>0)return {valid:false,message:`Quedan ${remaining} ${remaining===1?"unidad sin asignar":"unidades sin asignar"}.`};
@@ -558,20 +574,26 @@ function moveOrder(destination){
   const order=current(),target=slotInfo(destination);if(!order||!canEdit())return;
   if(!target||data.orders[destination]){toast("Ese lugar está ocupado. Elegí uno libre.",true);return;}
   const next=deepCopy(data),item=next.orders[selectedSlot];delete next.orders[selectedSlot];item.movedFrom=slotLabel(selectedSlot);item.slot=destination;next.orders[destination]=item;
-  if(!commitData(next))return;selectedSlot=destination;modal=null;render();toast(`${numberLabel(item.number)} movido a ${target.label}`);
+  if(!commitData(next))return;homeGroup=destination[0];selectedSlot=destination;modal=null;render();toast(`${numberLabel(item.number)} movido a ${target.label}`);
 }
 
 // Vistas. Cocina usa detalles sin importes; la caja muestra precios por unidad.
 function statusClass(status){return status==="EN COCINA"?"kitchen":status==="LISTO"?"ready":"open";}
 function timer(at){return `<span data-elapsed="${at}">${elapsed(at)}</span>`;}
 function render(){
+  const main=$("#main"),previousView=main.className,active=document.activeElement;
+  const focusedAction=main.contains?.(active)&&active?.dataset?.action?{...active.dataset}:null;
   const scrollable=[".ticket-list",".menu-category",".home-slots",".kitchen-panel",".table-wrap",".history-detail"],scrolls=scrollable.map(selector=>$(selector)?.scrollTop||0),menuScroll=$(".menu-tabs")?.scrollLeft||0;
-  const main=$("#main");main.className="view-"+view;
+  main.className="view-"+view;
   main.innerHTML=view==="home"?renderHome():view==="order"?renderOrder():view==="kitchen"?renderKitchen():view==="history"?renderHistory():renderSettings();
   scrollable.forEach((selector,index)=>{const panel=$(selector);if(panel)panel.scrollTop=scrolls[index];});
   const menuTabs=$(".menu-tabs");if(menuTabs)menuTabs.scrollLeft=menuScroll;
   for(const name of ["home","kitchen","history","settings"]){const button=$("#nav-"+name);button.classList.toggle("active",view===name);if(view===name)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");}
   renderStorage();renderModal();
+  if(!modal&&previousView===main.className&&focusedAction){
+    const button=[...main.querySelectorAll("[data-action]")].find(element=>!element.disabled&&Object.entries(focusedAction).every(([key,value])=>element.dataset[key]===value));
+    button?.focus({preventScroll:true});
+  }
 }
 function pendingOrders(){return Object.values(data.orders).filter(o=>o.status==="EN COCINA").sort((a,b)=>(a.pendingSinceAt||a.sentAt)-(b.pendingSinceAt||b.sentAt));}
 function draftOrders(){return Object.values(data.orders).filter(o=>o.status==="ABIERTO"&&o.lines.length).sort((a,b)=>a.openedAt-b.openedAt);}
@@ -624,9 +646,11 @@ function kitchenLines(order){
   const net=lineChanges(baseline,order.lines),latest=new Map(net.filter(event=>event.after).map(event=>[event.after.id,event]));
   let html=order.lines.map(line=>{const event=latest.get(line.id),prepared=order.preparedSnapshot.find(old=>old.id===line.id&&sameLine(old,line));return kitchenItem(line,event?.kind||(prepared?"YA PREPARADO":""));}).join("");
   if(!order.lines.length)html='<p class="order-hint">No quedan productos por preparar.</p>';
-  const cancelled=net.filter(event=>event.kind==="CANCELADO");
-  if(cancelled.length)html+=`<div class="k-cancelled"><strong>Cancelado:</strong> ${cancelled.map(event=>`${event.before.qty} × ${safe(event.before.name)}`).join(" · ")}</div>`;
   const events=order.kitchenEvents.slice(order.kitchenAck);
+  const cancellations=new Map(net.filter(event=>event.kind==="CANCELADO").map(event=>[event.before.id,event]));
+  for(const event of events)if(event.kind==="CANCELADO"&&!order.lines.some(line=>line.id===event.before.id))cancellations.set(event.before.id,event);
+  const cancelled=[...cancellations.values()];
+  if(cancelled.length)html+=`<div class="k-cancelled"><strong>Cancelado:</strong> ${cancelled.map(event=>`${event.before.qty} × ${safe(event.before.name)}`).join(" · ")}</div>`;
   if(events.length)html+=`<details class="k-change-log"><summary>Ver historial de ${events.length} ${events.length===1?"edición":"ediciones"}</summary><section class="k-changes"><p class="note">Son correcciones de esta comanda, no productos adicionales.</p>${events.map(event=>`<div class="k-change"><span class="k-label ${event.kind==="CANCELADO"?"cancel":event.kind==="NUEVO"?"new":""}">${event.kind}</span> <time>${fmtTime(event.at)}</time>${event.before?`<div class="${event.kind==="CANCELADO"?"cancelled-line":"k-old"}">${event.kind==="MODIFICADO"?"Antes: ":""}${event.before.qty} × ${safe(event.before.name)}${lineDetails(event.before,false)?`<div class="k-mods">${lineDetails(event.before,false)}</div>`:""}</div>`:""}${event.after?`<div>${event.kind==="MODIFICADO"?"Ahora: ":""}${event.after.qty} × ${safe(event.after.name)}${lineDetails(event.after,false)?`<div class="k-mods">${lineDetails(event.after,false)}</div>`:""}</div>`:""}</div>`).join("")}</section></details>`;
   return html;
 }
@@ -664,7 +688,7 @@ function renderPaymentAllocation(order){
     const remaining=remainingUnits(line);
     return `<div class="allocation-line"><div class="allocation-title"><strong>${line.qty} × ${safe(line.name)}</strong><span>${money(unitPrice(line))} c/u</span></div>${line.mods.length||line.note?`<small>${lineDetails(line,false)}</small>`:""}<div class="allocation-left">${remaining} ${remaining===1?"unidad sin asignar":"unidades sin asignar"}</div><div class="allocation-payers">${paymentParts.map((part,index)=>{
       const assigned=part.assigned[line.id]||0;
-      return `<div class="allocation-payer"><strong>${safe(part.name.trim()||`Persona ${index+1}`)}: ${assigned}</strong><button data-action="payment-unit" data-line="${safe(line.id)}" data-part="${index}" data-delta="-1" aria-label="Quitar una unidad de ${safe(line.name)} a la persona ${index+1}" ${assigned?"":"disabled"}>−</button><button data-action="payment-unit" data-line="${safe(line.id)}" data-part="${index}" data-delta="1" aria-label="Asignar una unidad de ${safe(line.name)} a la persona ${index+1}" ${remaining?"":"disabled"}>+</button><button data-action="payment-rest" data-line="${safe(line.id)}" data-part="${index}" ${remaining?"":"disabled"}>Resto</button></div>`;
+      return `<div class="allocation-payer"><strong><span data-payer-label="${index}">${safe(part.name.trim()||`Persona ${index+1}`)}</span>: ${assigned}</strong><button data-action="payment-unit" data-line="${safe(line.id)}" data-part="${index}" data-delta="-1" aria-label="Quitar una unidad de ${safe(line.name)} a la persona ${index+1}" ${assigned?"":"disabled"}>−</button><button data-action="payment-unit" data-line="${safe(line.id)}" data-part="${index}" data-delta="1" aria-label="Asignar una unidad de ${safe(line.name)} a la persona ${index+1}" ${remaining?"":"disabled"}>+</button><button data-action="payment-rest" data-line="${safe(line.id)}" data-part="${index}" ${remaining?"":"disabled"}>Resto</button></div>`;
     }).join("")}</div></div>`;
   }).join("")}</section>`;
 }
@@ -691,7 +715,7 @@ function renderModal(){
   const dialog=root.querySelector(".modal");if(dialog)dialog.scrollTop=previousScroll;
   const allocation=root.querySelector(".payment-allocation"),parts=root.querySelector(".payment-parts");if(allocation)allocation.scrollTop=allocationScroll;if(parts)parts.scrollTop=partsScroll;
   const matchingAction=focusedAction?[...root.querySelectorAll("[data-action]")].find(button=>!button.disabled&&button.dataset.action===focusedAction&&button.dataset.line===focusedLine&&button.dataset.part===focusedPart&&button.dataset.delta===focusedDelta):null;
-  if(!wasOpen)dialog?.focus();else if(focusedId&&document.getElementById(focusedId))document.getElementById(focusedId).focus();else if(matchingAction)matchingAction.focus();else dialog?.focus();
+  if(!wasOpen)dialog?.focus({preventScroll:true});else if(focusedId&&document.getElementById(focusedId))document.getElementById(focusedId).focus({preventScroll:true});else if(matchingAction)matchingAction.focus({preventScroll:true});else dialog?.focus({preventScroll:true});
 }
 
 function csvValue(value){let text=String(value??"");if(/^[=+@\-\t\r]/.test(text))text="'"+text;return `"${text.replace(/"/g,'""')}"`;}
@@ -790,23 +814,29 @@ document.addEventListener("click",event=>{const element=event.target.closest("[d
 document.addEventListener("focusin",event=>{if(["customer-name","line-note"].includes(event.target.id))inputSession=null;});
 document.addEventListener("input",event=>{
   if(event.target.dataset.cashReceived!==undefined){const part=paymentParts[Number(event.target.dataset.cashReceived)];if(part)part.cashReceived=event.target.value;updatePaymentFeedback();return;}
-  if(event.target.dataset.payerName!==undefined){const part=paymentParts[Number(event.target.dataset.payerName)];if(part)part.name=event.target.value;return;}
-  const input=event.target,order=current();if(!order||!["customer-name","line-note"].includes(input.id)||!canEdit())return;
-  const line=input.id==="line-note"?findLine(input.dataset.line):null;if(input.id==="line-note"&&!line)return;
-  const previous=line?line.note:order.name;if(previous===input.value)return;
-  if(!inputSession||inputSession.element!==input){pushUndo(order);inputSession={element:input,before:line?deepCopy(line):null,eventIndex:null};}
+  if(event.target.dataset.payerName!==undefined){const index=Number(event.target.dataset.payerName),part=paymentParts[index];if(part){part.name=event.target.value;document.querySelectorAll(`[data-payer-label="${index}"]`).forEach(label=>{label.textContent=part.name.trim()||`Persona ${index+1}`;});}return;}
+  const input=event.target,original=current();if(!original||!["customer-name","line-note"].includes(input.id))return;
+  const oldLine=input.id==="line-note"?findLine(input.dataset.line):null;if(input.id==="line-note"&&!oldLine)return;
+  const previous=oldLine?oldLine.note:original.name;if(previous===input.value)return;
+  if(!canEdit()){input.value=previous;return;}
+  const next=deepCopy(data),order=next.orders[selectedSlot],line=oldLine?order.lines.find(item=>item.id===oldLine.id):null;
+  const newSession=!inputSession||inputSession.element!==input;
+  const session=newSession?{element:input,before:oldLine?deepCopy(oldLine):null,eventIndex:null}:{...inputSession};
   if(line){
     line.note=input.value;
     // Una sola revisión por edición de texto: se actualiza mientras escribe, sin perder foco.
-    if(order.sentAt){const change={kind:"MODIFICADO",before:inputSession.before,after:deepCopy(line),at:now()};if(inputSession.eventIndex==null){inputSession.eventIndex=order.kitchenEvents.length;order.kitchenEvents.push(change);}else order.kitchenEvents[inputSession.eventIndex]=change;if(order.status==="LISTO"){order.status="EN COCINA";order.readyAt=null;order.pendingSinceAt=now();}}
-    const details=[...document.querySelectorAll("[data-line-details]")].find(el=>el.dataset.lineDetails===line.id);if(details)details.innerHTML=lineDetails(line);
-  }else{order.name=input.value;const name=$("#order-customer");if(name)name.textContent=order.name?` · ${order.name}`:"";}
-  save();const undoButton=document.querySelector('[data-action="undo"]');if(undoButton)undoButton.disabled=false;
+    if(order.sentAt){const change={kind:"MODIFICADO",before:session.before,after:deepCopy(line),at:now()};if(session.eventIndex==null){session.eventIndex=order.kitchenEvents.length;order.kitchenEvents.push(change);}else order.kitchenEvents[session.eventIndex]=change;if(order.status==="LISTO"){order.status="EN COCINA";order.readyAt=null;order.pendingSinceAt=now();}}
+  }else order.name=input.value;
+  if(!commitData(next)){input.value=previous;return;}
+  if(newSession)pushUndo(original);inputSession=session;
+  if(line){const details=[...document.querySelectorAll("[data-line-details]")].find(el=>el.dataset.lineDetails===line.id);if(details)details.innerHTML=lineDetails(line);}
+  else{const name=$("#order-customer");if(name)name.textContent=order.name?` · ${order.name}`:"";}
+  const undoButton=document.querySelector('[data-action="undo"]');if(undoButton)undoButton.disabled=false;
   const status=$("#order-status");if(status){status.textContent=order.status;status.className="status "+statusClass(order.status);}const hint=$("#order-hint");if(hint)hint.textContent=orderStatusHint(order);
 });
 document.addEventListener("change",event=>{
   if(event.target.dataset.paymentMethod!==undefined){const part=paymentParts[Number(event.target.dataset.paymentMethod)];if(part){part.method=event.target.value;part.cashReceived="";renderModal();}return;}
-  if(event.target.dataset.payerName!==undefined){renderModal();return;}
+  if(event.target.dataset.payerName!==undefined)return;
   if(event.target.id==="history-date"&&/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)){historyDate=event.target.value;historyDetail=null;render();}
 });
 $("#import-file").addEventListener("change",async event=>{

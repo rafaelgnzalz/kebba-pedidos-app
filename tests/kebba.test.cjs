@@ -26,7 +26,7 @@ function boot(storage=new Map()){
   const document={querySelector:node,getElementById:id=>node('#'+id),querySelectorAll(){return[]},addEventListener(type,fn){events[type]=fn},activeElement:null,body:{append(el){downloads.push(el)}},createElement(){return node('anchor-'+downloads.length)}};
   const context={document,window:{innerWidth:1366,innerHeight:768,scrollTo(){},addEventListener(type,fn){windowEvents[type]=fn},location:{reload(){}}},
     localStorage:{getItem:key=>storage.get(key)??null,setItem(key,value){if(failWrites)throw Error('Quota');writes++;storage.set(key,value)}},
-    console,Blob,URL:{createObjectURL(){return'blob:local'},revokeObjectURL(){}},
+    console,Blob,AbortController,URL:{createObjectURL(){return'blob:local'},revokeObjectURL(){}},
     setTimeout(){return 1},clearTimeout(){},setInterval(fn){intervals.push(fn)},
     confirm(){return confirmation},prompt(){return'BORRAR'}};
   vm.createContext(context);vm.runInContext(source,context);
@@ -127,5 +127,122 @@ test('si falla el guardado de un cobro dividido, la comanda sigue abierta',()=>{
   assert.ok(run('data.orders.m1'));
   app.failWrites=false;run('confirmClose()');
   assert.equal(run('data.history.length'),1);
+});
+
+test('un fallo de guardado no agrega productos ni consume deshacer',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas")');
+  app.failWrites=true;
+  run('addProduct("boniato")');
+  assert.equal(run('current().lines.length'),1);
+  assert.equal(run('stackFor(current()).length'),1);
+  run('undo()');
+  assert.equal(run('current().lines.length'),1);
+  assert.equal(run('stackFor(current()).length'),1);
+  app.failWrites=false;run('undo()');
+  assert.equal(run('current().lines.length'),0);
+});
+
+test('no abre una mesa ni consume un número si no puede guardarla',()=>{
+  const app=boot();app.failWrites=true;app.run('openSlot("m1")');
+  assert.equal(app.run('data.orders.m1'),undefined);
+  assert.equal(app.run('data.nextNumber'),1);
+  assert.equal(app.run('selectedSlot'),null);
+});
+
+test('una observación fallida no modifica Cocina ni el pedido guardado',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");sendKitchen();markReady("m1")');
+  app.failWrites=true;
+  const input=type(app,'line-note','Sin sal',run('current().lines[0].id'));
+  assert.equal(run('current().lines[0].note'),'');
+  assert.equal(run('current().status'),'LISTO');
+  assert.equal(run('current().kitchenEvents.length'),0);
+  assert.equal(input.value,'');
+});
+
+test('una lectura atrasada no reemplaza cambios realizados mientras esperaba',async()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");sharedReady=true;sharedVersion=1;globalThis.oldState=deepCopy(data);sharedRpc=()=>new Promise(resolve=>{globalThis.resolveRead=resolve});globalThis.readTask=refreshShared()');
+  run('addProduct("papas");resolveRead({version:2,state:oldState})');
+  await run('readTask');
+  assert.equal(run('data.orders.m1.lines.length'),1);
+});
+
+test('la sincronización conserva un conflicto hasta que se resuelva',async()=>{
+  const app=boot(),run=app.run;
+  run('storageConflict=true;globalThis.reads=0;sharedRpc=async()=>{reads++;return {version:1,state:emptyData()}}');
+  await run('refreshShared()');
+  assert.equal(run('reads'),0);
+  assert.equal(run('storageConflict'),true);
+});
+
+test('recuperar la respuesta de un guardado actualiza la base de sincronización',async()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");sharedReady=true;sharedVersion=1;sharedBase=emptyData();sharedPending=deepCopy(data);globalThis.sent=deepCopy(data);function reorder(value){return Array.isArray(value)?value.map(reorder):value&&typeof value==="object"?Object.fromEntries(Object.entries(value).reverse().map(([key,item])=>[key,reorder(item)])):value;}sharedRpc=async(name)=>{if(name==="kebba_write")throw Error("Respuesta perdida");return {version:2,state:reorder(sent)}}');
+  await run('flushShared()');
+  assert.equal(run('JSON.stringify(sharedBase)'),run('JSON.stringify(validateImport(deepCopy(sent)))'));
+});
+
+test('terminar el nombre de un pagador no reconstruye el diálogo y conserva el siguiente clic',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");startClose();globalThis.modalRenders=0;renderModal=()=>{modalRenders++}');
+  app.events.input({target:{dataset:{payerName:'0'},value:'Ana'}});
+  app.events.change({target:{dataset:{payerName:'0'}}});
+  assert.equal(run('paymentParts[0].name'),'Ana');
+  assert.equal(run('modalRenders'),0);
+});
+
+test('varias teclas de una observación generan una corrección y se pueden deshacer',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");sendKitchen()');
+  const input=type(app,'line-note','Sin',run('current().lines[0].id'));
+  input.value='Sin sal';app.events.input({target:input});
+  assert.equal(run('current().kitchenEvents.length'),1);
+  assert.equal(run('current().kitchenEvents[0].after.note'),'Sin sal');
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+  run('undo()');assert.equal(run('current().lines[0].note'),'');
+});
+
+test('una cuenta no cierra con asignaciones de productos que ya no existen',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");startClose();paymentParts[0].method="Pix";paymentParts[0].assigned.removed=1;confirmClose()');
+  assert.equal(run('data.history.length'),0);
+  assert.equal(run('paymentStatus(current()).valid'),false);
+});
+
+test('el foco del botón de cantidad se conserva después de actualizar la comanda',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");globalThis.focusRestored=false;document.activeElement={dataset:{action:"qty",line:current().lines[0].id,delta:"1"}};const mainNode=document.querySelector("#main");mainNode.contains=()=>true;mainNode.querySelectorAll=()=>[{dataset:{...document.activeElement.dataset},focus(){focusRestored=true}}];changeQty(current().lines[0].id,1)');
+  assert.equal(run('focusRestored'),true);
+  assert.equal(run('current().lines[0].qty'),2);
+});
+
+test('si no puede liberar un borrador vacío permite acceder a Configuración',()=>{
+  const app=boot(),run=app.run;run('openSlot("m1")');app.failWrites=true;
+  run('go("settings")');assert.equal(run('view'),'settings');
+  assert.ok(run('data.orders.m1'));
+});
+
+test('Cocina muestra la cancelación de un producto agregado después del envío',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");sendKitchen();addProduct("boniato");removeLine(current().lines[1].id)');
+  assert.match(run('kitchenLines(current())'),/<strong>Cancelado:<\/strong> 1 × Boniato frito/);
+  run('undo()');assert.doesNotMatch(run('kitchenLines(current())'),/<strong>Cancelado:<\/strong>/);
+});
+
+test('la combinación conserva cambios de distintas mesas y detecta cambios incompatibles',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");go("home");openSlot("m2");addProduct("boniato");const base=deepCopy(data),local=deepCopy(data),remote=deepCopy(data);local.orders.m1.name="Ana";remote.orders.m2.name="Luis";globalThis.merged=mergeSharedState(base,local,remote)');
+  assert.equal(run('merged.orders.m1.name'),'Ana');assert.equal(run('merged.orders.m2.name'),'Luis');
+  run('remote.orders.m1.name="Otro"');assert.equal(run('mergeSharedState(base,local,remote)'),null);
+  run('remote.orders.m1.name="Ana"');assert.ok(run('mergeSharedState(base,local,remote)'));
+});
+
+test('una conexión colgada termina para permitir reintentar',async()=>{
+  const app=boot(),run=app.run;
+  run('globalThis.timeoutCleared=false;setTimeout=(callback)=>{globalThis.expireRequest=callback;return 99};clearTimeout=id=>{timeoutCleared=id===99};globalThis.fetch=async(url,options)=>new Promise((resolve,reject)=>{options.signal.addEventListener("abort",()=>reject(Error("Timeout")))});globalThis.requestTask=sharedRpc("kebba_read",{});expireRequest()');
+  await assert.rejects(run('requestTask'),/Timeout/);
+  assert.equal(run('timeoutCleared'),true);
 });
 
