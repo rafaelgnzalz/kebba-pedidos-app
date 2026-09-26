@@ -44,13 +44,19 @@ test('las mesas admiten una referencia visible y persistente',()=>{
   assert.match(run('renderHome()'),/Pareja de azul/);
   const reopened=boot(app.storage);
   assert.equal(reopened.run('data.orders.m1.name'),'Pareja de azul');
+  assert.match(run('renderHome()'),/Mesas <small>1 ocupado \/ 9<\/small>/);
+  run('handleAction({dataset:{action:"home-group",group:"p"}},{detail:1})');
+  assert.match(run('renderHome()'),/Pedido A/);
+  assert.doesNotMatch(run('renderHome()'),/data-slot="m1"/);
 });
 
 test('Cocina separa por enviar, preparar y cobrar; las ediciones quedan plegadas',()=>{
   const app=boot(),run=app.run;
   run('openSlot("m1");addProduct("papas");go("home");openSlot("m2");addProduct("kebab-carne");sendKitchen();go("home");openSlot("m3");addProduct("boniato");sendKitchen();markReady("m3")');
-  assert.match(run('renderKitchen()'),/Por enviar a Cocina · 1/);
   assert.match(run('renderKitchen()'),/En preparación · 1/);
+  run('handleAction({dataset:{action:"kitchen-group",group:"drafts"}},{detail:1})');
+  assert.match(run('renderKitchen()'),/Por enviar a Cocina · 1/);
+  run('handleAction({dataset:{action:"kitchen-group",group:"ready"}},{detail:1})');
   assert.match(run('renderKitchen()'),/pendientes de cobro · 1/);
   run('openSlot("m2");modifyLine(current().lines[0].id,line=>line.note="Sin salsa");modifyLine(current().lines[0].id,line=>line.note="Sin salsa, bien dorado")');
   const card=run('kitchenLines(current())');
