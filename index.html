@@ -47,6 +47,8 @@ button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{co
   .k-overview{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.k-overview span{border:1px solid var(--line);border-radius:7px;padding:9px 12px;background:var(--panel);font-weight:800}.k-overview strong{color:var(--orange)}
   .k-change-log{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}.k-change-log summary{cursor:pointer;color:var(--muted);font-size:.85rem}.k-change-log .k-changes{max-height:230px;overflow:auto;margin-top:8px}.k-cancelled{margin-top:8px;padding:8px;border-left:3px solid var(--red);background:#38221e}.k-card{min-width:0}.k-card .k-head{font-size:1.3rem}.k-card .k-time{margin:5px 0 8px}.k-card .k-line{padding:6px 0}.k-card .k-product{font-size:1rem}.k-card .k-mods{font-size:.86rem;line-height:1.25}.k-card button{margin-top:10px;padding:11px}
   .payment-modal{width:min(760px,100%)}.payment-part{border:1px solid var(--line);border-radius:8px;padding:11px;margin:9px 0;background:#1c211b}.payment-part-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.payment-part-head strong{font-size:1rem}.payment-part-head button{padding:7px 9px;border:1px solid var(--line)}.payment-part label{display:block;margin:9px 0 4px}.payment-part input,.payment-part select{width:100%}.payment-summary{padding:10px;border-radius:7px;background:#2b2923;font-weight:900}.payment-summary.error{color:#ffafa3}.pix-value{color:#a8f2c9;font-size:1.1rem;font-weight:900;margin:8px 0 0}.payment-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.payment-tools button{padding:10px;border:1px solid var(--line)}.payment-allocation{margin:14px 0}.allocation-line{border:1px solid var(--line);border-radius:8px;padding:10px;margin:8px 0}.allocation-title{display:flex;justify-content:space-between;gap:8px}.allocation-line small{display:block;color:var(--muted);margin-top:3px}.allocation-left{color:#ffcc83;font-size:.85rem;font-weight:800;margin:7px 0}.allocation-payers{display:flex;flex-wrap:wrap;gap:6px}.allocation-payer{display:flex;align-items:center;gap:5px;padding:5px 7px;border:1px solid var(--line);border-radius:6px}.allocation-payer strong{font-size:.82rem}.allocation-payer button{min-width:44px;min-height:44px;padding:5px;border:1px solid var(--line)}.allocation-payer button:last-child{padding:5px 8px}
+  .combo-product{border-color:#a96831;background:#34281d}.combo-product .product-name{color:#ffd19e}.combo-description{font-size:.78rem;color:#f5c99d}.combo-product .product-meta{color:#fff;font-weight:900}
+  .payment-person-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:10px 0}.payment-person-tabs button{min-height:48px;padding:7px 9px;text-align:left;border:1px solid var(--line);overflow-wrap:anywhere}.payment-person-tabs button.active{background:var(--orange);border-color:var(--orange);color:#18110a}.payment-person-tabs strong{display:block;font-size:.85rem}.payment-assign-tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 0}.payment-assign-tools strong{margin-right:auto;font-size:.85rem}.payment-assign-tools button,.allocation-actions button{min-height:42px;padding:7px 10px;border:1px solid var(--line)}.payment-assign-tools button:disabled,.allocation-actions button:disabled{opacity:.45}.allocation-line{padding:8px 10px;margin:5px 0}.allocation-title strong{font-size:.9rem}.allocation-title span{font-size:.84rem;white-space:nowrap}.allocation-compact{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:5px 0}.allocation-left{margin:0}.allocation-assigned{display:flex;gap:5px;flex-wrap:wrap}.allocation-assigned>span{padding:2px 6px;border-radius:5px;background:#394035;font-size:.73rem}.allocation-actions{display:flex;gap:5px;flex-wrap:wrap}.allocation-actions .primary{font-weight:800}.payment-all-done{padding:14px;border:1px solid var(--green);border-radius:7px}.payment-items{margin:8px 0;color:var(--muted);font-size:.82rem}.payment-items summary{cursor:pointer}.payment-items p{line-height:1.4;margin:5px 0}
   /* Una sola vista ocupa la altura de la laptop; las listas largas se desplazan dentro de su panel. */
   @media(min-width:760px){
     html,body{height:100%;overflow:hidden}.app{height:100dvh;min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);padding:10px 14px;overflow:hidden}.topbar{flex-wrap:nowrap;gap:10px;padding-bottom:7px}.brand{font-size:1.7rem}.nav{gap:5px}.nav button{min-height:40px;padding:7px 9px;font-size:.85rem}#storage-status{min-height:0}.saved-indicator{margin:4px 0;font-size:.72rem}#main{min-height:0;overflow:hidden}.headline{margin:2px 0 6px;align-items:center}.headline h1{font-size:clamp(1.5rem,2.3vw,2rem)}
@@ -87,7 +89,7 @@ button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{co
 
 // CONFIGURACIÓN CENTRAL: editar esta sección para cambiar carta, precios y atajos.
 const CONFIG = { nombreLocal: "KEBBA", cantidadMesas: 9, cantidadPedidosSinMesa: 10, dataVersion: 1, almacenamiento: "kebba-pedidos-v1", comboPrecio: 70, comboDescripcion: "Papas fritas + Coca-Cola" };
-const CATALOG_REVISION = 4;
+const CATALOG_REVISION = 5;
 // La clave publicable identifica la app; el acceso a los pedidos requiere el token del enlace.
 const SHARED_CONFIG = { url: "https://rlkbzqorlwpqfhuphuje.supabase.co", publishableKey: "sb_publishable_w_eTGTtzexFMnVPPCIGrGA_zuCu72tP" };
 const SHARED_TOKEN_KEY = "kebba-shared-token-v1";
@@ -98,13 +100,21 @@ const sharedMode = !!sharedToken && !SHARED_CONFIG.url.startsWith("__");
 if(sharedMode){try{localStorage.setItem(SHARED_TOKEN_KEY,sharedToken);}catch{}}
 const productos = [
   {id:"shawarma-pollo",categoria:"Shawarmas",nombre:"Shawarma Pollo",precio:260,shortcut:"Q",permiteCombo:true},
+  {id:"combo-shawarma-pollo",categoria:"Shawarmas",nombre:"Combo Shawarma Pollo",precio:260+CONFIG.comboPrecio,shortcut:"",permiteCombo:false,incluyeCombo:true},
   {id:"shawarma-carne",categoria:"Shawarmas",nombre:"Shawarma Carne",precio:330,shortcut:"W",permiteCombo:true},
+  {id:"combo-shawarma-carne",categoria:"Shawarmas",nombre:"Combo Shawarma Carne",precio:330+CONFIG.comboPrecio,shortcut:"",permiteCombo:false,incluyeCombo:true},
   {id:"shawarma-mixto",categoria:"Shawarmas",nombre:"Shawarma Mixto",precio:280,shortcut:"E",permiteCombo:true},
+  {id:"combo-shawarma-mixto",categoria:"Shawarmas",nombre:"Combo Shawarma Mixto",precio:280+CONFIG.comboPrecio,shortcut:"",permiteCombo:false,incluyeCombo:true},
   {id:"shawarma-vegetal",categoria:"Shawarmas",nombre:"Shawarma Vegetal",precio:260,shortcut:"R",permiteCombo:true},
+  {id:"combo-shawarma-vegetal",categoria:"Shawarmas",nombre:"Combo Shawarma Vegetal",precio:260+CONFIG.comboPrecio,shortcut:"",permiteCombo:false,incluyeCombo:true},
   {id:"kebab-pollo",categoria:"Kebabs",nombre:"Kebab Pollo",precio:250,shortcut:"A",permiteCombo:true},
+  {id:"combo-kebab-pollo",categoria:"Kebabs",nombre:"Combo Kebab Pollo",precio:250+CONFIG.comboPrecio,shortcut:"",permiteCombo:false,incluyeCombo:true},
   {id:"kebab-carne",categoria:"Kebabs",nombre:"Kebab Carne",precio:320,shortcut:"S",permiteCombo:true},
+  {id:"combo-kebab-carne",categoria:"Kebabs",nombre:"Combo Kebab Carne",precio:320+CONFIG.comboPrecio,shortcut:"",permiteCombo:false,incluyeCombo:true},
   {id:"kebab-mixto",categoria:"Kebabs",nombre:"Kebab Mixto",precio:270,shortcut:"D",permiteCombo:true},
+  {id:"combo-kebab-mixto",categoria:"Kebabs",nombre:"Combo Kebab Mixto",precio:270+CONFIG.comboPrecio,shortcut:"",permiteCombo:false,incluyeCombo:true},
   {id:"kebab-vegetal",categoria:"Kebabs",nombre:"Kebab Vegetal",precio:260,shortcut:"F",permiteCombo:true},
+  {id:"combo-kebab-vegetal",categoria:"Kebabs",nombre:"Combo Kebab Vegetal",precio:260+CONFIG.comboPrecio,shortcut:"",permiteCombo:false,incluyeCombo:true},
   {id:"plato-pollo",categoria:"Kebab al plato",nombre:"Kebab al Plato Pollo",precio:310,shortcut:"",permiteCombo:false},
   {id:"plato-carne",categoria:"Kebab al plato",nombre:"Kebab al Plato Carne",precio:390,shortcut:"",permiteCombo:false},
   {id:"plato-mixto",categoria:"Kebab al plato",nombre:"Kebab al Plato Mixto",precio:330,shortcut:"",permiteCombo:false},
@@ -291,7 +301,7 @@ function loadData(){
   try{savedRaw=localStorage.getItem(CONFIG.almacenamiento);return savedRaw?validateImport(JSON.parse(savedRaw)):emptyData();}
   catch{recoveryRaw=savedRaw;readBlocked=!!savedRaw;storageWarning=readBlocked?"No pudimos leer los datos guardados. Se conservaron sin cambios. Importá un respaldo desde Configuración para recuperarlos.":"El navegador no permite guardar. Exportá un respaldo antes de salir y revisá su configuración.";return emptyData();}
 }
-let data=loadData(),view="home",homeGroup="m",kitchenGroup="pending",selectedSlot=null,selectedLine=null,mobileOrderPane="menu",selectedMenuSection="Comida",selectedMenuCategory="Shawarmas",modal=null,paymentParts=[],historyDetail=null,historyDate=dayKey(now()),toastTimer=null;
+let data=loadData(),view="home",homeGroup="m",kitchenGroup="pending",selectedSlot=null,selectedLine=null,mobileOrderPane="menu",selectedMenuSection="Comida",selectedMenuCategory="Shawarmas",modal=null,paymentParts=[],selectedPaymentPart=0,showAssignedPaymentLines=false,historyDetail=null,historyDate=dayKey(now()),toastTimer=null;
 let focusBeforeModal=null,inputSession=null,lastActivation={key:"",at:0},lastOpenNumber=null;
 const undoStacks=new Map();
 const settings=()=>data.settings;
@@ -460,7 +470,8 @@ function undo(){
 function addProduct(id){
   const product=data.catalog.find(item=>item.id===id);if(!product||!current())return;
   selectedLine=null;
-  if(mutateOrder(order=>order.lines.push({id:uid(),productId:id,name:product.nombre,unitPrice:product.precio,qty:1,mods:[],note:"",permiteCombo:!!product.permiteCombo}))){$(".ticket-list")?.scrollTo?.({top:999999});toast(`${product.nombre} agregado${current().sentAt?" · Cocina avisada":""}`);}
+  const included=product.incluyeCombo?[{id:"combo-incluido",name:"Combo incluido",price:0,description:CONFIG.comboDescripcion}]:[];
+  if(mutateOrder(order=>order.lines.push({id:uid(),productId:id,name:product.nombre,unitPrice:product.precio,qty:1,mods:included,note:"",permiteCombo:!!product.permiteCombo}))){$(".ticket-list")?.scrollTo?.({top:999999});toast(`${product.nombre} agregado${current().sentAt?" · Cocina avisada":""}`);}
 }
 function modifyLine(id,fn){if(findLine(id))mutateOrder(order=>fn(order.lines.find(line=>line.id===id)));}
 function removeLine(id){if(!findLine(id))return;if(!mutateOrder(order=>{order.lines=order.lines.filter(line=>line.id!==id);}))return;selectedLine=null;toast(current()?.sentAt?"Producto eliminado · Cancelación visible en Cocina":"Producto eliminado · Podés deshacer");}
@@ -496,11 +507,12 @@ function kitchenNotice(target,order,reason){
 }
 function deleteOrder(){const order=current();if(!order||!canEdit())return;const warning=order.sentAt?"\n\nYa fue enviado a Cocina. El cocinero verá un aviso de cancelación.":"";if(!confirm(`¿Seguro que querés eliminar el pedido completo de ${slotLabel(selectedSlot)}?${warning}`))return;const next=deepCopy(data);if(order.sentAt)kitchenNotice(next,order,"PEDIDO CANCELADO");delete next.orders[selectedSlot];if(!commitData(next))return;undoStacks.delete(order.number);selectedSlot=null;go("home");toast("Pedido eliminado. El número no se reutiliza.");}
 function openModal(type){focusBeforeModal=document.activeElement;modal=type;renderModal();}
-function closeModal(){modal=null;paymentParts=[];renderModal();focusBeforeModal?.focus?.();}
+function closeModal(){modal=null;paymentParts=[];selectedPaymentPart=0;showAssignedPaymentLines=false;renderModal();focusBeforeModal?.focus?.();}
 function newPaymentPart(assigned={}){return {id:uid(),name:"",method:"",assigned,cashReceived:""};}
 function startClose(){
   const order=current();if(!order?.lines.length){toast("Un pedido vacío no se puede cobrar.",true);return;}
   paymentParts=[newPaymentPart(Object.fromEntries(order.lines.map(line=>[line.id,line.qty])))];
+  selectedPaymentPart=0;showAssignedPaymentLines=false;
   openModal("payment");
 }
 function unitPrice(line){return line.unitPrice+line.mods.reduce((sum,mod)=>sum+mod.price,0);}
@@ -540,6 +552,12 @@ function assignPaymentRest(lineId,index){
   if(!line||!part)return;
   const remaining=remainingUnits(line);if(remaining<=0)return;
   part.assigned[lineId]=(part.assigned[lineId]||0)+remaining;part.cashReceived="";renderModal();
+}
+function assignAllRemaining(index){
+  const part=paymentParts[index],order=current();if(!part||!order)return;
+  let changed=false;
+  for(const line of order.lines){const remaining=remainingUnits(line);if(remaining>0){part.assigned[line.id]=(part.assigned[line.id]||0)+remaining;changed=true;}}
+  if(changed){part.cashReceived="";renderModal();}
 }
 function updatePaymentFeedback(){
   if(modal!=="payment"||!current())return;
@@ -607,7 +625,7 @@ function renderHome(){
   const groups=[{id:"m",label:"Mesas"},{id:"p",label:"Sin mesa"}],selected=slots().filter(slot=>slot.id[0]===homeGroup);
   return `${kitchenSummary()}<div class="headline"><h1>Mesas / Pedidos</h1><button class="small-button" data-action="help">Cómo usar</button></div><div class="home-groups" role="group" aria-label="Elegir lugares">${groups.map(group=>{const places=slots().filter(slot=>slot.id[0]===group.id),active=places.filter(slot=>data.orders[slot.id]).length;return `<button data-action="home-group" data-group="${group.id}" aria-pressed="${homeGroup===group.id}" class="${homeGroup===group.id?"active":""}">${group.label} <small>${active} ${active===1?"ocupado":"ocupados"} / ${places.length}</small></button>`;}).join("")}</div><section class="home-slots" aria-label="${homeGroup==="m"?"Mesas":"Pedidos sin mesa"}"><div class="slot-grid">${selected.map(card).join("")}</div></section>`;
 }
-function renderProductButton(product){return `<button class="product" data-action="add-product" data-product="${safe(product.id)}" aria-label="Agregar ${safe(product.nombre)} por ${money(product.precio)}"><span class="product-name">${safe(product.nombre)}</span><span class="product-meta"><span>${product.shortcut?`<span class="key">${safe(product.shortcut)}</span>`:""}</span><span>${money(product.precio)}</span></span></button>`;}
+function renderProductButton(product){return `<button class="product ${product.incluyeCombo?"combo-product":""}" data-action="add-product" data-product="${safe(product.id)}" aria-label="Agregar ${safe(product.nombre)} por ${money(product.precio)}${product.incluyeCombo?`, incluye ${safe(CONFIG.comboDescripcion)}`:""}"><span class="product-name">${safe(product.nombre)}</span>${product.incluyeCombo?`<span class="combo-description">${safe(CONFIG.comboDescripcion)}</span>`:""}<span class="product-meta"><span>${product.shortcut?`<span class="key">${safe(product.shortcut)}</span>`:""}</span><span>${money(product.precio)}</span></span></button>`;}
 function renderCocktails(products){
   const names=[...new Set(products.map(product=>product.trago||product.nombre))];
   return `<div class="cocktail-list">${names.map(name=>`<div class="cocktail-row"><strong>${safe(name)}</strong><div class="cocktail-sizes">${products.filter(product=>(product.trago||product.nombre)===name).map(product=>`<button data-action="add-product" data-product="${safe(product.id)}" aria-label="Agregar ${safe(product.nombre)} por ${money(product.precio)}"><span>${safe(product.medida||"Agregar")}</span><b>${money(product.precio)}</b></button>`).join("")}</div></div>`).join("")}</div>`;
@@ -684,18 +702,18 @@ function renderSettings(){
 
 function helpContent(){return `<h2 id="dialog-title">Cómo atender con KEBBA</h2><ol class="help-steps"><li><strong>Elegí el lugar.</strong> Una Mesa para quien se sienta; Pedido A–J para retirar, llevar o WhatsApp. Podés anotar nombre o descripción en ambos.</li><li><strong>Cargá la comanda.</strong> Elegí Comida o Bebidas y tragos, y después la categoría. En Tragos, tocá 250 o 500 ml. Cada toque agrega una unidad y + la repite. “Cambios / salsa” personaliza la línea y “+ Combo” suma papas y Coca-Cola por $70 a un shawarma o kebab.</li><li><strong>Mandá a Cocina.</strong> Antes del envío nadie está preparando el pedido. Después, los cambios y cancelaciones se avisan automáticamente.</li><li><strong>Prepará y marcá LISTO.</strong> Cocina separa por enviar, en preparación y listos para cobrar. Las correcciones aparecen resumidas; tocá Ver historial de ediciones si necesitás el detalle.</li><li><strong>Cobrá y cerrá.</strong> Abrí el pedido y tocá “Cobrar y cerrar”. Podés dividir la cuenta asignando productos a cada persona y elegir un medio de pago distinto para cada una. En efectivo, ingresá cuánto entregó para ver el cambio. Pix muestra el importe en reales a $8,30 por real. Confirmá cuando todos los pagos estén cubiertos.</li></ol><p class="order-hint"><strong>Si te equivocás:</strong> usá Deshacer. Para trasladar una comanda usá Mover pedido y elegí un lugar libre. Al terminar el turno, guardá un respaldo desde Configuración.</p><details><summary>Atajos de teclado (opcionales)</summary><p><strong>${safe(shortcuts.cambiarMesas)}</strong> Mesas / Pedidos · <strong>${safe(shortcuts.cambiarCocina)}</strong> Cocina · <strong>Esc</strong> volver · <strong>${safe(shortcuts.ayuda)}</strong> ayuda · <strong>F11</strong> pantalla completa · <strong>Ctrl+${safe(shortcuts.deshacer.toUpperCase())}</strong> deshacer</p><p>Desde Mesas / Pedidos: 1–9 abre las mesas y A–J abre los pedidos sin mesa. En la comanda, cada botón muestra su tecla. Mientras escribís un nombre u observación, las letras no agregan productos.</p></details><div class="modal-actions"><button class="primary" data-action="modal-close">ENTENDIDO · VOLVER</button></div>`;}
 function renderPaymentAllocation(order){
-  return `<section class="payment-allocation"><h3>Elegí qué paga cada persona</h3><p class="note">Asigná las unidades de cada producto. Los cambios y combos viajan con ese producto.</p>${order.lines.map(line=>{
+  const selected=Math.min(selectedPaymentPart,paymentParts.length-1),pending=order.lines.filter(line=>remainingUnits(line)>0),visible=showAssignedPaymentLines?order.lines:pending;
+  return `<section class="payment-allocation"><h3>Repartir productos</h3><p class="note">Elegí una persona y tocá los productos que paga. Un toque asigna todas las unidades pendientes de esa línea.</p><div class="payment-person-tabs" role="group" aria-label="Persona que paga los próximos productos">${paymentParts.map((part,index)=>`<button data-action="payment-select" data-part="${index}" class="${selected===index?"active":""}" aria-pressed="${selected===index}"><span data-payer-label="${index}">${safe(part.name.trim()||`Persona ${index+1}`)}</span><strong>${money(partAmount(part,order))}</strong></button>`).join("")}</div><div class="payment-assign-tools"><strong>${pending.length} ${pending.length===1?"línea pendiente":"líneas pendientes"}</strong><button data-action="payment-all-remaining" data-part="${selected}" ${pending.length?"":"disabled"}>Todo lo pendiente a <span data-payer-label="${selected}">${safe(paymentParts[selected].name.trim()||`Persona ${selected+1}`)}</span></button><button data-action="payment-show-assigned" aria-pressed="${showAssignedPaymentLines}">${showAssignedPaymentLines?"Mostrar pendientes":"Ver también asignados"}</button></div>${visible.length?visible.map(line=>{
     const remaining=remainingUnits(line);
-    return `<div class="allocation-line"><div class="allocation-title"><strong>${line.qty} × ${safe(line.name)}</strong><span>${money(unitPrice(line))} c/u</span></div>${line.mods.length||line.note?`<small>${lineDetails(line,false)}</small>`:""}<div class="allocation-left">${remaining} ${remaining===1?"unidad sin asignar":"unidades sin asignar"}</div><div class="allocation-payers">${paymentParts.map((part,index)=>{
-      const assigned=part.assigned[line.id]||0;
-      return `<div class="allocation-payer"><strong><span data-payer-label="${index}">${safe(part.name.trim()||`Persona ${index+1}`)}</span>: ${assigned}</strong><button data-action="payment-unit" data-line="${safe(line.id)}" data-part="${index}" data-delta="-1" aria-label="Quitar una unidad de ${safe(line.name)} a la persona ${index+1}" ${assigned?"":"disabled"}>−</button><button data-action="payment-unit" data-line="${safe(line.id)}" data-part="${index}" data-delta="1" aria-label="Asignar una unidad de ${safe(line.name)} a la persona ${index+1}" ${remaining?"":"disabled"}>+</button><button data-action="payment-rest" data-line="${safe(line.id)}" data-part="${index}" ${remaining?"":"disabled"}>Resto</button></div>`;
-    }).join("")}</div></div>`;
-  }).join("")}</section>`;
+    const mine=paymentParts[selected].assigned[line.id]||0;
+    return `<div class="allocation-line"><div class="allocation-title"><strong>${line.qty} × ${safe(line.name)}</strong><span>${money(unitPrice(line))} c/u</span></div>${line.mods.length||line.note?`<small>${lineDetails(line,false)}</small>`:""}<div class="allocation-compact"><span class="allocation-left">${remaining?`${remaining} ${remaining===1?"pendiente":"pendientes"}`:"Todo asignado"}</span><span class="allocation-assigned">${paymentParts.map((part,index)=>{const count=part.assigned[line.id]||0;return count?`<span><span data-payer-label="${index}">${safe(part.name.trim()||`Persona ${index+1}`)}</span>: ${count}</span>`:"";}).join("")}</span></div><div class="allocation-actions"><button class="primary" data-action="payment-rest" data-line="${safe(line.id)}" data-part="${selected}" ${remaining?"":"disabled"}>${remaining===1?"Asignar 1":`Asignar ${remaining} restantes`}</button>${line.qty>1?`<button data-action="payment-unit" data-line="${safe(line.id)}" data-part="${selected}" data-delta="1" ${remaining?"":"disabled"} aria-label="Asignar solo una unidad de ${safe(line.name)} a la persona ${selected+1}">+1 unidad</button>`:""}${mine?`<button data-action="payment-unit" data-line="${safe(line.id)}" data-part="${selected}" data-delta="-1" aria-label="Quitar una unidad de ${safe(line.name)} a la persona ${selected+1}">Quitar 1</button>`:""}</div></div>`;
+  }).join(""):`<p class="payment-all-done">Todos los productos están asignados. Si necesitás corregir algo, tocá «Ver también asignados».</p>`}</section>`;
 }
 function renderPaymentPart(part,index,order){
   const amount=partAmount(part,order),feedback=cashFeedback(amount,part.cashReceived);
   const options=paymentMethods.map(method=>`<option value="${safe(method)}" ${part.method===method?"selected":""}>${safe(method)}</option>`).join("");
-  return `<section class="payment-part"><div class="payment-part-head"><strong>Persona ${index+1} · ${money(amount)}</strong>${paymentParts.length>2?`<button data-action="payment-remove" data-part="${index}" aria-label="Quitar persona ${index+1}">Quitar</button>`:""}</div>${paymentParts.length>1?`<label for="payer-name-${index}">Nombre o referencia (opcional)</label><input id="payer-name-${index}" data-payer-name="${index}" maxlength="50" value="${safe(part.name)}" placeholder="Ej.: Juan">`:""}<label for="payment-method-${index}">Forma de pago</label><select id="payment-method-${index}" data-payment-method="${index}"><option value="">Elegí una opción</option>${options}</select>${part.method==="Efectivo"?`<div class="cash-box"><label for="cash-received-${index}">Efectivo recibido de esta persona</label><input id="cash-received-${index}" data-cash-received="${index}" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="off" value="${safe(part.cashReceived)}"><p data-cash-result="${index}" class="cash-result ${feedback.valid?"valid":feedback.short?"short":""}" role="status">${feedback.message}</p></div>`:""}${part.method==="Pix"?`<p class="pix-value" data-pix-result="${index}">${brlMoney(amount)} · 1 real = $8,30</p>`:""}</section>`;
+  const items=order.lines.filter(line=>part.assigned[line.id]).map(line=>`${part.assigned[line.id]} × ${safe(line.name)}`);
+  return `<section class="payment-part"><div class="payment-part-head"><strong>Persona ${index+1} · ${money(amount)}</strong>${paymentParts.length>2?`<button data-action="payment-remove" data-part="${index}" aria-label="Quitar persona ${index+1}">Quitar</button>`:""}</div>${paymentParts.length>1?`<label for="payer-name-${index}">Nombre o referencia (opcional)</label><input id="payer-name-${index}" data-payer-name="${index}" maxlength="50" value="${safe(part.name)}" placeholder="Ej.: Juan">`:""}${paymentParts.length>1&&items.length?`<details class="payment-items"><summary>Ver ${items.length} ${items.length===1?"producto":"productos"} asignados</summary><p>${items.join(" · ")}</p></details>`:""}<label for="payment-method-${index}">Forma de pago</label><select id="payment-method-${index}" data-payment-method="${index}"><option value="">Elegí una opción</option>${options}</select>${part.method==="Efectivo"?`<div class="cash-box"><label for="cash-received-${index}">Efectivo recibido de esta persona</label><input id="cash-received-${index}" data-cash-received="${index}" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="off" value="${safe(part.cashReceived)}"><p data-cash-result="${index}" class="cash-result ${feedback.valid?"valid":feedback.short?"short":""}" role="status">${feedback.message}</p></div>`:""}${part.method==="Pix"?`<p class="pix-value" data-pix-result="${index}">${brlMoney(amount)} · 1 real = $8,30</p>`:""}</section>`;
 }
 function renderPaymentModal(order){
   const split=paymentParts.length>1,status=paymentStatus(order);
@@ -784,10 +802,14 @@ function handleAction(element,event){
     case "payment-split":{
       if(paymentParts.length===1)paymentParts=[newPaymentPart(),newPaymentPart()];
       else paymentParts=[newPaymentPart(Object.fromEntries(current().lines.map(line=>[line.id,line.qty])))];
+      selectedPaymentPart=0;showAssignedPaymentLines=false;
       renderModal();break;
     }
-    case "payment-add":if(paymentParts.length<8){paymentParts.push(newPaymentPart());renderModal();}break;
-    case "payment-remove":if(paymentParts.length>2){paymentParts.splice(Number(element.dataset.part),1);renderModal();}break;
+    case "payment-add":if(paymentParts.length<8){paymentParts.push(newPaymentPart());selectedPaymentPart=paymentParts.length-1;renderModal();}break;
+    case "payment-remove":if(paymentParts.length>2){const removed=Number(element.dataset.part);if(removed<0||removed>=paymentParts.length)break;paymentParts.splice(removed,1);if(selectedPaymentPart>removed)selectedPaymentPart--;selectedPaymentPart=Math.min(selectedPaymentPart,paymentParts.length-1);renderModal();}break;
+    case "payment-select":if(paymentParts[Number(element.dataset.part)]){selectedPaymentPart=Number(element.dataset.part);renderModal();}break;
+    case "payment-show-assigned":showAssignedPaymentLines=!showAssignedPaymentLines;renderModal();break;
+    case "payment-all-remaining":assignAllRemaining(Number(element.dataset.part));break;
     case "payment-unit":assignPaymentUnit(element.dataset.line,Number(element.dataset.part),Number(element.dataset.delta));break;
     case "payment-rest":assignPaymentRest(element.dataset.line,Number(element.dataset.part));break;
     case "move-start":openModal("move");break;

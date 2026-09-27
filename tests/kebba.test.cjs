@@ -84,6 +84,33 @@ test('la cuenta se divide por producto y permite efectivo más Pix',()=>{
   assert.match(run('buildDayCsv()'),/Pix/);
 });
 
+test('los combos de shawarma y kebab se agregan con precio final y contenido para Cocina',()=>{
+  const app=boot(),run=app.run;
+  assert.equal(run('data.catalog.filter(product=>product.incluyeCombo).length'),8);
+  assert.match(run('renderMenu()'),/Combo Shawarma Pollo/);
+  run('openSlot("m1");addProduct("combo-shawarma-pollo");addProduct("combo-kebab-carne")');
+  assert.equal(run('orderTotal(current())'),720);
+  assert.equal(run('current().lines[0].unitPrice'),330);
+  assert.equal(run('current().lines[1].unitPrice'),390);
+  assert.equal(run('allowsCombo(current().lines[0])'),false);
+  assert.match(run('kitchenItem(current().lines[0])'),/Papas fritas \+ Coca-Cola/);
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+});
+
+test('una cuenta grande se asigna por líneas completas a cuatro personas',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");for(let i=0;i<18;i++)addProduct("papas");startClose();paymentParts=[newPaymentPart(),newPaymentPart(),newPaymentPart(),newPaymentPart()]');
+  const initial=run('renderPaymentAllocation(current())');
+  assert.equal((initial.match(/data-action="payment-rest"/g)||[]).length,18);
+  run('for(let i=0;i<4;i++)assignPaymentRest(current().lines[i].id,0);for(let i=4;i<8;i++)assignPaymentRest(current().lines[i].id,1);for(let i=8;i<12;i++)assignPaymentRest(current().lines[i].id,2);selectedPaymentPart=3;assignAllRemaining(3)');
+  assert.equal(run('current().lines.reduce((sum,line)=>sum+remainingUnits(line),0)'),0);
+  assert.match(run('renderPaymentAllocation(current())'),/Todos los productos están asignados/);
+  run('paymentParts.forEach(part=>part.method="Transferencia");confirmClose()');
+  assert.equal(run('data.history[0].payments.length'),4);
+  assert.equal(run('data.history[0].payments[3].amount'),600);
+  assert.equal(run('data.history[0].total'),1800);
+});
+
 test('dos unidades iguales pueden pagarlas personas distintas',()=>{
   const app=boot(),run=app.run;
   run('openSlot("p0");addProduct("papas");changeQty(current().lines[0].id,1);sendKitchen();markReady("p0");startClose();paymentParts=[newPaymentPart(),newPaymentPart()]');
