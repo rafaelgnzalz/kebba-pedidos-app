@@ -111,6 +111,16 @@ test('una cuenta grande se asigna por líneas completas a cuatro personas',()=>{
   assert.equal(run('data.history[0].total'),1800);
 });
 
+test('el reparto agrupa kebabs, shawarmas y acompañamientos antes del resto',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");["bebida-sprite-350","shawarma-pollo","papas","kebab-pollo","shawarma-carne","kebab-carne","plato-pollo","boniato","coxinha-pollo-1"].forEach(addProduct);startClose();paymentParts=[newPaymentPart(),newPaymentPart()]');
+  assert.equal(run('paymentSortedLines(current().lines).map(item=>item.line.name).join(" | ")'),
+    'Kebab Carne | Kebab Pollo | Kebab al Plato Pollo | Shawarma Carne | Shawarma Pollo | Boniato frito | Papas fritas | Sprite · lata 350 ml | Coxinha de Pollo · 1 unidad');
+  const rendered=run('renderPaymentAllocation(current())');
+  assert.ok(rendered.indexOf('class="allocation-group">Kebabs')<rendered.indexOf('class="allocation-group">Shawarmas'));
+  assert.ok(rendered.indexOf('class="allocation-group">Shawarmas')<rendered.indexOf('class="allocation-group">Acompañamientos'));
+});
+
 test('dos unidades iguales pueden pagarlas personas distintas',()=>{
   const app=boot(),run=app.run;
   run('openSlot("p0");addProduct("papas");changeQty(current().lines[0].id,1);sendKitchen();markReady("p0");startClose();paymentParts=[newPaymentPart(),newPaymentPart()]');
