@@ -143,6 +143,18 @@ test('no cierra con productos sin asignar y conserva respaldos antiguos',()=>{
   assert.throws(()=>run('const wrong=deepCopy(data);wrong.history[0].payments[0].amount=99;validateImport(wrong)'));
 });
 
+test('cancelar el aviso de Cocina y luego marcar listo registra una sola venta',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");sendKitchen();startClose();paymentParts[0].method="Transferencia"');
+  app.confirmation=false;run('confirmClose()');
+  assert.equal(run('data.history.length'),0);
+  assert.equal(run('data.orders.m1.lines.length'),1);
+  run('closeModal();go("kitchen");markReady("m1");openSlot("m1");startClose();paymentParts[0].method="Transferencia"');
+  app.confirmation=true;run('confirmClose();confirmClose()');
+  assert.equal(run('data.history.length'),1);
+  assert.equal(run('data.history[0].lines.length'),1);
+});
+
 test('Pix funciona como pago único y guarda pesos, reales y tasa',()=>{
   const app=boot(),run=app.run;
   run('openSlot("m1");addProduct("kebab-carne");sendKitchen();markReady("m1");startClose()');

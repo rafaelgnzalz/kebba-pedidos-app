@@ -581,7 +581,7 @@ function confirmClose(){
     if(part.method==="Pix"){entry.pixRate=PIX_RATE;entry.pixBrl=brlAmount(amount);}
     return entry;
   });
-  if(order.status==="EN COCINA"&&!confirm("Este pedido todavía figura EN COCINA. ¿Querés cerrarlo igualmente?"))return;
+  if(order.status==="EN COCINA"&&!confirm("Este pedido todavía figura EN COCINA.\n\nAceptar: cobrar y cerrar ahora.\nCancelar: mantener el pedido abierto. Después tocá VOLVER SIN CERRAR y marcá LISTO en Cocina."))return;
   if(!order.sentAt&&!confirm("Este pedido no fue enviado a Cocina. ¿Ya fue entregado y querés registrar el cobro?"))return;
   const next=deepCopy(data);if(order.status==="EN COCINA")kitchenNotice(next,order,"CERRADO ANTES DE LISTO");
   const payment=payments.length===1?payments[0].method:"Dividido";
