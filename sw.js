@@ -1,5 +1,5 @@
-const CACHE = "kebba-shell-v13";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/kebba.svg", "./icons/kebba-192.png", "./icons/kebba-512.png"];
+const CACHE = "kebba-shell-v14";
+const SHELL = ["./", "./index.html", "./cash.js", "./manifest.webmanifest", "./icons/kebba.svg", "./icons/kebba-192.png", "./icons/kebba-512.png"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));

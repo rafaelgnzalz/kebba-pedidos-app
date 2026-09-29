@@ -167,6 +167,20 @@ test('Pix funciona como pago único y guarda pesos, reales y tasa',()=>{
   assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
 });
 
+test('un cobro dividido registra efectivo en reales y PREX sin convertir el total',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");addProduct("kebab-carne");sendKitchen();markReady("m1");startClose();paymentParts=[newPaymentPart(),newPaymentPart()]');
+  run('assignPaymentRest(current().lines[0].id,0);assignPaymentRest(current().lines[1].id,1);paymentParts[0].method="Efectivo BRL";paymentParts[0].brlCharged="15,50";paymentParts[0].brlReceived="20";paymentParts[1].method="PREX"');
+  assert.equal(run('paymentStatus(current()).valid'),true);
+  assert.match(run('renderPaymentModal(current())'),/R\$ 4,50/);
+  run('confirmClose()');
+  assert.equal(run('data.history[0].payment'),'Dividido');
+  assert.equal(run('data.history[0].payments[0].brlChargedMinor'),1550);
+  assert.equal(run('data.history[0].payments[0].brlChangeMinor'),450);
+  assert.match(run('paymentExport(data.history[0])'),/R\$ 4,50/);
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+});
+
 test('si falla el guardado de un cobro dividido, la comanda sigue abierta',()=>{
   const app=boot(),run=app.run;
   run('openSlot("m1");addProduct("papas");addProduct("boniato");sendKitchen();markReady("m1");startClose();paymentParts=[newPaymentPart(),newPaymentPart()]');
@@ -294,4 +308,3 @@ test('una conexión colgada termina para permitir reintentar',async()=>{
   await assert.rejects(run('requestTask'),/Timeout/);
   assert.equal(run('timeoutCleared'),true);
 });
-
