@@ -11,7 +11,10 @@
   if(!cashToken){try{cashToken=tokenFrom(localStorage.getItem(ACCESS_STORE));}catch{}}
   if(cashToken){try{localStorage.setItem(ACCESS_STORE,cashToken);}catch{}}
   let snapshot = {events: [], sales: []}, ready = false, loading = false, error = "";
-  let section = "caja", dialog = "", selectedWithdrawal = null, selectedSession = null;
+  let section = window.KebbaBookUI ? "resumen" : "caja", dialog = "", selectedWithdrawal = null, selectedSession = null;
+  let selectedBook = null, bookDraft = null;
+  let bookFilters = {from:"",to:"",query:"",person:"",kind:"",category:""};
+  const bookById = id => (snapshot.book||[]).find(e=>e.id===id);
   let pending = null;
   try { pending = JSON.parse(sessionStorage.getItem(STORE) || "null"); } catch {}
   const eventById = id => snapshot.events.find(e => e.id === id);
@@ -79,10 +82,15 @@
     if (loading && !ready) return `<div class="headline"><h1>Caja</h1></div><div class="empty">Leyendo la caja compartida…</div>`;
     if (error && !ready) return `<div class="headline"><h1>Caja</h1></div><div class="storage-alert"><strong>${safe(error)}</strong><button data-cash-action="refresh">REINTENTAR</button></div>`;
     const active = activeSession();
-    const tabs = `<div class="cash-tabs" role="group" aria-label="Secciones de caja">${[["caja","Caja"],["retiros","Retiros"],["compras","Compras"]].map(([id,label])=>`<button data-cash-action="tab" data-tab="${id}" class="${section===id?"active":""}">${label}</button>`).join("")}</div>`;
+    const sections=window.KebbaBookUI?[["resumen","Resumen"],["caja","Jornada"],["registro","Registro"],["personas","Personas"],["retiros","Retiros"],["compras","Compras"]]:[["caja","Caja"],["retiros","Retiros"],["compras","Compras"]];
+    const tabs = `<div class="cash-tabs" role="group" aria-label="Secciones de caja">${sections.map(([id,label])=>`<button data-cash-action="tab" data-tab="${id}" class="${section===id?"active":""}" aria-pressed="${section===id}">${label}</button>`).join("")}</div>`;
     const pendingNotice = pending ? `<div class="storage-alert"><strong>Hay una operación cuyo guardado no pudimos comprobar.</strong><button data-cash-action="retry">REINTENTAR EL MISMO GUARDADO</button><button data-cash-action="refresh">COMPROBAR</button></div>` : "";
     const status = error ? `<div class="storage-alert">${safe(error)} <button data-cash-action="refresh">REINTENTAR</button></div>` : "";
-    const head = `<div class="headline"><h1>Caja</h1><div class="cash-actions"><button class="small-button" data-cash-action="refresh">Actualizar</button><button class="small-button" data-cash-action="export">GUARDAR REGISTRO</button><button class="small-button" data-cash-action="disconnect" ${pending?"disabled":""}>SALIR DE CAJA</button></div></div>${pendingNotice}${status}${tabs}`;
+    const head = `<div class="headline"><h1>Caja</h1><div class="cash-actions cash-toolbar"><button class="small-button" data-cash-action="refresh">Actualizar</button><button class="small-button" data-cash-action="export" title="Descargar respaldo JSON de Caja">Respaldo</button><button class="small-button" data-cash-action="disconnect" ${pending?"disabled":""}>Salir de Caja</button></div></div>${pendingNotice}${status}${tabs}`;
+    if(["resumen","registro","personas"].includes(section)&&window.KebbaBookUI){
+      const notice=snapshot.finance_version!==1?'<div class="storage-alert">El registro ampliado todavía necesita activarse en la base compartida. Las ventas y jornadas existentes siguen disponibles.</div>':"";
+      return head+notice+window.KebbaBookUI.render(section,snapshot,!!pending||snapshot.finance_version!==1,bookFilters,{active:!!active,uyu:active?expected(active,"UYU"):0,brl:active?expected(active,"BRL"):0});
+    }
     if (section === "retiros") return head + renderWithdrawals(active);
     if (section === "compras") return head + renderPurchases();
     return head + renderOverview(active);
@@ -126,7 +134,7 @@
       if(token!==cashToken)return;
       if(!Array.isArray(result.events)||!Array.isArray(result.sales))throw Error("La respuesta de Caja es inválida.");
       snapshot=result;ready=true;
-      if(pending && eventById(pending.request_id)){pending=null;try{sessionStorage.removeItem(STORE);}catch{}toast("La operación estaba guardada.");}
+      if(pending && (eventById(pending.request_id)||bookById(pending.request_id))){pending=null;try{sessionStorage.removeItem(STORE);}catch{}toast("La operación estaba guardada.");}
     } catch(e) {
       if(token!==cashToken)return;
       if(e.message.includes("Clave de Caja inválida")){forgetAccess();error="La clave de Caja no es válida. Pedí el enlace de encargados y probá de nuevo.";}
@@ -164,13 +172,13 @@
     if(!pending)return;
     const item=pending;
     try {
-      await sharedRpc("kebba_cash_command",{access_token:cashToken,...item});
+      await sharedRpc(item.action==="book"?"kebba_book_command":"kebba_cash_command",item.action==="book"?{access_token:cashToken,request_id:item.request_id,payload:item.payload}:{access_token:cashToken,...item});
       pending=null;try{sessionStorage.removeItem(STORE);}catch{}closeDialog();
       await refresh();toast("Movimiento de Caja guardado.");
     } catch(e) {
       await refresh();
       if(!pending){closeDialog();renderApp();}
-      else if(pending&&ready&&!error){pending=null;try{sessionStorage.removeItem(STORE);}catch{}if(["close","close_correction"].includes(item.action))closeDialog();toast(e.message,true);renderApp();}
+      else if(pending&&ready&&!error&&e.status>=400&&e.status<500){pending=null;try{sessionStorage.removeItem(STORE);}catch{}if(["close","close_correction"].includes(item.action))closeDialog();toast(e.message,true);renderApp();}
       else if(pending){error="No pudimos confirmar el guardado. Reintentá el mismo movimiento para evitar duplicados. "+e.message;renderApp();}
     }
   }
@@ -178,7 +186,7 @@
     if(!ready||pending)return;
     dialog=type;selectedWithdrawal=withdrawalId;selectedSession=sessionId;renderDialog();
   }
-  function closeDialog(){dialog="";selectedWithdrawal=null;selectedSession=null;document.querySelector("#cash-modal-root").innerHTML="";document.querySelector(".app").inert=false;}
+  function closeDialog(){dialog="";selectedWithdrawal=null;selectedSession=null;selectedBook=null;bookDraft=null;document.querySelector("#cash-modal-root").innerHTML="";document.querySelector(".app").inert=false;}
   function field(id,label,type="text",extra="",required=true) {return `<label class="cash-field">${label}<input name="${id}" id="cash-${id}" type="${type}" ${extra} ${required?"required":""}></label>`;}
   function amountField(label="Importe") {return field("amount",label,"text",'inputmode="decimal" placeholder="Ej.: 1250 o 1250,50"');}
   function currencyField(){return `<label class="cash-field">Moneda<select name="currency"><option value="UYU">Pesos uruguayos (UYU)</option><option value="BRL">Reales (BRL)</option></select></label>`;}
@@ -189,12 +197,19 @@
     let title="",body="";
     if(dialog==="open") { title="Abrir caja"; body=`<p>Contá el efectivo que hay ahora en cada moneda.</p><label class="cash-field">Fecha<input name="date" type="date" value="${dayKey(now())}" readonly></label>${field("opening_uyu","Saldo inicial UYU","text",'inputmode="decimal" value="0"')}${field("opening_brl","Saldo inicial BRL","text",'inputmode="decimal" value="0"')}`; }
     if(dialog==="withdrawal") { title="Nuevo retiro"; body=`${currencyField()}${amountField()}${field("responsible","Responsable")}${field("reason","Motivo")}${field("note","Observaciones (opcional)","text","",false)}`; }
-    if(dialog==="movement") { title="Ingreso o gasto"; body=`<label class="cash-field">Tipo<select name="kind"><option value="income">Ingreso extraordinario</option><option value="expense">Gasto directo</option></select></label>${currencyField()}${amountField()}${field("responsible","Responsable")}${field("reason","Motivo")}${field("note","Observaciones (opcional)","text","",false)}`; }
-    if(dialog==="settlement" && withdrawal) { title="Rendir compra"; body=`<p>Retiro de ${safe(withdrawal.detail.responsible)} · Pendiente ${cashMoney(withdrawalBalance(withdrawal).pending,withdrawal.currency)}</p>${field("supplier","Proveedor")}${field("document_date","Fecha del comprobante","date",`value="${dayKey(now())}"`)}${field("document_number","Número de factura o ticket (opcional)","text","",false)}${amountField("Total del comprobante")}${field("note","Detalle (opcional)","text","",false)}`; }
+    if(dialog==="movement") { title="Ingreso o gasto de efectivo"; body=`<label class="cash-field">Tipo<select name="kind"><option value="income">Ingreso extraordinario</option><option value="expense">Gasto directo</option>${snapshot.finance_version===1?'<option value="contribution">Aporte de una persona a la caja</option><option value="reimbursement">Reintegro de caja a una persona</option>':""}</select></label>${currencyField()}${amountField()}${field("responsible","Persona que aporta, recibe o registra")}${field("reason","Motivo")}${window.KebbaBook?`<label class="cash-field">Categoría<select name="category">${Object.entries(window.KebbaBook.categories).map(([k,v])=>`<option value="${k}" ${k==="unclassified"?"selected":""}>${safe(v)}</option>`).join("")}</select></label>`:""}${field("note","Observaciones (opcional)","text","",false)}`; }
+    if(dialog==="settlement" && withdrawal) { title="Rendir compra"; body=`<p>Retiro de ${safe(withdrawal.detail.responsible)} · Pendiente ${cashMoney(withdrawalBalance(withdrawal).pending,withdrawal.currency)}</p>${field("supplier","Proveedor")}${field("document_date","Fecha del comprobante","date",`value="${dayKey(now())}"`)}${field("document_number","Número de factura o ticket (opcional)","text","",false)}${amountField("Total del comprobante")}${window.KebbaBook?`<label class="cash-field">Categoría<select name="category">${Object.entries(window.KebbaBook.categories).map(([k,v])=>`<option value="${k}" ${k==="unclassified"?"selected":""}>${safe(v)}</option>`).join("")}</select></label>`:""}${field("note","Detalle (opcional)","text","",false)}`; }
     if(dialog==="return" && withdrawal) { title="Devolver dinero a caja"; body=`<p>Retiro de ${safe(withdrawal.detail.responsible)} · Pendiente ${cashMoney(withdrawalBalance(withdrawal).pending,withdrawal.currency)}</p>${amountField("Dinero devuelto")}${field("responsible","Quién devuelve")}${field("note","Observaciones (opcional)","text","",false)}`; }
     if(dialog==="writeoff" && withdrawal) { title="Cerrar con diferencia"; body=`<p>Quedarán ${cashMoney(withdrawalBalance(withdrawal).pending,withdrawal.currency)} sin comprobante ni devolución. Esta diferencia quedará visible en el historial.</p>${field("reason","Motivo de la diferencia")}`; }
     if(dialog==="close" && session) { title="Cerrar caja"; body=`<p>Esperado: <strong>${cashMoney(expected(session,"UYU"),"UYU")}</strong> y <strong>${cashMoney(expected(session,"BRL"),"BRL")}</strong>. Contá el efectivo físico antes de confirmar.</p>${field("counted_uyu","Efectivo contado UYU","text",'inputmode="decimal"')}${field("counted_brl","Efectivo contado BRL","text",'inputmode="decimal"')}`; }
     if(dialog==="correct" && session) { title="Corregir cierre"; const count=currentCount(session);body=`<p>El cierre original no se borra. La corrección guardará el valor anterior, el nuevo y el motivo.</p>${field("counted_uyu","Nuevo contado UYU","text",`inputmode="decimal" value="${(count.uyu/100).toFixed(2)}"`)}${field("counted_brl","Nuevo contado BRL","text",`inputmode="decimal" value="${(count.brl/100).toFixed(2)}"`)}${field("reason","Motivo de la corrección")}`; }
+    if(dialog==="book"){
+      title=selectedBook?"Corregir registro":"Registrar compra o aporte";
+      body=window.KebbaBookUI.form(bookById(selectedBook)||{},bookDraft||{});
+      const names=[...new Set((snapshot.book||[]).flatMap(e=>[e.person,e.recipient]).filter(Boolean))];
+      body+=`<datalist id="cash-person-list">${names.map(n=>`<option value="${safe(n)}">`).join("")}</datalist>`;
+    }
+    if(dialog==="book-void"){title="Anular registro";const entry=bookById(selectedBook);body=`<p>${safe(entry?.description)}. Se conservará el original y el motivo; dejará de sumarse en los saldos.</p>${field("correction_reason","Motivo de anulación","text",'minlength="5" maxlength="500"')}`;}
     root.innerHTML=`<div class="modal-backdrop"><div class="modal cash-modal" role="dialog" aria-modal="true" aria-labelledby="cash-dialog-title" tabindex="-1"><h2 id="cash-dialog-title">${title}</h2><form id="cash-form">${body}<div class="modal-actions"><button type="button" data-cash-action="cancel-dialog">VOLVER</button><button class="success" type="submit">CONFIRMAR</button></div></form></div></div>`;
     document.querySelector(".app").inert=true;root.querySelector(".modal")?.focus();
   }
@@ -205,10 +220,22 @@
       let action=dialog,payload={};
       if(dialog==="open") payload={date:values.date,opening_uyu:parse("opening_uyu",true),opening_brl:parse("opening_brl",true)};
       if(dialog==="withdrawal"||dialog==="movement"){
-        action=dialog==="movement"?values.kind:dialog;
-        payload={currency:values.currency,amount_minor:parse("amount"),responsible:values.responsible?.trim(),reason:values.reason?.trim(),note:values.note?.trim()||""};
+        action=dialog==="movement"?({contribution:"income",reimbursement:"expense"}[values.kind]||values.kind):dialog;
+        payload={currency:values.currency,amount_minor:parse("amount"),responsible:values.responsible?.trim(),reason:values.reason?.trim(),note:values.note?.trim()||"",funding_type:values.kind==="contribution"?"contribution":values.kind==="reimbursement"?"reimbursement":"operation",category:values.category||"unclassified"};
       }
-      if(dialog==="settlement") payload={withdrawal_id:selectedWithdrawal,supplier:values.supplier?.trim(),document_date:values.document_date,document_number:values.document_number?.trim()||"",amount_minor:parse("amount"),note:values.note?.trim()||""};
+      if(dialog==="book"){
+        if(snapshot.finance_version!==1)throw Error("El registro ampliado todavía no está activado.");
+        action="book";payload={...values,amount_minor:values.kind==="in_kind"&&!String(values.amount).trim()?null:parse("amount")};delete payload.amount;
+        if(!window.KebbaBookUI.entryTypes[payload.kind])throw Error("Elegí un tipo de movimiento.");
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(payload.occurred_on)||payload.occurred_on>window.KebbaBook.localDay(new Date()))throw Error("Ingresá una fecha real, no futura.");
+        if(payload.kind==="partner_transfer"&&window.KebbaBook.normalName(payload.person)===window.KebbaBook.normalName(payload.recipient))throw Error("Elegí otra persona para recibir el dinero.");
+        if(["business_expense","reimbursement"].includes(payload.kind)&&!payload.payment_method)throw Error("Indicá cómo se pagó fuera de caja.");
+        if(selectedBook)payload.supersedes=selectedBook;
+        const similar=window.KebbaBook.activeEntries(snapshot.book).some(e=>e.id!==selectedBook&&e.kind===payload.kind&&e.occurred_on===payload.occurred_on&&e.currency===payload.currency&&e.amount_minor===payload.amount_minor&&window.KebbaBook.normalName(e.person)===window.KebbaBook.normalName(payload.person)&&e.description.toLowerCase()===payload.description.toLowerCase());
+        if(similar&&!confirm("Hay un registro con la misma fecha, persona, concepto e importe. ¿Es otro movimiento distinto?"))return;
+      }
+      if(dialog==="book-void"){action="book";payload={kind:"void",supersedes:selectedBook,correction_reason:values.correction_reason};}
+      if(dialog==="settlement") payload={withdrawal_id:selectedWithdrawal,supplier:values.supplier?.trim(),document_date:values.document_date,document_number:values.document_number?.trim()||"",amount_minor:parse("amount"),category:values.category||"unclassified",note:values.note?.trim()||""};
       if(dialog==="return") payload={withdrawal_id:selectedWithdrawal,amount_minor:parse("amount"),responsible:values.responsible?.trim(),note:values.note?.trim()||""};
       if(dialog==="writeoff") payload={withdrawal_id:selectedWithdrawal,reason:values.reason?.trim()};
       if(dialog==="close"||dialog==="correct") {action=dialog==="correct"?"close_correction":"close";payload={counted_uyu:parse("counted_uyu",true),counted_brl:parse("counted_brl",true),...(dialog==="correct"?{session_id:selectedSession,reason:values.reason?.trim(),previous_counted_uyu:currentCount(eventById(selectedSession)).uyu,previous_counted_brl:currentCount(eventById(selectedSession)).brl}:{expected_uyu:expected(activeSession(),"UYU"),expected_brl:expected(activeSession(),"BRL")})};}
@@ -232,12 +259,19 @@
     else if(action==="open-dialog")openDialog(button.dataset.dialog);
     else if(action==="withdrawal-dialog")openDialog(button.dataset.dialog,button.dataset.id);
     else if(action==="correct")openDialog("correct",null,button.dataset.session);
+    else if(action==="book-new"){selectedBook=null;bookDraft=null;openDialog("book");}
+    else if(action==="book-edit"||action==="book-void"){selectedBook=button.dataset.id;bookDraft=null;openDialog(action==="book-edit"?"book":"book-void");}
+    else if(action==="book-person"){bookFilters={from:"",to:"",query:"",person:button.dataset.person,kind:"",category:""};section="registro";renderApp();}
+    else if(action==="book-period"){const today=window.KebbaBook.localDay(new Date());bookFilters={from:button.dataset.period==="today"?today:button.dataset.period==="month"?today.slice(0,7)+"-01":"",to:button.dataset.period==="all"?"":today,query:"",person:"",kind:"",category:""};renderApp();}
+    else if(action==="book-csv")void download(window.KebbaBook.csv(window.KebbaBook.filter(window.KebbaBook.journal(snapshot),bookFilters)),`kebba-registro-${dayKey(now())}.csv`,"text/csv;charset=utf-8");
     else if(action==="cancel-dialog")closeDialog();
   });
   document.addEventListener("submit",event=>{
     if(event.target.id==="cash-form"){event.preventDefault();void submit(event.target);}
     if(event.target.id==="cash-access-form"){event.preventDefault();connectAccess(event.target);}
+    if(event.target.id==="cash-book-filter"){event.preventDefault();const f=Object.fromEntries(new FormData(event.target));if(f.from&&f.to&&f.from>f.to){toast("La fecha desde debe ser anterior a hasta.",true);return;}bookFilters={...bookFilters,...f};renderApp();}
   });
+  document.addEventListener("change",event=>{if(dialog==="book"&&event.target.name==="kind"){bookDraft=Object.fromEntries(new FormData(event.target.form));renderDialog();}});
   document.addEventListener("keydown",event=>{if(dialog&&event.key==="Escape"){event.preventDefault();closeDialog();}});
   window.KebbaCash={render,refresh,closeDialog,hasDialog:()=>!!dialog,syncDialog:()=>{if(dialog)document.querySelector(".app").inert=true;}};
 })();

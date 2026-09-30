@@ -65,8 +65,15 @@ button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{co
   @media(max-width:759px){.home-groups{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}.home-groups button,.k-overview button{min-height:48px;border:1px solid var(--line);padding:8px}.home-groups button.active,.k-overview button.active{background:var(--orange);color:#16110d}.home-groups small{display:block;font-size:.72rem}.home-slots .slot-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.home-slots .slot{min-height:112px}.home-slots .slot-bottom{display:none}.k-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.k-overview strong{color:inherit}}
   @media(max-width:390px){.home-slots .slot-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   .cash-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 18px}.cash-tabs button{padding:13px 8px;border:1px solid var(--line)}.cash-tabs button.active{background:var(--orange);color:#17110c}.cash-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:17px;margin:12px 0}.cash-panel h2{margin:0 0 6px;font-size:1.35rem}.cash-panel p{color:var(--muted);line-height:1.4}.cash-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}.cash-counters,.cash-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:13px 0}.cash-counters>div,.cash-stat{background:#292923;border:1px solid var(--line);padding:12px;border-radius:8px;min-width:0}.cash-counters span,.cash-stat span{display:block;color:var(--muted);font-size:.85rem}.cash-counters strong,.cash-stat strong{display:block;margin-top:5px;font-size:1.25rem;overflow-wrap:anywhere}.cash-actions{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}.cash-actions button,.cash-big{min-height:48px;padding:11px 14px;border:1px solid var(--line)}.cash-list{background:var(--panel);border:1px solid var(--line);border-radius:9px}.cash-list-row{display:flex;justify-content:space-between;align-items:start;gap:12px;padding:13px;border-bottom:1px solid var(--line)}.cash-list-row:last-child{border:0}.cash-list-row small{display:block;color:var(--muted);margin-top:4px;line-height:1.35}.cash-list-row b{white-space:nowrap}.cash-document{padding:8px;border-top:1px solid var(--line);margin:0!important}.cash-field{display:block;margin:12px 0;font-size:.9rem}.cash-field input,.cash-field select{display:block;width:100%;margin-top:6px}.cash-modal .modal-actions{position:sticky;bottom:-22px;background:#24231e;padding:12px 0 0}.cash-closed{border-left:5px solid var(--line)}
-  @media(max-width:650px){.cash-counters,.cash-stats{grid-template-columns:1fr 1fr}.cash-counters strong{font-size:1.05rem}.cash-list-row{flex-wrap:wrap}.cash-actions button{flex:1 1 100%}.cash-panel{padding:12px}}
+  .book-filter-grid,.book-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}.book-filters{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0 16px}.book-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}.book-stats small{display:block;color:var(--muted);margin-top:8px}.book-person-total{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#292923;border-radius:8px;padding:15px;margin:15px 0}.book-person-total strong{font-size:1.5rem;color:#a8f2c9}.book-breakdown{margin:12px 0}.book-breakdown>div{display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid var(--line)}.book-breakdown dt{color:var(--muted)}.book-breakdown dd{margin:0;text-align:right;overflow-wrap:anywhere;min-width:0}.book-entry{margin:10px 0}.book-entry h2{font-size:1.1rem;margin-top:6px;overflow-wrap:anywhere}.book-entry .cash-header>div{min-width:0;flex:1 1 220px}.book-entry .cash-header>strong{white-space:nowrap}.book-entry small{color:var(--muted)}.book-entry summary,.cash-modal summary{cursor:pointer;padding:12px 0}.book-note{white-space:pre-wrap}.cash-field textarea{display:block;width:100%;margin-top:6px;padding:10px;background:#181813;color:var(--text);border:1px solid var(--line);border-radius:6px;font:inherit}.cash-toolbar{display:flex;gap:8px;margin:0}.cash-toolbar button{min-height:44px;padding:8px 10px;font-size:.83rem}.book-filters .cash-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}.book-filters .cash-actions button{min-width:0;font-size:.8rem;padding:10px 6px}.book-filters .cash-actions button:last-child:nth-child(5){grid-column:1/-1}.book-filter-panel>summary{padding:14px 10px;cursor:pointer;border:1px solid var(--line);border-radius:8px;background:var(--panel);margin-bottom:10px;font-size:.9rem}.book-explanation{border-left:4px solid var(--orange)}
+  @media(max-width:650px){.cash-counters,.cash-stats{grid-template-columns:1fr 1fr}.cash-counters strong{font-size:1.05rem}.cash-list-row{flex-wrap:wrap}.cash-actions button{flex:1 1 100%}.cash-panel{padding:12px}.cash-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}.headline .cash-toolbar button{min-width:0;flex:initial}.book-primary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.book-primary button:first-child{grid-column:1/-1}.book-primary button{min-width:0;font-size:.83rem}.book-form-grid{grid-template-columns:1fr}.book-filter-grid{gap:0 10px}.book-filter-grid .cash-field:has(input[type="search"]){grid-column:1/-1}.book-stats{grid-template-columns:1fr}.book-breakdown>div{gap:10px;font-size:.9rem}.book-breakdown dt{max-width:60%}.cash-tabs{gap:6px}.cash-tabs button{padding:12px 4px;font-size:.88rem}.book-filters{padding:0 10px}}
   @media(max-width:350px){.nav{grid-template-columns:repeat(2,minmax(0,1fr))}.nav button{font-size:.82rem}.nav [data-view="settings"]{grid-column:1/-1}}
+@media(max-width:340px){.book-filter-grid{grid-template-columns:1fr}}
+  /* Cobro por personas: controles y totales a la vista; sólo se desplaza el contenido. */
+  .payment-modal{width:min(940px,100%);height:min(92dvh,900px);display:flex;flex-direction:column;overflow:hidden;padding:16px;gap:7px}.payment-modal>*{flex-shrink:0}.payment-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}.payment-heading h2{font-size:1.2rem;margin:0}.payment-heading small{display:block;color:var(--muted);font-size:.78rem;font-weight:600;margin:3px 0}.payment-heading>div{text-align:right}.payment-heading strong{font-size:1.5rem;white-space:nowrap}.payment-modal>.payment-tools{margin:0}.payment-tools button{padding:7px 10px;font-size:.82rem;min-height:42px}.payment-steps{display:grid;grid-template-columns:1fr 1fr;gap:6px}.payment-steps button{padding:9px 6px;min-height:44px;border:1px solid var(--line);font-size:.9rem}.payment-steps .active{background:var(--orange);color:#16110d;border-color:var(--orange)}
+  .payment-modal .payment-person-tabs{display:flex;gap:6px;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;margin:0;padding:1px 1px 5px;flex-wrap:nowrap}.payment-person-tabs button{flex:0 0 135px;min-width:0;min-height:66px;max-width:180px}.payment-person-tabs strong{font-size:1rem;margin:3px 0}.payment-person-tabs small{display:block;font-size:.7rem;font-weight:500}.payment-person-tabs .payment-add-person{flex-basis:100px;min-width:100px;white-space:nowrap;overflow-wrap:normal;font-size:.85rem;text-align:center;border-style:dashed}.payment-modal .payment-body{min-height:80px;flex:1 1 auto;overflow:auto;overscroll-behavior:contain;padding:0 3px 5px;scrollbar-color:#7e6652 #23231f}.payment-body .payment-allocation{margin:0;padding:0}.payment-person-editor{display:flex;gap:8px;align-items:end;margin:3px 0 8px}.payment-person-editor>div{min-width:0;flex:1}.payment-person-editor label{display:block;font-size:.8rem;margin-bottom:4px}.payment-person-editor input{width:100%;padding:9px;min-height:44px}.payment-person-editor button{padding:7px 9px;border:1px solid var(--line);font-size:.78rem;min-height:44px}.payment-allocation>.note{margin:5px 0;font-size:.78rem}.payment-assign-tools{display:grid;grid-template-columns:1fr 1fr;margin:8px 0}.payment-assign-tools button{font-size:.8rem;min-height:44px;padding:7px}.allocation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.allocation-group{grid-column:1/-1;margin:7px 0 0}.allocation-line{margin:0;min-width:0;display:flex;flex-direction:column;padding:11px}.allocation-line.has-mine{border-color:#ac6c35;background:#30271c}.allocation-title{line-height:1.3}.allocation-title strong{font-size:.95rem}.allocation-compact{margin:7px 0}.allocation-actions{margin-top:auto;display:grid;grid-template-columns:48px minmax(0,1fr) 48px;gap:6px;align-items:center}.allocation-actions button{min-height:48px;font-size:1.4rem;padding:5px;min-width:0}.allocation-mine{font-size:.76rem;text-align:center;color:var(--muted)}.allocation-mine strong{font-size:1.1rem;color:var(--text);display:block}.allocation-actions .allocation-rest{grid-column:1/-1;font-size:.78rem;min-height:44px}.payment-all-done{margin:8px 0;padding:9px;font-size:.8rem}.payment-part-head strong{font-size:1.05rem;overflow-wrap:anywhere}.payment-person-amount{display:block;white-space:nowrap;font-size:1.7rem;color:#ffd09d;margin-top:4px}.payment-label{font-weight:800;margin:12px 0 8px}.payment-method-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.payment-method-buttons button{min-height:52px;padding:8px 3px;border:1px solid var(--line);font-size:.88rem;overflow-wrap:anywhere}.payment-method-buttons .active{background:var(--orange);color:#16110d;border-color:var(--orange)}.payment-other-methods{margin-top:5px;font-size:.8rem}.payment-modal .payment-other-methods summary{padding:8px 0}.payment-cash-entry{display:flex;gap:6px}.payment-cash-entry input{min-width:0;flex:1}.payment-cash-entry button{padding:7px;border:1px solid var(--line);font-size:.78rem;max-width:100px}.payment-modal .cash-box{margin:9px 0 0;padding:10px}.payment-modal .cash-result{font-size:1.05rem}.payment-modal .payment-part{margin:0;padding:12px}.payment-body.split-pay{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(230px,.9fr);gap:12px;align-items:start}.payment-body.split-pay .payment-parts{max-width:none;margin:0}.payment-review h3{font-size:.9rem;margin:5px 0 7px}.payment-review button{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;min-height:64px;text-align:left;padding:9px;border:1px solid var(--line);margin-bottom:6px}.payment-review button.active{border-color:var(--orange)}.payment-review span{min-width:0;overflow-wrap:anywhere}.payment-review small{display:block;font-weight:500;color:var(--muted);font-size:.73rem;line-height:1.35;margin-top:4px}.payment-review strong{white-space:nowrap}.payment-footer{border-top:1px solid var(--line);padding-top:7px}.payment-progress{display:flex;justify-content:space-between;gap:12px;margin:0;font-size:.8rem}.payment-progress>span:last-child{text-align:right;max-width:50%;overflow-wrap:anywhere}.payment-progress strong{display:block;margin-top:3px;color:#ffd09d;font-size:.95rem}.payment-allocation-message{margin:6px 0 0;font-size:.75rem}.payment-footer .payment-summary{margin:0;padding:7px 9px;font-size:.85rem}.payment-footer .order-hint{margin:5px 0;padding:5px 8px;font-size:.75rem}.payment-footer .modal-actions{margin-top:7px;gap:6px;display:flex}.payment-footer .modal-actions button{flex:1;min-height:48px;font-size:.79rem;padding:7px 9px}
+  @media(max-width:759px){.payment-part-head{flex-wrap:wrap}.payment-part-head>strong{flex:1 0 110px;min-width:110px}.payment-part-head>button{flex:0 0 auto;font-size:.78rem;padding:6px 8px;min-height:40px}.payment-modal{height:calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));padding:10px;gap:6px}.payment-heading h2{font-size:1rem}.payment-heading strong{font-size:1.3rem}.payment-person-tabs button{flex-basis:115px;min-height:66px}.payment-modal .payment-body{padding:0 1px 5px;min-height:65px}.allocation-grid{grid-template-columns:1fr;gap:7px}.payment-body.split-pay{display:block}.payment-review{margin-top:12px}.payment-method-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}.payment-footer .modal-actions{flex-wrap:wrap}.payment-footer [data-action="close-confirm"]{flex-basis:100%}.payment-steps button{font-size:.79rem}.payment-tools button{min-height:42px;padding:5px 8px;font-size:.77rem}}
+  @media(max-height:600px){.payment-modal{gap:4px;padding:8px}.payment-modal .payment-tools button{min-height:36px}.payment-heading h2{font-size:.95rem}.payment-heading small{font-size:.68rem}.payment-person-tabs button{min-height:54px;padding:5px 8px}.payment-person-tabs small{font-size:.65rem}.payment-person-tabs strong{margin:1px 0}.payment-steps button{min-height:38px;padding:5px}.payment-footer .order-hint{display:none}.payment-footer .modal-actions button{min-height:42px}.payment-allocation-message{margin-top:4px}}
 </style>
 </head>
 <body>
@@ -311,6 +318,7 @@ function loadData(){
 }
 let data=loadData(),view="home",homeGroup="m",kitchenGroup="pending",selectedSlot=null,selectedLine=null,mobileOrderPane="menu",selectedMenuSection="Comida",selectedMenuCategory="Shawarmas",modal=null,paymentParts=[],selectedPaymentPart=0,showAssignedPaymentLines=false,historyDetail=null,historyDate=dayKey(now()),toastTimer=null;
 let focusBeforeModal=null,inputSession=null,lastActivation={key:"",at:0},lastOpenNumber=null;
+let paymentStep="assign",paymentUndo=[];
 const undoStacks=new Map();
 const settings=()=>data.settings;
 const slots=()=>slotsFor(settings());
@@ -349,7 +357,7 @@ async function sharedRpc(name,body){
   try{
     const response=await fetch(`${SHARED_CONFIG.url}/rest/v1/rpc/${name}`,{method:"POST",headers:{apikey:SHARED_CONFIG.publishableKey,"Content-Type":"application/json"},body:JSON.stringify(body),signal:controller.signal});
     const payload=await response.json().catch(()=>null);
-    if(!response.ok)throw Error(payload?.message||`Error de conexión (${response.status})`);
+    if(!response.ok){const error=Error(payload?.message||`Error de conexión (${response.status})`);error.status=response.status;throw error;}
     return payload;
   }finally{clearTimeout(timeout);}
 }
@@ -515,12 +523,12 @@ function kitchenNotice(target,order,reason){
 }
 function deleteOrder(){const order=current();if(!order||!canEdit())return;const warning=order.sentAt?"\n\nYa fue enviado a Cocina. El cocinero verá un aviso de cancelación.":"";if(!confirm(`¿Seguro que querés eliminar el pedido completo de ${slotLabel(selectedSlot)}?${warning}`))return;const next=deepCopy(data);if(order.sentAt)kitchenNotice(next,order,"PEDIDO CANCELADO");delete next.orders[selectedSlot];if(!commitData(next))return;undoStacks.delete(order.number);selectedSlot=null;go("home");toast("Pedido eliminado. El número no se reutiliza.");}
 function openModal(type){focusBeforeModal=document.activeElement;modal=type;renderModal();}
-function closeModal(){modal=null;paymentParts=[];selectedPaymentPart=0;showAssignedPaymentLines=false;renderModal();focusBeforeModal?.focus?.();}
+function closeModal(){modal=null;paymentParts=[];selectedPaymentPart=0;showAssignedPaymentLines=true;paymentUndo=[];paymentStep="assign";renderModal();focusBeforeModal?.focus?.();}
 function newPaymentPart(assigned={}){return {id:uid(),name:"",method:"",assigned,cashReceived:"",brlCharged:"",brlReceived:""};}
 function startClose(){
   const order=current();if(!order?.lines.length){toast("Un pedido vacío no se puede cobrar.",true);return;}
   paymentParts=[newPaymentPart(Object.fromEntries(order.lines.map(line=>[line.id,line.qty])))];
-  selectedPaymentPart=0;showAssignedPaymentLines=false;
+  selectedPaymentPart=0;showAssignedPaymentLines=true;paymentUndo=[];paymentStep="assign";
   openModal("payment");
 }
 function unitPrice(line){return line.unitPrice+line.mods.reduce((sum,mod)=>sum+mod.price,0);}
@@ -539,51 +547,72 @@ function brlFeedback(chargedText,receivedText){
   if(received<charged)return {message:`Faltan ${realMoneyMinor(charged-received)}.`,valid:false,short:true};
   return {message:`CAMBIO A ENTREGAR: ${realMoneyMinor(received-charged)}`,valid:true,short:false};
 }
-function paymentStatus(order){
+function paymentAllocationStatus(order){
   if(!paymentParts.length||paymentParts.some(part=>Object.entries(part.assigned).some(([id,qty])=>!Number.isSafeInteger(qty)||qty<1||!order.lines.some(line=>line.id===id))))return {valid:false,message:"La comanda cambió. Volvé a abrir el cobro y revisá los productos."};
   if(order.lines.some(line=>remainingUnits(line)<0))return {valid:false,message:"Hay más unidades asignadas que las cargadas en la comanda."};
   const remaining=order.lines.reduce((sum,line)=>sum+remainingUnits(line),0);
   if(remaining>0)return {valid:false,message:`Quedan ${remaining} ${remaining===1?"unidad sin asignar":"unidades sin asignar"}.`};
-  for(let i=0;i<paymentParts.length;i++){
-    const part=paymentParts[i],amount=partAmount(part,order);
-    if(amount<=0)return {valid:false,message:`Asigná productos a la persona ${i+1}.`};
-    if(!paymentMethods.includes(part.method))return {valid:false,message:`Elegí cómo paga la persona ${i+1}.`};
-    if(part.method==="Efectivo"&&!cashFeedback(amount,part.cashReceived).valid)return {valid:false,message:`Revisá el efectivo de la persona ${i+1}.`};
-    if(part.method==="Efectivo BRL"&&!brlFeedback(part.brlCharged,part.brlReceived).valid)return {valid:false,message:`Revisá el efectivo en reales de la persona ${i+1}.`};
-  }
+  const empty=paymentParts.findIndex(part=>partAmount(part,order)<=0);
+  if(empty>=0)return {valid:false,message:`Asigná productos a ${payerName(empty)} o quitá esa persona.`};
+  return {valid:true,message:"Todos los productos están asignados."};
+}
+function payerName(index){return paymentParts[index]?.name.trim()||`Persona ${index+1}`;}
+function paymentPartStatus(part,order){
+  if(partAmount(part,order)<=0)return {valid:false,message:"Sin productos"};
+  if(!paymentMethods.includes(part.method))return {valid:false,message:"Falta forma de pago"};
+  if(part.method==="Efectivo"&&!cashFeedback(partAmount(part,order),part.cashReceived).valid)return {valid:false,message:"Revisar efectivo"};
+  if(part.method==="Efectivo BRL"&&!brlFeedback(part.brlCharged,part.brlReceived).valid)return {valid:false,message:"Revisar reales"};
+  return {valid:true,message:"Listo para confirmar"};
+}
+function paymentStatus(order){
+  const allocation=paymentAllocationStatus(order);if(!allocation.valid)return allocation;
+  for(let i=0;i<paymentParts.length;i++){const status=paymentPartStatus(paymentParts[i],order);if(!status.valid)return {valid:false,message:`${payerName(i)}: ${status.message.toLowerCase()}.`};}
   return {valid:true,message:`Cobro completo · ${money(orderTotal(order))}`};
+}
+function rememberPaymentAllocation(){paymentUndo.push({parts:deepCopy(paymentParts),selected:selectedPaymentPart,step:paymentStep});if(paymentUndo.length>50)paymentUndo.shift();}
+function clearPaymentAmounts(part){part.cashReceived="";part.brlCharged="";part.brlReceived="";}
+function undoPaymentAllocation(){
+  const previous=paymentUndo.pop();if(!previous)return;
+  paymentParts=previous.parts.map(part=>{const currentPart=paymentParts.find(item=>item.id===part.id);if(!currentPart)return part;const result={...currentPart,assigned:part.assigned};if(JSON.stringify(currentPart.assigned)!==JSON.stringify(part.assigned))clearPaymentAmounts(result);return result;});
+  selectedPaymentPart=previous.selected;paymentStep=previous.step;renderModal();
 }
 function assignPaymentUnit(lineId,index,delta){
   const line=current()?.lines.find(item=>item.id===lineId),part=paymentParts[index];
-  if(!line||!part)return;
+  if(!line||!part||![1,-1].includes(delta))return;
   const count=part.assigned[lineId]||0;
   if(delta>0&&remainingUnits(line)<=0)return;
   if(delta<0&&count<=0)return;
+  rememberPaymentAllocation();
   const next=count+delta;if(next)part.assigned[lineId]=next;else delete part.assigned[lineId];
-  part.cashReceived="";
+  clearPaymentAmounts(part);
   renderModal();
 }
 function assignPaymentRest(lineId,index){
   const line=current()?.lines.find(item=>item.id===lineId),part=paymentParts[index];
   if(!line||!part)return;
   const remaining=remainingUnits(line);if(remaining<=0)return;
-  part.assigned[lineId]=(part.assigned[lineId]||0)+remaining;part.cashReceived="";renderModal();
+  rememberPaymentAllocation();part.assigned[lineId]=(part.assigned[lineId]||0)+remaining;clearPaymentAmounts(part);renderModal();
 }
 function assignAllRemaining(index){
   const part=paymentParts[index],order=current();if(!part||!order)return;
-  let changed=false;
+  if(!order.lines.some(line=>remainingUnits(line)>0))return;
+  rememberPaymentAllocation();let changed=false;
   for(const line of order.lines){const remaining=remainingUnits(line);if(remaining>0){part.assigned[line.id]=(part.assigned[line.id]||0)+remaining;changed=true;}}
-  if(changed){part.cashReceived="";renderModal();}
+  if(changed){clearPaymentAmounts(part);renderModal();}
 }
+function selectPaymentMethod(index,method){const part=paymentParts[index];if(!part||(method!==""&&!paymentMethods.includes(method))||part.method===method)return;part.method=method;clearPaymentAmounts(part);renderModal();}
+function setPaymentStep(step){if(!["assign","pay"].includes(step))return;if(step==="pay"&&!paymentAllocationStatus(current()).valid){toast(paymentAllocationStatus(current()).message,true);return;}paymentStep=step;renderModal();const body=$(".payment-body");if(body)body.scrollTop=0;}
 function updatePaymentFeedback(){
   if(modal!=="payment"||!current())return;
   const order=current(),status=paymentStatus(order),summary=$("#payment-summary"),confirmButton=$("[data-action='close-confirm']");
   if(summary){summary.textContent=status.message;summary.classList.toggle("error",!status.valid);}
   if(confirmButton)confirmButton.disabled=!status.valid;
+  const nextButton=$("[data-action='payment-next']");if(nextButton)nextButton.classList.toggle("hidden",status.valid);
   paymentParts.forEach((part,index)=>{
     const amount=partAmount(part,order),cashResult=document.querySelector(`[data-cash-result="${index}"]`),pixResult=document.querySelector(`[data-pix-result="${index}"]`);
     if(cashResult){const feedback=part.method==="Efectivo BRL"?brlFeedback(part.brlCharged,part.brlReceived):cashFeedback(amount,part.cashReceived);cashResult.textContent=feedback.message;cashResult.classList.toggle("short",feedback.short);cashResult.classList.toggle("valid",feedback.valid);}
     if(pixResult)pixResult.textContent=`${brlMoney(amount)} · 1 real = $8,30`;
+    const partStatus=paymentPartStatus(part,order);document.querySelectorAll(`[data-payer-status="${index}"]`).forEach(label=>{label.textContent=`${partStatus.valid?"✓ ":""}${partStatus.message}`;});
   });
 }
 function confirmClose(){
@@ -729,12 +758,12 @@ function paymentSortedLines(lines){
   });
 }
 function renderPaymentAllocation(order){
-  const selected=Math.min(selectedPaymentPart,paymentParts.length-1),pending=order.lines.filter(line=>remainingUnits(line)>0),visible=paymentSortedLines(showAssignedPaymentLines?order.lines:pending);
-  return `<section class="payment-allocation"><h3>Repartir productos</h3><p class="note">Elegí una persona y tocá los productos que paga. Un toque asigna todas las unidades pendientes de esa línea.</p><div class="payment-person-tabs" role="group" aria-label="Persona que paga los próximos productos">${paymentParts.map((part,index)=>`<button data-action="payment-select" data-part="${index}" class="${selected===index?"active":""}" aria-pressed="${selected===index}"><span data-payer-label="${index}">${safe(part.name.trim()||`Persona ${index+1}`)}</span><strong>${money(partAmount(part,order))}</strong></button>`).join("")}</div><div class="payment-assign-tools"><strong>${pending.length} ${pending.length===1?"línea pendiente":"líneas pendientes"}</strong><button data-action="payment-all-remaining" data-part="${selected}" ${pending.length?"":"disabled"}>Todo lo pendiente a <span data-payer-label="${selected}">${safe(paymentParts[selected].name.trim()||`Persona ${selected+1}`)}</span></button><button data-action="payment-show-assigned" aria-pressed="${showAssignedPaymentLines}">${showAssignedPaymentLines?"Mostrar pendientes":"Ver también asignados"}</button></div>${visible.length?visible.map(({line,category},position)=>{
+  const selected=Math.min(selectedPaymentPart,paymentParts.length-1),pending=order.lines.filter(line=>remainingUnits(line)>0),visible=paymentSortedLines(showAssignedPaymentLines?order.lines:pending),part=paymentParts[selected];
+  return `<section class="payment-allocation"><div class="payment-person-editor"><div><label for="payer-name-${selected}">Nombre o referencia (opcional)</label><input id="payer-name-${selected}" data-payer-name="${selected}" maxlength="50" value="${safe(part.name)}" placeholder="Persona ${selected+1}"></div><button data-action="payment-remove" data-part="${selected}" aria-label="Quitar a ${safe(payerName(selected))}">Quitar persona</button></div><p class="note">Sumá de a una unidad con +. Si se equivocan de persona, quitá con − y volvé a asignar. Cada producto mantiene sus cambios y su precio.</p><div class="payment-assign-tools"><button data-action="payment-all-remaining" data-part="${selected}" ${pending.length?"":"disabled"}>Asignar todo lo pendiente</button><button data-action="payment-show-assigned" aria-pressed="${!showAssignedPaymentLines}">${showAssignedPaymentLines?"Ver solo pendientes":"Ver todos los productos"}</button></div>${!pending.length?`<p class="payment-all-done">Todos los productos están asignados. Podés corregir con − y + o continuar al cobro.</p>`:""}<div class="allocation-grid">${visible.map(({line,category},position)=>{
     const remaining=remainingUnits(line);
     const mine=paymentParts[selected].assigned[line.id]||0;
-    return `${position===0||visible[position-1].category!==category?`<h4 class="allocation-group">${safe(category)}</h4>`:""}<div class="allocation-line"><div class="allocation-title"><strong>${line.qty} × ${safe(line.name)}</strong><span>${money(unitPrice(line))} c/u</span></div>${line.mods.length||line.note?`<small>${lineDetails(line,false)}</small>`:""}<div class="allocation-compact"><span class="allocation-left">${remaining?`${remaining} ${remaining===1?"pendiente":"pendientes"}`:"Todo asignado"}</span><span class="allocation-assigned">${paymentParts.map((part,index)=>{const count=part.assigned[line.id]||0;return count?`<span><span data-payer-label="${index}">${safe(part.name.trim()||`Persona ${index+1}`)}</span>: ${count}</span>`:"";}).join("")}</span></div><div class="allocation-actions"><button class="primary" data-action="payment-rest" data-line="${safe(line.id)}" data-part="${selected}" ${remaining?"":"disabled"}>${remaining===1?"Asignar 1":`Asignar ${remaining} restantes`}</button>${line.qty>1?`<button data-action="payment-unit" data-line="${safe(line.id)}" data-part="${selected}" data-delta="1" ${remaining?"":"disabled"} aria-label="Asignar solo una unidad de ${safe(line.name)} a la persona ${selected+1}">+1 unidad</button>`:""}${mine?`<button data-action="payment-unit" data-line="${safe(line.id)}" data-part="${selected}" data-delta="-1" aria-label="Quitar una unidad de ${safe(line.name)} a la persona ${selected+1}">Quitar 1</button>`:""}</div></div>`;
-  }).join(""):`<p class="payment-all-done">Todos los productos están asignados. Si necesitás corregir algo, tocá «Ver también asignados».</p>`}</section>`;
+    return `${position===0||visible[position-1].category!==category?`<h4 class="allocation-group">${safe(category)}</h4>`:""}<div class="allocation-line ${mine?"has-mine":""}"><div class="allocation-title"><strong>${line.qty} × ${safe(line.name)}</strong><span>${money(unitPrice(line))} c/u</span></div>${line.mods.length||line.note?`<small>${lineDetails(line,false)}</small>`:""}<div class="allocation-compact"><span class="allocation-left">${remaining?`${remaining} ${remaining===1?"pendiente":"pendientes"}`:"Todo asignado"}</span><span class="allocation-assigned">${paymentParts.map((owner,index)=>{const count=owner.assigned[line.id]||0;return count?`<span><span data-payer-label="${index}">${safe(payerName(index))}</span>: ${count}</span>`:"";}).join("")}</span></div><div class="allocation-actions"><button data-action="payment-unit" data-line="${safe(line.id)}" data-part="${selected}" data-delta="-1" ${mine?"":"disabled"} aria-label="Quitar una unidad de ${safe(line.name)} a ${safe(payerName(selected))}">−</button><span class="allocation-mine"><strong>${mine}</strong> para esta persona</span><button class="primary" data-action="payment-unit" data-line="${safe(line.id)}" data-part="${selected}" data-delta="1" ${remaining?"":"disabled"} aria-label="Asignar una unidad de ${safe(line.name)} a ${safe(payerName(selected))}">+</button>${line.qty>1?`<button class="allocation-rest" data-action="payment-rest" data-line="${safe(line.id)}" data-part="${selected}" ${remaining?"":"disabled"}>${remaining===1?"El restante":remaining?`Los ${remaining} restantes`:"Sin pendientes"}</button>`:""}</div></div>`;
+  }).join("")}</div></section>`;
 }
 function renderBrlFields(part,index){
   const feedback=brlFeedback(part.brlCharged,part.brlReceived);
@@ -742,13 +771,19 @@ function renderBrlFields(part,index){
 }
 function renderPaymentPart(part,index,order){
   const amount=partAmount(part,order),feedback=cashFeedback(amount,part.cashReceived);
-  const options=paymentMethods.map(method=>`<option value="${safe(method)}" ${part.method===method?"selected":""}>${safe(method)}</option>`).join("");
+  const options=paymentMethods.slice(6).map(method=>`<option value="${safe(method)}" ${part.method===method?"selected":""}>${safe(method)}</option>`).join("");
   const items=order.lines.filter(line=>part.assigned[line.id]).map(line=>`${part.assigned[line.id]} × ${safe(line.name)}`);
-  return `<section class="payment-part"><div class="payment-part-head"><strong>Persona ${index+1} · ${money(amount)}</strong>${paymentParts.length>2?`<button data-action="payment-remove" data-part="${index}" aria-label="Quitar persona ${index+1}">Quitar</button>`:""}</div>${paymentParts.length>1?`<label for="payer-name-${index}">Nombre o referencia (opcional)</label><input id="payer-name-${index}" data-payer-name="${index}" maxlength="50" value="${safe(part.name)}" placeholder="Ej.: Juan">`:""}${paymentParts.length>1&&items.length?`<details class="payment-items"><summary>Ver ${items.length} ${items.length===1?"producto":"productos"} asignados</summary><p>${items.join(" · ")}</p></details>`:""}<label for="payment-method-${index}">Forma de pago</label><select id="payment-method-${index}" data-payment-method="${index}"><option value="">Elegí una opción</option>${options}</select>${part.method==="Efectivo"?`<div class="cash-box"><label for="cash-received-${index}">Efectivo recibido de esta persona</label><input id="cash-received-${index}" data-cash-received="${index}" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="off" value="${safe(part.cashReceived)}"><p data-cash-result="${index}" class="cash-result ${feedback.valid?"valid":feedback.short?"short":""}" role="status">${feedback.message}</p></div>`:""}${part.method==="Efectivo BRL"?renderBrlFields(part,index):""}${part.method==="Pix"?`<p class="pix-value" data-pix-result="${index}">${brlMoney(amount)} · 1 real = $8,30</p>`:""}</section>`;
+  return `<section class="payment-part"><div class="payment-part-head"><strong><span data-payer-label="${index}">${safe(payerName(index))}</span><span class="payment-person-amount">${money(amount)}</span></strong>${paymentParts.length>1?`<button data-action="payment-step" data-step="assign">Editar reparto</button>`:""}</div>${paymentParts.length>1&&items.length?`<details class="payment-items"><summary>Ver lo que paga</summary><p>${items.join(" · ")}</p></details>`:""}<p class="payment-label">¿Cómo paga?</p><div class="payment-method-buttons" role="group" aria-label="Forma de pago de ${safe(payerName(index))}">${paymentMethods.slice(0,6).map(method=>`<button data-action="payment-method" data-part="${index}" data-method="${safe(method)}" class="${part.method===method?"active":""}" aria-pressed="${part.method===method}">${method==="Efectivo"?"Efectivo UYU":safe(method)}</button>`).join("")}</div><details class="payment-other-methods" ${paymentMethods.slice(6).includes(part.method)?"open":""}><summary>Más formas de pago${paymentMethods.slice(6).includes(part.method)?` · ${safe(part.method)}`:""}</summary><label for="payment-method-${index}">Otra forma de pago</label><select id="payment-method-${index}" data-payment-method="${index}"><option value="">Elegí una opción</option>${options}</select></details>${part.method==="Efectivo"?`<div class="cash-box"><label for="cash-received-${index}">Efectivo recibido en pesos</label><div class="payment-cash-entry"><input id="cash-received-${index}" data-cash-received="${index}" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="off" placeholder="Ej.: 1000" value="${safe(part.cashReceived)}"><button data-action="payment-exact" data-part="${index}">Importe justo</button></div><p data-cash-result="${index}" class="cash-result ${feedback.valid?"valid":feedback.short?"short":""}" role="status">${feedback.message}</p></div>`:""}${part.method==="Efectivo BRL"?renderBrlFields(part,index):""}${part.method==="Pix"?`<p class="pix-value" data-pix-result="${index}">${brlMoney(amount)} · 1 real = $8,30</p>`:""}</section>`;
+}
+function renderPaymentPeople(order){
+  return `<div class="payment-person-tabs" role="group" aria-label="Elegir persona">${paymentParts.map((part,index)=>{const status=paymentPartStatus(part,order),units=Object.values(part.assigned).reduce((sum,count)=>sum+count,0);return `<button data-action="payment-select" data-part="${index}" class="${selectedPaymentPart===index?"active":""}" aria-pressed="${selectedPaymentPart===index}"><span data-payer-label="${index}">${safe(payerName(index))}</span><strong>${money(partAmount(part,order))}</strong><small data-payer-status="${index}">${paymentStep==="pay"?`${status.valid?"✓ ":""}${status.message}`:`${units} ${units===1?"unidad":"unidades"}`}</small></button>`;}).join("")}${paymentParts.length<8&&paymentStep==="assign"?`<button class="payment-add-person" data-action="payment-add">+ Persona</button>`:""}</div>`;
+}
+function renderPaymentReview(order){
+  return `<div class="payment-review"><h3>Resumen de pagos</h3>${paymentParts.map((part,index)=>{const amount=partAmount(part,order),status=paymentPartStatus(part,order);return `<button data-action="payment-select" data-part="${index}" class="${selectedPaymentPart===index?"active":""}"><span><b data-payer-label="${index}">${safe(payerName(index))}</b><small>${part.method?safe(part.method):"Elegir forma de pago"}${part.method==="Pix"?` · ${brlMoney(amount)}`:""}${part.method==="Efectivo BRL"&&realMinor(part.brlCharged)!==null?` · ${realMoneyMinor(realMinor(part.brlCharged))}`:""}</small><small data-payer-status="${index}">${status.valid?"✓ ":""}${status.message}</small></span><strong>${money(amount)}</strong></button>`;}).join("")}</div>`;
 }
 function renderPaymentModal(order){
-  const split=paymentParts.length>1,status=paymentStatus(order);
-  return `<h2 id="dialog-title">Cobrar ${numberLabel(order.number)} · ${safe(slotLabel(order.slot))}</h2><div class="ticket-total"><span>TOTAL</span><span>${money(orderTotal(order))}</span></div><p>Elegí los productos y el medio de pago de cada persona. En Pix se muestra el importe en reales a $8,30 por real.</p><div class="payment-tools"><button data-action="payment-split" aria-pressed="${split}">${split?"Volver a pago único":"Dividir cuenta por productos"}</button>${split&&paymentParts.length<8?`<button data-action="payment-add">+ Agregar persona</button>`:""}</div><div class="payment-body ${split?"split":""}">${split?renderPaymentAllocation(order):""}<div class="payment-parts">${paymentParts.map((part,index)=>renderPaymentPart(part,index,order)).join("")}</div></div><p id="payment-summary" class="payment-summary ${status.valid?"":"error"}" role="status" aria-live="polite">${status.message}</p><p class="order-hint">${order.status==="EN COCINA"?"Este pedido sigue EN COCINA. Si lo cerrás ahora, el cocinero recibirá un aviso.":!order.sentAt?"Este pedido todavía no fue enviado a Cocina.":"Al confirmar, se registra la venta y se libera el lugar."}</p><div class="modal-actions"><button data-action="modal-close">VOLVER SIN CERRAR</button><button class="success" data-action="close-confirm" ${status.valid?"":"disabled"}>CONFIRMAR COBRO Y LIBERAR</button></div>`;
+  const split=paymentParts.length>1,status=paymentStatus(order),allocation=paymentAllocationStatus(order),assigning=split&&paymentStep==="assign",remaining=order.lines.reduce((sum,line)=>sum+remainingUnits(line),0),pendingAmount=order.lines.reduce((sum,line)=>sum+remainingUnits(line)*unitPrice(line),0),selected=Math.min(selectedPaymentPart,paymentParts.length-1);
+  return `<div class="payment-heading"><h2 id="dialog-title">Cobrar ${numberLabel(order.number)}<small>${safe(slotLabel(order.slot))}</small></h2><div><small>Total de la cuenta</small><strong>${money(orderTotal(order))}</strong></div></div><div class="payment-tools"><button data-action="payment-split" aria-pressed="${split}">${split?"Pago único":"Dividir por productos"}</button><button data-action="payment-undo" ${paymentUndo.length?"":"disabled"}>Deshacer reparto</button></div>${split?`<div class="payment-steps" role="group" aria-label="Pasos del cobro"><button class="${assigning?"active":""}" data-action="payment-step" data-step="assign" aria-pressed="${assigning}">1. Repartir productos</button><button class="${assigning?"":"active"}" data-action="payment-step" data-step="pay" aria-pressed="${!assigning}" ${allocation.valid?"":"disabled"}>2. Cobrar</button></div>${renderPaymentPeople(order)}`:""}<div class="payment-body ${assigning?"split-assign":split?"split-pay":""}">${assigning?renderPaymentAllocation(order):`<div class="payment-parts">${renderPaymentPart(paymentParts[selected],selected,order)}</div>${split?renderPaymentReview(order):""}`}</div><div class="payment-footer">${assigning?`<p class="payment-progress" role="status" aria-live="polite"><span>${remaining?`Faltan ${remaining} ${remaining===1?"unidad":"unidades"}`:"Todo repartido"}<strong>${money(pendingAmount)} sin asignar</strong></span><span>Para <b data-payer-label="${selected}">${safe(payerName(selected))}</b><strong>${money(partAmount(paymentParts[selected],order))}</strong></span></p><p class="note payment-allocation-message">${allocation.valid?"Revisá el reparto y continuá con las formas de pago.":allocation.message}</p>`:`<p id="payment-summary" class="payment-summary ${status.valid?"":"error"}" role="status" aria-live="polite">${status.message}</p><p class="order-hint">${order.status==="EN COCINA"?"Este pedido sigue EN COCINA. Si lo cerrás ahora, el cocinero recibirá un aviso.":!order.sentAt?"Este pedido todavía no fue enviado a Cocina.":"Confirmá cuando hayan recibido todos los pagos. Se registra una venta y se libera el lugar."}</p>`}<div class="modal-actions"><button data-action="${split&&!assigning?"payment-step":"modal-close"}" ${split&&!assigning?'data-step="assign"':""}>${split&&!assigning?"VOLVER AL REPARTO":"VOLVER SIN CERRAR"}</button>${assigning?`<button class="primary" data-action="payment-step" data-step="pay" ${allocation.valid?"":"disabled"}>CONTINUAR AL COBRO</button>`:`${split&&!status.valid?`<button class="primary" data-action="payment-next">SIGUIENTE PERSONA</button>`:""}<button class="success" data-action="close-confirm" ${status.valid?"":"disabled"}>CONFIRMAR COBRO Y LIBERAR</button>`}</div></div>`;
 }
 function renderModal(){
   const root=$("#modal-root"),wasOpen=root.childElementCount>0;let content="";
@@ -758,12 +793,15 @@ function renderModal(){
   if(!content){root.innerHTML="";$(".app").inert=false;return;}
   const previousModal=root.querySelector(".modal"),previousScroll=previousModal?.scrollTop||0;
   const allocationScroll=root.querySelector(".payment-allocation")?.scrollTop||0,partsScroll=root.querySelector(".payment-parts")?.scrollTop||0;
+  const paymentBodyScroll=root.querySelector(".payment-body")?.scrollTop||0,peopleScroll=root.querySelector(".payment-person-tabs")?.scrollLeft||0;
   const focusedId=document.activeElement?.id,focusedAction=document.activeElement?.dataset?.action;
   const focusedLine=document.activeElement?.dataset?.line,focusedPart=document.activeElement?.dataset?.part,focusedDelta=document.activeElement?.dataset?.delta;
+  const focusedMethod=document.activeElement?.dataset?.method,focusedStep=document.activeElement?.dataset?.step;
   root.innerHTML=`<div class="modal-backdrop"><div class="modal ${modal==="help"?"help-modal":modal==="payment"?"payment-modal":""}" role="dialog" aria-modal="true" aria-labelledby="dialog-title" tabindex="-1">${content}</div></div>`;$(".app").inert=true;
   const dialog=root.querySelector(".modal");if(dialog)dialog.scrollTop=previousScroll;
   const allocation=root.querySelector(".payment-allocation"),parts=root.querySelector(".payment-parts");if(allocation)allocation.scrollTop=allocationScroll;if(parts)parts.scrollTop=partsScroll;
-  const matchingAction=focusedAction?[...root.querySelectorAll("[data-action]")].find(button=>!button.disabled&&button.dataset.action===focusedAction&&button.dataset.line===focusedLine&&button.dataset.part===focusedPart&&button.dataset.delta===focusedDelta):null;
+  const paymentBody=root.querySelector(".payment-body"),people=root.querySelector(".payment-person-tabs");if(paymentBody)paymentBody.scrollTop=paymentBodyScroll;if(people){people.scrollLeft=peopleScroll;people.querySelector("button.active")?.scrollIntoView?.({block:"nearest",inline:"nearest"});}
+  const matchingAction=focusedAction?[...root.querySelectorAll("[data-action]")].find(button=>!button.disabled&&button.dataset.action===focusedAction&&button.dataset.line===focusedLine&&button.dataset.part===focusedPart&&button.dataset.delta===focusedDelta&&button.dataset.method===focusedMethod&&button.dataset.step===focusedStep):null;
   if(!wasOpen)dialog?.focus({preventScroll:true});else if(focusedId&&document.getElementById(focusedId))document.getElementById(focusedId).focus({preventScroll:true});else if(matchingAction)matchingAction.focus({preventScroll:true});else dialog?.focus({preventScroll:true});
 }
 
@@ -807,7 +845,7 @@ function handleAction(element,event){
   const action=element.dataset.action;
   // La identidad se conserva aunque un render sustituya el botón entre dos clics.
   const key=JSON.stringify(element.dataset),time=now();
-  if(event.detail>1||((action==="add-product"||action==="send"||action==="close-confirm"||action==="move-confirm")&&lastActivation.key===key&&time-lastActivation.at<250))return;
+  if((event.detail>1&&action!=="payment-unit")||((action==="add-product"||action==="send"||action==="close-confirm"||action==="move-confirm")&&lastActivation.key===key&&time-lastActivation.at<250))return;
   lastActivation={key,at:time};
   switch(action){
     case "view":go(element.dataset.view);break;
@@ -831,14 +869,20 @@ function handleAction(element,event){
     case "close-start":startClose();break;
     case "close-confirm":confirmClose();break;
     case "payment-split":{
+      rememberPaymentAllocation();
       if(paymentParts.length===1)paymentParts=[newPaymentPart(),newPaymentPart()];
       else paymentParts=[newPaymentPart(Object.fromEntries(current().lines.map(line=>[line.id,line.qty])))];
-      selectedPaymentPart=0;showAssignedPaymentLines=false;
+      selectedPaymentPart=0;showAssignedPaymentLines=true;paymentStep="assign";
       renderModal();break;
     }
-    case "payment-add":if(paymentParts.length<8){paymentParts.push(newPaymentPart());selectedPaymentPart=paymentParts.length-1;renderModal();}break;
-    case "payment-remove":if(paymentParts.length>2){const removed=Number(element.dataset.part);if(removed<0||removed>=paymentParts.length)break;paymentParts.splice(removed,1);if(selectedPaymentPart>removed)selectedPaymentPart--;selectedPaymentPart=Math.min(selectedPaymentPart,paymentParts.length-1);renderModal();}break;
-    case "payment-select":if(paymentParts[Number(element.dataset.part)]){selectedPaymentPart=Number(element.dataset.part);renderModal();}break;
+    case "payment-add":if(paymentParts.length<8){rememberPaymentAllocation();paymentParts.push(newPaymentPart());selectedPaymentPart=paymentParts.length-1;paymentStep="assign";renderModal();}break;
+    case "payment-remove":if(paymentParts.length>1){const removed=Number(element.dataset.part);if(!Number.isInteger(removed)||removed<0||removed>=paymentParts.length)break;rememberPaymentAllocation();paymentParts.splice(removed,1);if(selectedPaymentPart>removed)selectedPaymentPart--;selectedPaymentPart=Math.min(selectedPaymentPart,paymentParts.length-1);if(paymentParts.length===1){paymentParts[0].assigned=Object.fromEntries(current().lines.map(line=>[line.id,line.qty]));clearPaymentAmounts(paymentParts[0]);}paymentStep="assign";renderModal();}break;
+    case "payment-select":if(paymentParts[Number(element.dataset.part)]){selectedPaymentPart=Number(element.dataset.part);renderModal();if(paymentStep==="pay")$(".payment-body").scrollTop=0;}break;
+    case "payment-step":setPaymentStep(element.dataset.step);break;
+    case "payment-undo":undoPaymentAllocation();break;
+    case "payment-method":selectPaymentMethod(Number(element.dataset.part),element.dataset.method);break;
+    case "payment-exact":{const part=paymentParts[Number(element.dataset.part)];if(part?.method==="Efectivo"){part.cashReceived=String(partAmount(part,current()));renderModal();}break;}
+    case "payment-next":{const index=paymentParts.map((part,index)=>index).find(index=>index>selectedPaymentPart&&!paymentPartStatus(paymentParts[index],current()).valid)??paymentParts.findIndex(part=>!paymentPartStatus(part,current()).valid);if(index>=0){selectedPaymentPart=index;renderModal();const body=$(".payment-body");if(body)body.scrollTop=0;}break;}
     case "payment-show-assigned":showAssignedPaymentLines=!showAssignedPaymentLines;renderModal();break;
     case "payment-all-remaining":assignAllRemaining(Number(element.dataset.part));break;
     case "payment-unit":assignPaymentUnit(element.dataset.line,Number(element.dataset.part),Number(element.dataset.delta));break;
@@ -869,7 +913,7 @@ document.addEventListener("input",event=>{
   if(event.target.dataset.cashReceived!==undefined){const part=paymentParts[Number(event.target.dataset.cashReceived)];if(part)part.cashReceived=event.target.value;updatePaymentFeedback();return;}
   if(event.target.dataset.brlCharged!==undefined){const part=paymentParts[Number(event.target.dataset.brlCharged)];if(part)part.brlCharged=event.target.value;updatePaymentFeedback();return;}
   if(event.target.dataset.brlReceived!==undefined){const part=paymentParts[Number(event.target.dataset.brlReceived)];if(part)part.brlReceived=event.target.value;updatePaymentFeedback();return;}
-  if(event.target.dataset.payerName!==undefined){const index=Number(event.target.dataset.payerName),part=paymentParts[index];if(part){part.name=event.target.value;document.querySelectorAll(`[data-payer-label="${index}"]`).forEach(label=>{label.textContent=part.name.trim()||`Persona ${index+1}`;});}return;}
+  if(event.target.dataset.payerName!==undefined){const index=Number(event.target.dataset.payerName),part=paymentParts[index];if(part){part.name=event.target.value;document.querySelectorAll(`[data-payer-label="${index}"]`).forEach(label=>{label.textContent=payerName(index);});document.querySelectorAll(`[data-action="payment-remove"][data-part="${index}"], [data-action="payment-unit"][data-part="${index}"]`).forEach(button=>{if(button.dataset.action==="payment-remove")button.setAttribute("aria-label",`Quitar a ${payerName(index)}`);else{const line=current()?.lines.find(item=>item.id===button.dataset.line);if(line)button.setAttribute("aria-label",`${Number(button.dataset.delta)<0?"Quitar":"Asignar"} una unidad de ${line.name} a ${payerName(index)}`);}});}return;}
   const input=event.target,original=current();if(!original||!["customer-name","line-note"].includes(input.id))return;
   const oldLine=input.id==="line-note"?findLine(input.dataset.line):null;if(input.id==="line-note"&&!oldLine)return;
   const previous=oldLine?oldLine.note:original.name;if(previous===input.value)return;
@@ -890,7 +934,7 @@ document.addEventListener("input",event=>{
   const status=$("#order-status");if(status){status.textContent=order.status;status.className="status "+statusClass(order.status);}const hint=$("#order-hint");if(hint)hint.textContent=orderStatusHint(order);
 });
 document.addEventListener("change",event=>{
-  if(event.target.dataset.paymentMethod!==undefined){const part=paymentParts[Number(event.target.dataset.paymentMethod)];if(part){part.method=event.target.value;part.cashReceived="";part.brlCharged="";part.brlReceived="";renderModal();}return;}
+  if(event.target.dataset.paymentMethod!==undefined){selectPaymentMethod(Number(event.target.dataset.paymentMethod),event.target.value);return;}
   if(event.target.dataset.payerName!==undefined)return;
   if(event.target.id==="history-date"&&/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)){historyDate=event.target.value;historyDetail=null;render();}
 });
@@ -923,6 +967,8 @@ if(sharedMode){void refreshShared();setInterval(()=>void refreshShared(),1800);w
 if(typeof navigator!=="undefined"&&"serviceWorker" in navigator&&["https:","http:"].includes(window.location.protocol))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 
 </script>
+<script src="./cash-book.js"></script>
+<script src="./cash-book-ui.js"></script>
 <script src="./cash.js"></script>
 </body>
 </html>

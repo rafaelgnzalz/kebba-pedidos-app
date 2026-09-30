@@ -2,6 +2,8 @@
 kebba-respaldo-*.json
 kebba-datos-a-recuperar-*.json
 kebba-dia-*.csv
+kebba-caja-*.json
+kebba-registro-*.csv
 respaldos/
 
 # Configuración privada y archivos del sistema.

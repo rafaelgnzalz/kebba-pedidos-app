@@ -35,6 +35,7 @@ function boot(storage=new Map()){
 }
 function key(app,value,tag='BODY',extra={}){let prevented=false;app.events.keydown({key:value,target:{tagName:tag,isContentEditable:false},preventDefault(){prevented=true},...extra});return prevented;}
 function type(app,id,value,line){const input={id,value,dataset:line?{line}:{},tagName:id==='line-note'?'TEXTAREA':'INPUT'};app.events.focusin({target:input});app.events.input({target:input});return input;}
+function action(app,name,data={},detail=1){app.run(`handleAction({dataset:${JSON.stringify({action:name,...data})}},{detail:${detail}})`);}
 
 test('las mesas admiten una referencia visible y persistente',()=>{
   const app=boot(),run=app.run;
@@ -71,6 +72,7 @@ test('la cuenta se divide por producto y permite efectivo más Pix',()=>{
   run('openSlot("m1");addProduct("kebab-carne");addProduct("papas");sendKitchen();markReady("m1");startClose();paymentParts=[newPaymentPart(),newPaymentPart()]');
   run('assignPaymentRest(current().lines[0].id,0);assignPaymentRest(current().lines[1].id,1);paymentParts[0].name="Mesa azul";paymentParts[0].method="Efectivo";paymentParts[0].cashReceived="500";paymentParts[1].method="Pix"');
   assert.equal(run('paymentStatus(current()).valid'),true);
+  action(app,'payment-step',{step:'pay'});
   assert.match(run('renderPaymentModal(current())'),/R\$ 12,05/);
   run('confirmClose()');
   assert.equal(run('data.orders.m1'),undefined);
@@ -101,7 +103,7 @@ test('una cuenta grande se asigna por líneas completas a cuatro personas',()=>{
   const app=boot(),run=app.run;
   run('openSlot("m1");for(let i=0;i<18;i++)addProduct("papas");startClose();paymentParts=[newPaymentPart(),newPaymentPart(),newPaymentPart(),newPaymentPart()]');
   const initial=run('renderPaymentAllocation(current())');
-  assert.equal((initial.match(/data-action="payment-rest"/g)||[]).length,18);
+  assert.equal((initial.match(/data-delta="1"/g)||[]).length,18);
   run('for(let i=0;i<4;i++)assignPaymentRest(current().lines[i].id,0);for(let i=4;i<8;i++)assignPaymentRest(current().lines[i].id,1);for(let i=8;i<12;i++)assignPaymentRest(current().lines[i].id,2);selectedPaymentPart=3;assignAllRemaining(3)');
   assert.equal(run('current().lines.reduce((sum,line)=>sum+remainingUnits(line),0)'),0);
   assert.match(run('renderPaymentAllocation(current())'),/Todos los productos están asignados/);
@@ -130,6 +132,141 @@ test('dos unidades iguales pueden pagarlas personas distintas',()=>{
   assert.equal(run('data.history[0].payments[0].amount'),100);
   assert.equal(run('data.history[0].payments[1].amount'),100);
   assert.equal(run('data.history[0].payments[1].cashChange'),100);
+});
+
+test('el recorrido de reparto y cobro conserva cuatro personas, combos y medios distintos',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("combo-kebab-carne");changeQty(current().lines[0].id,1);addProduct("papas");addProduct("bebida-sprite-350");sendKitchen();markReady("m1");startClose()');
+  action(app,'payment-split');
+  const combo=run('current().lines[0].id'),fries=run('current().lines[1].id'),drink=run('current().lines[2].id');
+  action(app,'payment-unit',{line:combo,part:'0',delta:'1'});
+  action(app,'payment-select',{part:'1'});
+  action(app,'payment-unit',{line:combo,part:'1',delta:'1'});
+  action(app,'payment-add');
+  action(app,'payment-unit',{line:fries,part:'2',delta:'1'});
+  action(app,'payment-add');
+  action(app,'payment-all-remaining',{part:'3'});
+  assert.equal(run(`paymentParts[3].assigned[${JSON.stringify(drink)}]`),1);
+  assert.equal(run('paymentAllocationStatus(current()).valid'),true);
+  assert.equal(run('paymentStatus(current()).valid'),false);
+  assert.equal(run('data.history.length'),0);
+  action(app,'payment-step',{step:'pay'});
+  action(app,'payment-select',{part:'0'});
+  action(app,'payment-method',{part:'0',method:'Efectivo'});
+  action(app,'payment-exact',{part:'0'});
+  action(app,'payment-next');
+  assert.equal(run('selectedPaymentPart'),1);
+  action(app,'payment-method',{part:'1',method:'Pix'});
+  action(app,'payment-next');
+  assert.equal(run('selectedPaymentPart'),2);
+  action(app,'payment-method',{part:'2',method:'Efectivo BRL'});
+  app.events.input({target:{dataset:{brlCharged:'2'},value:'15,50'}});
+  app.events.input({target:{dataset:{brlReceived:'2'},value:'20'}});
+  action(app,'payment-next');
+  assert.equal(run('selectedPaymentPart'),3);
+  action(app,'payment-method',{part:'3',method:'Tarjeta'});
+  assert.equal(run('paymentStatus(current()).valid'),true);
+  assert.equal(run('data.history.length'),0);
+  action(app,'close-confirm');
+  assert.equal(run('data.history.length'),1);
+  assert.equal(run('data.history[0].payments.map(part=>part.method).join("|")'),'Efectivo|Pix|Efectivo BRL|Tarjeta');
+  assert.equal(run('data.history[0].payments[0].cashChange'),0);
+  assert.equal(run('data.history[0].payments[2].brlChangeMinor'),450);
+  assert.equal(run('data.history[0].payments.reduce((sum,part)=>sum+part.amount,0)'),run('data.history[0].total'));
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+});
+
+test('repartir de a una unidad acepta toques rápidos y nunca duplica ni resta de más',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");changeQty(current().lines[0].id,1);changeQty(current().lines[0].id,1);startClose()');
+  action(app,'payment-split');
+  const line=run('current().lines[0].id');
+  for(let detail=1;detail<=4;detail++)action(app,'payment-unit',{line,part:'0',delta:'1'},detail);
+  assert.equal(run('remainingUnits(current().lines[0])'),0);
+  assert.equal(run('partAmount(paymentParts[0],current())'),300);
+  action(app,'payment-unit',{line,part:'1',delta:'1'});
+  action(app,'payment-unit',{line,part:'1',delta:'-1'});
+  assert.equal(run('Object.keys(paymentParts[1].assigned).length'),0);
+  run('assignPaymentUnit(current().lines[0].id,0,1.5)');
+  assert.equal(run('partAmount(paymentParts[0],current())'),300);
+  assert.match(run('renderPaymentAllocation(current())'),/Quitar una unidad/);
+  assert.match(run('renderPaymentAllocation(current())'),/Los|Sin pendientes/);
+});
+
+test('el paso de cobro exige todo asignado y permite quitar una persona vacía',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");startClose()');
+  action(app,'payment-split');
+  action(app,'payment-step',{step:'pay'});
+  assert.equal(run('paymentStep'),'assign');
+  action(app,'payment-all-remaining',{part:'0'});
+  action(app,'payment-step',{step:'pay'});
+  assert.equal(run('paymentStep'),'assign');
+  assert.match(run('paymentAllocationStatus(current()).message'),/quitá esa persona/);
+  action(app,'payment-remove',{part:'1'});
+  assert.equal(run('paymentParts.length'),1);
+  assert.equal(run('partAmount(paymentParts[0],current())'),100);
+  action(app,'payment-method',{part:'0',method:'PREX'});
+  assert.equal(run('paymentStatus(current()).valid'),true);
+  assert.equal(run('data.history.length'),0);
+});
+
+test('deshacer recupera a una persona quitada, conserva sus productos y no deshace nombres posteriores',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");changeQty(current().lines[0].id,1);startClose()');
+  action(app,'payment-split');
+  const line=run('current().lines[0].id');
+  action(app,'payment-unit',{line,part:'0',delta:'1'});
+  action(app,'payment-unit',{line,part:'1',delta:'1'});
+  action(app,'payment-add');
+  action(app,'payment-remove',{part:'1'});
+  assert.equal(run('remainingUnits(current().lines[0])'),1);
+  app.events.input({target:{dataset:{payerName:'0'},value:'Ana'}});
+  action(app,'payment-undo');
+  assert.equal(run('paymentParts.length'),3);
+  assert.equal(run('remainingUnits(current().lines[0])'),0);
+  assert.equal(run('paymentParts[0].name'),'Ana');
+  assert.equal(run(`paymentParts[1].assigned[${JSON.stringify(line)}]`),1);
+  action(app,'payment-split');
+  assert.equal(run('paymentParts.length'),1);
+  action(app,'payment-undo');
+  assert.equal(run('paymentParts.length'),3);
+  assert.equal(run('paymentParts[0].name'),'Ana');
+});
+
+test('una corrección del reparto obliga a revisar el efectivo UYU y BRL del importe cambiado',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");changeQty(current().lines[0].id,1);startClose()');
+  action(app,'payment-split');
+  const line=run('current().lines[0].id');
+  action(app,'payment-unit',{line,part:'0',delta:'1'});
+  action(app,'payment-unit',{line,part:'1',delta:'1'});
+  run('paymentParts[0].method="Efectivo BRL";paymentParts[0].brlCharged="15";paymentParts[0].brlReceived="20";paymentParts[1].method="Efectivo";paymentParts[1].cashReceived="100"');
+  assert.equal(run('paymentStatus(current()).valid'),true);
+  action(app,'payment-unit',{line,part:'0',delta:'-1'});
+  assert.equal(run('paymentParts[0].brlCharged'),'');
+  assert.equal(run('paymentParts[0].brlReceived'),'');
+  assert.equal(run('paymentParts[1].cashReceived'),'100');
+  action(app,'payment-unit',{line,part:'1',delta:'1'});
+  assert.equal(run('paymentParts[1].cashReceived'),'');
+  action(app,'payment-undo');
+  action(app,'payment-undo');
+  assert.equal(run('paymentAllocationStatus(current()).valid'),true);
+  assert.equal(run('paymentStatus(current()).valid'),false);
+});
+
+test('al repartir mantiene el lugar de la lista y los controles para corregir',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");addProduct("boniato");startClose()');
+  action(app,'payment-split');
+  app.nodes.get('.payment-body').scrollTop=230;
+  action(app,'payment-unit',{line:run('current().lines[0].id'),part:'0',delta:'1'});
+  assert.equal(app.nodes.get('.payment-body').scrollTop,230);
+  assert.equal((run('renderPaymentAllocation(current())').match(/data-delta="-1"/g)||[]).length,2);
+  action(app,'payment-show-assigned');
+  assert.equal((run('renderPaymentAllocation(current())').match(/data-delta="-1"/g)||[]).length,1);
+  action(app,'payment-show-assigned');
+  assert.equal((run('renderPaymentAllocation(current())').match(/data-delta="-1"/g)||[]).length,2);
 });
 
 test('no cierra con productos sin asignar y conserva respaldos antiguos',()=>{
@@ -172,6 +309,7 @@ test('un cobro dividido registra efectivo en reales y PREX sin convertir el tota
   run('openSlot("m1");addProduct("papas");addProduct("kebab-carne");sendKitchen();markReady("m1");startClose();paymentParts=[newPaymentPart(),newPaymentPart()]');
   run('assignPaymentRest(current().lines[0].id,0);assignPaymentRest(current().lines[1].id,1);paymentParts[0].method="Efectivo BRL";paymentParts[0].brlCharged="15,50";paymentParts[0].brlReceived="20";paymentParts[1].method="PREX"');
   assert.equal(run('paymentStatus(current()).valid'),true);
+  action(app,'payment-step',{step:'pay'});
   assert.match(run('renderPaymentModal(current())'),/R\$ 4,50/);
   run('confirmClose()');
   assert.equal(run('data.history[0].payment'),'Dividido');
@@ -254,6 +392,19 @@ test('terminar el nombre de un pagador no reconstruye el diálogo y conserva el 
   app.events.change({target:{dataset:{payerName:'0'}}});
   assert.equal(run('paymentParts[0].name'),'Ana');
   assert.equal(run('modalRenders'),0);
+});
+
+test('cambiar el nombre actualiza las etiquetas accesibles del reparto sin perder el foco',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");changeQty(current().lines[0].id,1);startClose();paymentParts=[newPaymentPart(),newPaymentPart()];globalThis.modalRenders=0;renderModal=()=>{modalRenders++};globalThis.controls=[{dataset:{action:"payment-remove",part:"0"}},{dataset:{action:"payment-unit",part:"0",line:current().lines[0].id,delta:"1"}},{dataset:{action:"payment-unit",part:"0",line:current().lines[0].id,delta:"-1"}}];controls.forEach(button=>button.setAttribute=(name,value)=>button[name]=value);document.querySelectorAll=selector=>selector.includes("payment-remove")?controls:[]');
+  app.events.input({target:{dataset:{payerName:'0'},value:'Ana'}});
+  assert.equal(run('controls[0]["aria-label"]'),'Quitar a Ana');
+  assert.equal(run('controls[1]["aria-label"]'),'Asignar una unidad de Papas fritas a Ana');
+  assert.equal(run('controls[2]["aria-label"]'),'Quitar una unidad de Papas fritas a Ana');
+  assert.equal(run('modalRenders'),0);
+  run('assignPaymentUnit(current().lines[0].id,0,1)');
+  assert.match(run('renderPaymentAllocation(current())'),/>El restante<\/button>/);
+  assert.doesNotMatch(run('renderPaymentAllocation(current())'),/Los 1 restantes/);
 });
 
 test('varias teclas de una observación generan una corrección y se pueden deshacer',()=>{
