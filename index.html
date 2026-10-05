@@ -81,6 +81,8 @@ button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{co
 .staff-field{display:grid;gap:6px}.staff-form label[for="staff-method"]{display:block}
 @media(min-width:951px){.staff-form{gap:10px;padding:14px}.staff-form label{gap:4px;line-height:1.3}.staff-form textarea{min-height:74px}.staff-form input,.staff-form select{padding:9px}.staff-form .note{font-size:.78rem;line-height:1.3}.staff-form .primary{padding:12px}.staff-feedback:empty{display:none}}
 @media(max-width:759px){.staff-sales table{min-width:0}.staff-sales td{max-width:none}.staff-sales td:before{content:attr(data-label)}.staff-sales td>span{min-width:0;text-align:right;overflow-wrap:anywhere}.view-staff .stat:first-child{grid-column:auto}.staff-sales .stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#main.view-tips{overflow:auto;overscroll-behavior:contain}.view-tips .stat{min-width:0}.view-tips .stat:first-child{grid-column:auto}.view-tips .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(min-width:1101px) and (max-width:1450px){.topbar>.subtle{display:none}}
 </style>
 </head>
 <body>
@@ -93,6 +95,7 @@ button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{co
       <button data-action="view" data-view="kitchen" id="nav-kitchen">Cocina <span class="subtle">F2</span></button>
       <button data-action="view" data-view="history" id="nav-history">Historial</button>
       <button data-action="view" data-view="staff" id="nav-staff">Ventas al personal</button>
+      <button data-action="view" data-view="tips" id="nav-tips">Propinas</button>
       <button data-action="view" data-view="cash" id="nav-cash">Caja</button>
       <button data-action="view" data-view="settings" id="nav-settings">Configuración</button>
       <button data-action="fullscreen" class="small-button" title="Pantalla completa (F11)">⛶ Pantalla completa</button>
@@ -222,7 +225,7 @@ const lineTotal = line => line.qty*(line.unitPrice+line.mods.reduce((sum,mod)=>s
 const orderTotal = order => order.lines.reduce((sum,line)=>sum+lineTotal(line),0);
 const countItems = order => order.lines.reduce((sum,line)=>sum+line.qty,0);
 const sameLine = (a,b) => a.qty===b.qty && a.name===b.name && a.note===b.note && JSON.stringify(a.mods)===JSON.stringify(b.mods);
-const emptyData = () => ({dataVersion:1,catalogRevision:CATALOG_REVISION,nextNumber:1,orders:{},history:[],kitchenNotices:[],catalog:deepCopy(productos),modifierCatalog:deepCopy(modificadores),settings:{nombreLocal:CONFIG.nombreLocal,cantidadMesas:CONFIG.cantidadMesas,cantidadPedidosSinMesa:CONFIG.cantidadPedidosSinMesa}});
+const emptyData = () => ({dataVersion:1,catalogRevision:CATALOG_REVISION,nextNumber:1,orders:{},history:[],tips:[],kitchenNotices:[],catalog:deepCopy(productos),modifierCatalog:deepCopy(modificadores),settings:{nombreLocal:CONFIG.nombreLocal,cantidadMesas:CONFIG.cantidadMesas,cantidadPedidosSinMesa:CONFIG.cantidadPedidosSinMesa}});
 function withLatestCatalog(state){
   if((state.catalogRevision||0)>=CATALOG_REVISION)return null;
   const next=deepCopy(state);next.catalog=deepCopy(productos);next.modifierCatalog=deepCopy(modificadores);next.catalogRevision=CATALOG_REVISION;
@@ -310,6 +313,10 @@ function validateImport(raw){
       if(paid!==order.total||order.lines.some(line=>assigned.get(line.id)!==line.qty)||order.payment!==(order.payments.length===1?order.payments[0].method:"Dividido"))fail("La división de la cuenta no coincide con la comanda.");
     }
   }
+  if(raw.tips==null)raw.tips=[];
+  if(!Array.isArray(raw.tips))fail("El registro de propinas es inválido.");
+  for(const tip of raw.tips)if(!object(tip)||!text(tip.id)||!tip.id||!timestamp(tip.createdAt)||!integer(tip.amountMinor)||tip.amountMinor<1||!["UYU","BRL"].includes(tip.currency)||!text(tip.note)||!tip.note.trim()||tip.note.length>500)fail("Una propina del respaldo es inválida.");
+  if(!unique(raw.tips.map(tip=>tip.id)))fail("Hay propinas repetidas en el respaldo.");
   if(raw.kitchenNotices==null)raw.kitchenNotices=[];
   if(!Array.isArray(raw.kitchenNotices))fail();
   for(const notice of raw.kitchenNotices){if(!object(notice)||!text(notice.id)||!text(notice.label)||!text(notice.reason)||!timestamp(notice.at)||!integer(notice.number))fail("Hay avisos de Cocina inválidos.");checkLines(notice.lines);}
@@ -330,6 +337,8 @@ let focusBeforeModal=null,inputSession=null,lastActivation={key:"",at:0},lastOpe
 let paymentStep="assign",paymentUndo=[];
 const emptyStaffDraft=()=>({name:"",detail:"",amount:"",method:"Efectivo",cashReceived:"",brlCharged:"",brlReceived:""});
 let staffDraft=emptyStaffDraft(),staffDate=dayKey(now()),staffError="";
+const emptyTipDraft=()=>({amount:"",currency:"UYU",note:""});
+let tipDraft=emptyTipDraft(),tipDate=dayKey(now()),tipError="";
 const undoStacks=new Map();
 const settings=()=>data.settings;
 const slots=()=>slotsFor(settings());
@@ -389,6 +398,15 @@ function mergeSharedState(base,local,remote){
       merged[key]=deepCopy(local[key]);
     }
   }
+  // Cada propina tiene su propia identidad; altas simultáneas se conservan.
+  const baseTips=new Map((base.tips||[]).map(tip=>[tip.id,tip])),localTips=new Map((local.tips||[]).map(tip=>[tip.id,tip])),remoteTips=new Map((remote.tips||[]).map(tip=>[tip.id,tip]));
+  for(const id of new Set([...baseTips.keys(),...localTips.keys()])){
+    if(!same(localTips.get(id),baseTips.get(id))){
+      if(!same(remoteTips.get(id),baseTips.get(id))&&!same(remoteTips.get(id),localTips.get(id)))return null;
+      if(localTips.has(id))remoteTips.set(id,deepCopy(localTips.get(id)));else remoteTips.delete(id);
+    }
+  }
+  merged.tips=[...remoteTips.values()];
   const keys=new Set([...Object.keys(base.orders),...Object.keys(local.orders)]);
   for(const key of keys){
     if(!same(local.orders[key],base.orders[key])){
@@ -408,7 +426,7 @@ async function rebaseShared(){
   storageWarning="";readBlocked=false;render();return true;
 }
 async function refreshShared(){
-  const busy=()=>sharedWriting||sharedPending||storageConflict||modal==="payment"||document.activeElement?.dataset?.staffField!==undefined||["customer-name","line-note","shared-link-input"].includes(document.activeElement?.id);
+  const busy=()=>sharedWriting||sharedPending||storageConflict||modal==="payment"||document.activeElement?.dataset?.staffField!==undefined||document.activeElement?.dataset?.tipField!==undefined||["customer-name","line-note","shared-link-input"].includes(document.activeElement?.id);
   if(sharedReading||busy())return;
   const readVersion=sharedVersion,readState=data;sharedReading=true;
   try{
@@ -488,7 +506,7 @@ function openSlot(id){
   homeGroup=id[0];selectedSlot=id;selectedLine=null;mobileOrderPane=current().lines.length?"ticket":"menu";lastOpenNumber=current().number;view="order";modal=null;render();window.scrollTo?.(0,0);
 }
 function releaseEmptyDraft(){const order=current();if(order&&!order.sentAt&&!order.lines.length&&!order.name.trim()){const next=deepCopy(data);delete next.orders[selectedSlot];return commitData(next);}return true;}
-function go(target){if(!["home","kitchen","history","staff","cash","settings"].includes(target))return;releaseEmptyDraft();modal=null;window.KebbaCash?.closeDialog();selectedSlot=null;selectedLine=null;view=target;if(target==="history")historyDate=dayKey(now());if(target==="staff")staffDate=dayKey(now());render();if(target==="cash")void window.KebbaCash?.refresh();window.scrollTo?.(0,0);}
+function go(target){if(!["home","kitchen","history","staff","tips","cash","settings"].includes(target))return;releaseEmptyDraft();modal=null;window.KebbaCash?.closeDialog();selectedSlot=null;selectedLine=null;view=target;if(target==="history")historyDate=dayKey(now());if(target==="staff")staffDate=dayKey(now());if(target==="tips")tipDate=dayKey(now());render();if(target==="cash")void window.KebbaCash?.refresh();window.scrollTo?.(0,0);}
 function undo(){
   const order=current();if(!order||!canEdit())return;const previous=stackFor(order).at(-1);if(!previous)return;
   if(!mutateOrder(item=>{item.lines=deepCopy(previous.lines);item.name=previous.name;},{remember:false,renderNow:false}))return;
@@ -661,10 +679,10 @@ function render(){
   const focusedAction=main.contains?.(active)&&active?.dataset?.action?{...active.dataset}:null;
   const scrollable=[".ticket-list",".menu-category",".home-slots",".kitchen-panel",".table-wrap",".history-detail"],scrolls=scrollable.map(selector=>$(selector)?.scrollTop||0),menuScroll=$(".menu-tabs")?.scrollLeft||0;
   main.className="view-"+view;
-  main.innerHTML=view==="home"?renderHome():view==="order"?renderOrder():view==="kitchen"?renderKitchen():view==="history"?renderHistory():view==="staff"?renderStaff():view==="cash"?(window.KebbaCash?.render()||'<div class="empty">Cargando Caja…</div>'):renderSettings();
+  main.innerHTML=view==="home"?renderHome():view==="order"?renderOrder():view==="kitchen"?renderKitchen():view==="history"?renderHistory():view==="staff"?renderStaff():view==="tips"?renderTips():view==="cash"?(window.KebbaCash?.render()||'<div class="empty">Cargando Caja…</div>'):renderSettings();
   scrollable.forEach((selector,index)=>{const panel=$(selector);if(panel)panel.scrollTop=scrolls[index];});
   const menuTabs=$(".menu-tabs");if(menuTabs)menuTabs.scrollLeft=menuScroll;
-  for(const name of ["home","kitchen","history","staff","cash","settings"]){const button=$("#nav-"+name);button.classList.toggle("active",view===name);if(view===name)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");}
+  for(const name of ["home","kitchen","history","staff","tips","cash","settings"]){const button=$("#nav-"+name);button.classList.toggle("active",view===name);if(view===name)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");}
   renderStorage();renderModal();window.KebbaCash?.syncDialog();
   if(!modal&&previousView===main.className&&focusedAction){
     const button=[...main.querySelectorAll("[data-action]")].find(element=>!element.disabled&&Object.entries(focusedAction).every(([key,value])=>element.dataset[key]===value));
@@ -798,6 +816,27 @@ function buildStaffCsv(){
   const rows=staffForDate().map(order=>[numberLabel(order.number),fmtDate(order.closedAt),fmtTime(order.closedAt),order.name,order.lines[0]?.note||"",order.total,order.payment,paymentExport(order)]);
   return "\ufeff"+[headers,...rows].map(row=>row.map(csvValue).join(",")).join("\r\n");
 }
+const tipMoney=(minor,currency)=>`${currency==="BRL"?"R$":"$"} ${(minor/100).toLocaleString("es-UY",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+function tipsForDate(){return data.tips.filter(tip=>dayKey(tip.createdAt)===tipDate).sort((a,b)=>b.createdAt-a.createdAt);}
+function renderTips(){
+  const rows=tipsForDate(),total=currency=>rows.filter(tip=>tip.currency===currency).reduce((sum,tip)=>sum+tip.amountMinor,0);
+  return `<div class="headline"><h1>Propinas</h1><span class="staff-tag">SE GUARDAN APARTE DE CAJA</span></div><div class="staff-layout"><form id="tip-form" class="settings-panel staff-form"><h2>Registrar una propina</h2><label for="tip-amount">Importe<input id="tip-amount" data-tip-field="amount" inputmode="decimal" value="${safe(tipDraft.amount)}" placeholder="Ej.: 50 o 50,50" required></label><div class="staff-field"><label for="tip-currency">Moneda</label><select id="tip-currency" data-tip-field="currency"><option value="UYU" ${tipDraft.currency==="UYU"?"selected":""}>Pesos uruguayos (UYU)</option><option value="BRL" ${tipDraft.currency==="BRL"?"selected":""}>Reales (BRL)</option></select></div><label for="tip-note">Detalle manual<textarea id="tip-note" data-tip-field="note" maxlength="500" rows="3" placeholder="Ej.: propinas del turno de la noche" required>${safe(tipDraft.note)}</textarea></label><p id="tip-error" class="staff-error ${tipError?"":"hidden"}" role="alert">${safe(tipError)}</p><p class="note">Registrá el dinero recibido para propinas. Los totales se llevan por moneda, sin convertirlos.</p><button type="submit" class="primary">REGISTRAR PROPINA</button></form><section class="staff-sales" aria-label="Propinas registradas"><div class="headline"><h2>Propinas registradas</h2><label for="tip-date">Fecha <input id="tip-date" type="date" value="${tipDate}"></label></div><div class="stats"><div class="stat">TOTAL UYU<strong>${tipMoney(total("UYU"),"UYU")}</strong></div><div class="stat">TOTAL BRL<strong>${tipMoney(total("BRL"),"BRL")}</strong></div></div><p class="subtle">${rows.length} ${rows.length===1?"propina registrada":"propinas registradas"}</p><div class="staff-history-tools"><button class="small-button" data-action="tips-today">Ver hoy</button><button class="small-button" data-action="tips-export" ${rows.length?"":"disabled"}>Descargar CSV</button><button class="small-button" data-action="export-backup">Guardar respaldo</button></div>${rows.length?`<div class="table-wrap"><table><thead><tr><th>HORA</th><th>DETALLE</th><th>IMPORTE</th></tr></thead><tbody>${rows.map(tip=>`<tr><td data-label="Hora"><span>${fmtTime(tip.createdAt)}</span></td><td data-label="Detalle" class="staff-description"><span>${safe(tip.note)}</span></td><td data-label="Importe"><span>${tipMoney(tip.amountMinor,tip.currency)} <small class="subtle">${tip.currency}</small></span></td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">Todavía no hay propinas en esta fecha.</div>'}</section></div>`;
+}
+function registerTip(){
+  if(!canEdit())return false;
+  const reject=message=>{tipError=message;render();return false;};
+  const amountMinor=realMinor(tipDraft.amount),currency=tipDraft.currency,note=tipDraft.note.trim();
+  if(amountMinor===null||amountMinor<1)return reject("Ingresá un importe mayor que cero, con hasta dos decimales.");
+  if(!["UYU","BRL"].includes(currency))return reject("Elegí pesos uruguayos o reales.");
+  if(!note||note.length>500)return reject("Escribí el detalle de la propina (hasta 500 caracteres).");
+  const next=deepCopy(data),createdAt=now();next.tips.push({id:uid(),createdAt,amountMinor,currency,note});
+  if(!commitData(next))return false;
+  tipDraft={...emptyTipDraft(),currency};tipError="";tipDate=dayKey(createdAt);render();toast(`Propina registrada · ${tipMoney(amountMinor,currency)}`);return true;
+}
+function buildTipsCsv(){
+  const rows=tipsForDate().map(tip=>[fmtDate(tip.createdAt),fmtTime(tip.createdAt),tip.note,tip.currency,(tip.amountMinor/100).toFixed(2).replace(".",",")]);
+  return "\ufeff"+[["Fecha","Hora","Detalle","Moneda","Importe"],...rows].map(row=>row.map(csvValue).join(";")).join("\r\n");
+}
 function historyPayments(order){return order.payments||[{payer:"",method:order.payment,amount:order.total,items:order.lines.map(line=>({lineId:line.id,qty:line.qty})),...(order.cashReceived==null?{}:{cashReceived:order.cashReceived,cashChange:order.cashChange}),...(order.brlChargedMinor==null?{}:{brlChargedMinor:order.brlChargedMinor,brlReceivedMinor:order.brlReceivedMinor,brlChangeMinor:order.brlChangeMinor})}];}
 function historyPaymentLabel(order){return order.payments?.length>1?`Dividido · ${order.payments.length} personas`:order.payment;}
 function renderBrlHistory(part){return part.brlChargedMinor!=null?`<div class="cash-summary"><span>Cobrado: ${realMoneyMinor(part.brlChargedMinor)}</span><span>Recibido: ${realMoneyMinor(part.brlReceivedMinor)}</span><span>Cambio: ${realMoneyMinor(part.brlChangeMinor)}</span></div>`:"";}
@@ -900,7 +939,7 @@ function connectShared(){
   try{localStorage.setItem(SHARED_TOKEN_KEY,match[1]);}catch{toast("Este navegador no permite recordar el enlace. Usá el enlace completo cada vez.",true);}
   window.location.hash=`clave=${match[1]}`;window.location.reload();
 }
-function resetAll(){if(!confirm("Esta acción borrará pedidos activos y el historial visible. Los movimientos de Caja y el diario de ventas se conservan. ¿Seguro?"))return;if(prompt("Para confirmar, escribí BORRAR en mayúsculas:")!=="BORRAR")return;if(!commitData(emptyData(),{replaceBlocked:true}))return;undoStacks.clear();selectedSlot=null;historyDetail=null;modal=null;go("home");toast("Datos borrados");}
+function resetAll(){if(!confirm("Esta acción borrará pedidos activos y el historial visible. Los movimientos de Caja y el diario de ventas se conservan. ¿Seguro?"))return;if(prompt("Para confirmar, escribí BORRAR en mayúsculas:")!=="BORRAR")return;const next=emptyData();next.tips=deepCopy(data.tips);if(!commitData(next,{replaceBlocked:true}))return;undoStacks.clear();selectedSlot=null;historyDetail=null;modal=null;go("home");toast("Pedidos e historial borrados · Propinas conservadas");}
 function restoreCatalog(){
   if(!canEdit())return;const next=deepCopy(data),newSettings={nombreLocal:CONFIG.nombreLocal,cantidadMesas:CONFIG.cantidadMesas,cantidadPedidosSinMesa:CONFIG.cantidadPedidosSinMesa};
   const valid=new Set(slotsFor(newSettings).map(s=>s.id));if(Object.keys(next.orders).some(slot=>!valid.has(slot))){toast("Primero mové o cerrá los pedidos en los lugares que vas a quitar.",true);return;}
@@ -918,6 +957,8 @@ function handleAction(element,event){
     case "view":go(element.dataset.view);break;
     case "staff-today":staffDate=dayKey(now());render();break;
     case "staff-export":void download(buildStaffCsv(),`kebba-personal-${staffDate}.csv`,"text/csv;charset=utf-8");break;
+    case "tips-today":tipDate=dayKey(now());render();break;
+    case "tips-export":void download(buildTipsCsv(),`kebba-propinas-${tipDate}.csv`,"text/csv;charset=utf-8");break;
     case "home-group":if(["m","p"].includes(element.dataset.group)){homeGroup=element.dataset.group;render();$(".home-slots").scrollTop=0;$(".home-groups button.active")?.focus({preventScroll:true});}break;
     case "kitchen-group":if(["drafts","pending","ready","notices"].includes(element.dataset.group)){kitchenGroup=element.dataset.group;render();$(".kitchen-panel").scrollTop=0;$(".k-overview button.active")?.focus({preventScroll:true});}break;
     case "order-pane":if(["menu","ticket"].includes(element.dataset.pane)){mobileOrderPane=element.dataset.pane;render();window.scrollTo?.(0,0);}break;
@@ -979,6 +1020,7 @@ function handleAction(element,event){
 document.addEventListener("click",event=>{const element=event.target.closest("[data-action]");if(element&&!element.disabled)handleAction(element,event);});
 document.addEventListener("focusin",event=>{if(["customer-name","line-note"].includes(event.target.id))inputSession=null;});
 document.addEventListener("input",event=>{
+  if(event.target.dataset.tipField!==undefined){const field=event.target.dataset.tipField;if(["amount","note"].includes(field)){tipDraft[field]=event.target.value;tipError="";$("#tip-error")?.classList.add("hidden");}return;}
   if(event.target.dataset.staffField!==undefined){const field=event.target.dataset.staffField;if(Object.hasOwn(staffDraft,field)&&field!=="method"){staffDraft[field]=event.target.value;staffError="";$("#staff-error")?.classList.add("hidden");const feedback=$("#staff-feedback");if(feedback)feedback.textContent=staffFeedback();}return;}
   if(event.target.dataset.cashReceived!==undefined){const part=paymentParts[Number(event.target.dataset.cashReceived)];if(part)part.cashReceived=event.target.value;updatePaymentFeedback();return;}
   if(event.target.dataset.brlCharged!==undefined){const part=paymentParts[Number(event.target.dataset.brlCharged)];if(part)part.brlCharged=event.target.value;updatePaymentFeedback();return;}
@@ -1004,16 +1046,18 @@ document.addEventListener("input",event=>{
   const status=$("#order-status");if(status){status.textContent=order.status;status.className="status "+statusClass(order.status);}const hint=$("#order-hint");if(hint)hint.textContent=orderStatusHint(order);
 });
 document.addEventListener("change",event=>{
+  if(event.target.dataset.tipField==="currency"){if(["UYU","BRL"].includes(event.target.value))tipDraft.currency=event.target.value;return;}
+  if(event.target.id==="tip-date"&&/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)){tipDate=event.target.value;render();return;}
   if(event.target.dataset.staffField==="method"){if(staffPaymentMethods.includes(event.target.value)){staffDraft.method=event.target.value;staffDraft.cashReceived="";staffDraft.brlCharged="";staffDraft.brlReceived="";staffError="";render();$("#staff-method")?.focus();}return;}
   if(event.target.id==="staff-date"&&/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)){staffDate=event.target.value;render();return;}
   if(event.target.dataset.paymentMethod!==undefined){selectPaymentMethod(Number(event.target.dataset.paymentMethod),event.target.value);return;}
   if(event.target.dataset.payerName!==undefined)return;
   if(event.target.id==="history-date"&&/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)){historyDate=event.target.value;historyDetail=null;render();}
 });
-document.addEventListener("submit",event=>{if(event.target.id==="staff-sale-form"){event.preventDefault();registerStaffSale();}});
+document.addEventListener("submit",event=>{if(event.target.id==="staff-sale-form"){event.preventDefault();registerStaffSale();}if(event.target.id==="tip-form"){event.preventDefault();registerTip();}});
 $("#import-file").addEventListener("change",async event=>{
   const file=event.target.files?.[0];event.target.value="";if(!file)return;
-  try{const imported=validateImport(JSON.parse(await file.text()));if(!confirm(`Este respaldo contiene ${Object.keys(imported.orders).length} pedidos activos y ${imported.history.length} ventas.\n\n¿Recuperarlo? Reemplazará los datos actuales${sharedMode?" para todos los dispositivos":""}. El registro de Caja no se reemplaza. Guardá un respaldo actual antes de continuar si los necesitás.`))return;importData(imported);}catch{toast("No se pudo recuperar: el archivo no es un respaldo válido de KEBBA. Los datos actuales siguen intactos.",true);}
+  try{const imported=validateImport(JSON.parse(await file.text()));if(!confirm(`Este respaldo contiene ${Object.keys(imported.orders).length} pedidos activos y ${imported.history.length} ventas y ${imported.tips.length} propinas.\n\n¿Recuperarlo? Reemplazará los datos actuales${sharedMode?" para todos los dispositivos":""}. El registro de Caja no se reemplaza. Guardá un respaldo actual antes de continuar si los necesitás.`))return;importData(imported);}catch{toast("No se pudo recuperar: el archivo no es un respaldo válido de KEBBA. Los datos actuales siguen intactos.",true);}
 });
 document.addEventListener("keydown",event=>{
   if(event.isComposing)return;

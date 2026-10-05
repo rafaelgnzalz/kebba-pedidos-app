@@ -1,4 +1,4 @@
-const CACHE = "kebba-shell-v16";
+const CACHE = "kebba-shell-v17";
 const SHELL = ["./", "./index.html", "./cash-book.js", "./cash-book-ui.js", "./cash.js", "./manifest.webmanifest", "./icons/kebba.svg", "./icons/kebba-192.png", "./icons/kebba-512.png"];
 
 self.addEventListener("install", event => {

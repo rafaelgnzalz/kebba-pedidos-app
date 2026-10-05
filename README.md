@@ -28,6 +28,10 @@ En **Ventas al personal**, escribí el **valor al coste en UYU** y el **detalle 
 
 No ocupa mesas ni pedidos ni genera comandas de Cocina. El cobro queda identificado como **Personal · Al coste** en el historial y se incluye en Caja, en la sincronización y en los respaldos habituales. La pestaña permite revisar una fecha y descargar sus ventas en CSV. No calcula costes ni genera descuentos de sueldo.
 
+### Propinas
+
+En **Propinas**, registrá el importe, la moneda (UYU o BRL) y un detalle manual. Admite hasta dos decimales y muestra los registros y totales por moneda de cada fecha; también permite descargar un CSV. El dinero se guarda aparte de Caja: no se suma a ventas ni al efectivo esperado. Las propinas se sincronizan entre dispositivos conectados y se incluyen en el respaldo de Configuración y en **Propinas → Guardar respaldo**. El respaldo de Caja no las incluye. Borrar pedidos e historial conserva las propinas; recuperar un respaldo completo reemplaza también sus registros.
+
 - En cada mesa o pedido podés escribir un nombre o una descripción para reconocer a las personas.
 - En **Shawarmas** y **Kebabs**, cada variedad tiene su botón normal y su botón **Combo** con el precio final. El combo incluye papas fritas y Coca-Cola; Cocina ve ese detalle en la comanda.
 - Cocina separa las comandas **por enviar**, **en preparación** y **listas para cobrar**. Las correcciones aparecen resumidas; el historial de ediciones queda plegado dentro de cada comanda.

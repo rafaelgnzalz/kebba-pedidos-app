@@ -557,3 +557,84 @@ test('la sincronización no reconstruye el formulario mientras se escribe el det
   await run('refreshShared()');
   assert.equal(run('reads'),0);
 });
+
+test('una propina manual conserva centésimos y detalle, sin crear una venta ni alterar pedidos',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");sendKitchen();globalThis.before=JSON.stringify({orders:data.orders,history:data.history,number:data.nextNumber,notices:data.kitchenNotices});go("tips")');
+  app.events.input({target:{dataset:{tipField:'amount'},value:'50,50'}});
+  app.events.input({target:{dataset:{tipField:'note'},value:'Propinas del turno'}});
+  let prevented=false;
+  app.events.submit({target:{id:'tip-form'},preventDefault(){prevented=true}});
+  assert.equal(prevented,true);
+  assert.equal(run('data.tips[0].amountMinor'),5050);
+  assert.equal(run('data.tips[0].note'),'Propinas del turno');
+  assert.equal(run('JSON.stringify({orders:data.orders,history:data.history,number:data.nextNumber,notices:data.kitchenNotices})'),run('before'));
+  assert.match(run('renderTips()'),/50,50/);
+  assert.equal(run('registerTip()'),false);
+  assert.equal(run('data.tips.length'),1);
+  const reopened=boot(app.storage);
+  assert.equal(reopened.run('data.tips[0].amountMinor'),5050);
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+  assert.doesNotMatch(run('buildDayCsv()'),/Propinas del turno/);
+});
+
+test('propinas separa monedas, filtra fechas y exporta decimales y detalle seguro',()=>{
+  const app=boot(),run=app.run;
+  run('tipDraft={amount:"50,50",currency:"UYU",note:"=Propina"};registerTip();tipDraft={amount:"10.25",currency:"BRL",note:"<img src=x>"};registerTip()');
+  assert.match(run('renderTips()'),/\$ 50,50/);
+  assert.match(run('renderTips()'),/R\$ 10,25/);
+  assert.match(run('renderTips()'),/&lt;img src=x&gt;/);
+  assert.equal(run('data.history.length'),0);
+  assert.match(run('buildTipsCsv()'),/'=Propina/);
+  assert.match(run('buildTipsCsv()'),/"BRL";"10,25"/);
+  run('tipDate="2020-01-01"');assert.equal(run('tipsForDate().length'),0);
+  assert.doesNotMatch(run('buildTipsCsv()'),/Propina/);
+});
+
+test('propinas rechaza importes, monedas y detalles inválidos y recupera respaldos antiguos',()=>{
+  for(const draft of [{amount:'0',currency:'UYU',note:'Turno'}, {amount:'-1',currency:'UYU',note:'Turno'}, {amount:'50,555',currency:'UYU',note:'Turno'}, {amount:'NaN',currency:'UYU',note:'Turno'}, {amount:'50',currency:'USD',note:'Turno'}, {amount:'50',currency:'UYU',note:' '}]){
+    const app=boot();app.run(`tipDraft=${JSON.stringify(draft)}`);
+    assert.equal(app.run('registerTip()'),false);
+    assert.equal(app.run('data.tips.length'),0);assert.equal(app.writes,0);
+  }
+  const app=boot(),run=app.run;
+  assert.equal(run('const old=emptyData();delete old.tips;validateImport(old).tips.length'),0);
+  run('tipDraft={amount:"50",currency:"UYU",note:"Turno"};registerTip()');
+  assert.throws(()=>run('{const bad=deepCopy(data);bad.tips.push(deepCopy(bad.tips[0]));validateImport(bad)}'),/repetidas/);
+  assert.throws(()=>run('{const bad=deepCopy(data);bad.tips[0].amountMinor=1.5;validateImport(bad)}'),/inválida/);
+});
+
+test('un fallo de guardado de propina conserva el formulario para reintentar una sola vez',()=>{
+  const app=boot(),run=app.run;
+  run('tipDraft={amount:"50,50",currency:"UYU",note:"Turno"}');app.failWrites=true;
+  assert.equal(run('registerTip()'),false);assert.equal(run('data.tips.length'),0);
+  assert.equal(run('tipDraft.amount'),'50,50');app.failWrites=false;
+  assert.equal(run('registerTip()'),true);assert.equal(run('data.tips.length'),1);
+  assert.equal(run('tipDraft.note'),'');
+});
+
+test('la sincronización conserva propinas simultáneas y detecta correcciones incompatibles',()=>{
+  const app=boot(),run=app.run;
+  run('globalThis.base=emptyData();globalThis.local=deepCopy(base);globalThis.remote=deepCopy(base);local.tips.push({id:"a",createdAt:now(),amountMinor:5050,currency:"UYU",note:"Turno uno"});remote.tips.push({id:"b",createdAt:now(),amountMinor:1000,currency:"BRL",note:"Turno dos"});globalThis.merged=mergeSharedState(base,local,remote)');
+  assert.equal(run('merged.tips.length'),2);
+  assert.equal(run('merged.tips.reduce((n,t)=>n+t.amountMinor,0)'),6050);
+  run('base=deepCopy(merged);local=deepCopy(base);remote=deepCopy(base);local.tips[0].note="Corrección local";remote.tips[0].note="Corrección remota"');
+  assert.equal(run('mergeSharedState(base,local,remote)'),null);
+});
+
+test('borrar pedidos conserva propinas y recuperar un respaldo restaura sus registros',()=>{
+  const app=boot(),run=app.run;
+  run('tipDraft={amount:"50",currency:"UYU",note:"Turno"};registerTip();globalThis.backup=validateImport(deepCopy(data));openSlot("m1");addProduct("papas");resetAll()');
+  assert.equal(run('data.tips.length'),1);assert.equal(run('Object.keys(data.orders).length'),0);
+  run('importData(backup)');assert.equal(run('data.tips[0].note'),'Turno');
+});
+
+test('el guardado compartido envía propinas y conserva el foco mientras se escribe',async()=>{
+  const app=boot(),run=app.run;
+  run('tipDraft={amount:"50",currency:"UYU",note:"Turno"};registerTip();sharedReady=true;sharedVersion=1;sharedBase=emptyData();sharedPending=deepCopy(data);globalThis.sent=null;sharedRpc=async(name,body)=>{sent=body.next_state;return {ok:true,version:2}}');
+  await run('flushShared()');
+  assert.equal(run('sent.tips[0].amountMinor'),5000);
+  assert.equal(run('sharedBase.tips[0].note'),'Turno');
+  run('document.activeElement={dataset:{tipField:"note"}};globalThis.reads=0;sharedRpc=async()=>{reads++;return {version:3,state:emptyData()}}');
+  await run('refreshShared()');assert.equal(run('reads'),0);
+});
