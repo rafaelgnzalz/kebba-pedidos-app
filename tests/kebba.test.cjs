@@ -459,3 +459,101 @@ test('una conexión colgada termina para permitir reintentar',async()=>{
   await assert.rejects(run('requestTask'),/Timeout/);
   assert.equal(run('timeoutCleared'),true);
 });
+
+test('la venta manual al personal conserva importe, detalle y cobro sin ocupar mesas ni Cocina',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");sendKitchen();globalThis.beforeOrders=JSON.stringify(data.orders);go("staff")');
+  app.events.input({target:{dataset:{staffField:'amount'},value:'150'}});
+  app.events.input({target:{dataset:{staffField:'detail'},value:'Un kebab y una bebida'}});
+  app.events.input({target:{dataset:{staffField:'name'},value:'Ana'}});
+  let prevented=false;
+  app.events.submit({target:{id:'staff-sale-form'},preventDefault(){prevented=true}});
+  assert.equal(prevented,true);
+  assert.equal(run('JSON.stringify(data.orders)'),run('beforeOrders'));
+  assert.equal(run('data.kitchenNotices.length'),0);
+  assert.equal(run('data.history.length'),1);
+  assert.equal(run('data.history[0].saleType'),'staff');
+  assert.equal(run('data.history[0].total'),150);
+  assert.equal(run('data.history[0].lines[0].note'),'Un kebab y una bebida');
+  assert.equal(run('data.history[0].name'),'Ana');
+  assert.equal(run('data.history[0].payments[0].cashReceived'),150);
+  assert.equal(run('data.history[0].payments[0].cashChange'),0);
+  assert.match(run('renderStaff()'),/Un kebab y una bebida/);
+  assert.match(run('renderHistory()'),/Personal · Al coste/);
+  assert.equal(run('registerStaffSale()'),false);
+  assert.equal(run('data.history.length'),1);
+  const reopened=boot(app.storage);
+  assert.equal(reopened.run('data.history[0].lines[0].note'),'Un kebab y una bebida');
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+  assert.match(run('buildDayCsv()'),/Un kebab y una bebida/);
+});
+
+test('el cobro al personal calcula cambio UYU, conversión Pix y cobro acordado BRL',()=>{
+  const app=boot(),run=app.run;
+  run('staffDraft={...emptyStaffDraft(),amount:"150",detail:"Cena",cashReceived:"200"};registerStaffSale()');
+  assert.equal(run('data.history[0].cashChange'),50);
+  run('staffDraft={...emptyStaffDraft(),amount:"83",detail:"Bebida",method:"Pix"};registerStaffSale()');
+  assert.equal(run('data.history[1].payments[0].pixBrl'),10);
+  run('staffDraft={...emptyStaffDraft(),amount:"100",detail:"Almuerzo",method:"Efectivo BRL",brlCharged:"12,50",brlReceived:"20"};registerStaffSale()');
+  assert.equal(run('data.history[2].brlChargedMinor'),1250);
+  assert.equal(run('data.history[2].brlChangeMinor'),750);
+  assert.equal(run('data.history[2].total'),100);
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+});
+
+test('las ventas al personal rechazan datos incompletos, importes inválidos y efectivo insuficiente',()=>{
+  for(const draft of [
+    {amount:'0',detail:'Bebida'}, {amount:'-1',detail:'Bebida'}, {amount:'12,50',detail:'Bebida'},
+    {amount:'NaN',detail:'Bebida'}, {amount:'100',detail:' '}, {amount:'100',detail:'Cena',method:'Inválido'},
+    {amount:'100',detail:'Cena',cashReceived:'50'}, {amount:'100',detail:'Cena',method:'Efectivo BRL'},
+    {amount:'100',detail:'Cena',method:'Efectivo BRL',brlCharged:'15',brlReceived:'10'}
+  ]){
+    const app=boot(),run=app.run;
+    run(`staffDraft={...emptyStaffDraft(),...${JSON.stringify(draft)}}`);
+    assert.equal(run('registerStaffSale()'),false);
+    assert.equal(run('data.history.length'),0);
+    assert.equal(run('data.nextNumber'),1);
+    assert.equal(app.writes,0);
+    assert.ok(run('staffError'));
+  }
+});
+
+test('si falla el guardado manual conserva los datos y permite un único reintento',()=>{
+  const app=boot(),run=app.run;
+  run('staffDraft={...emptyStaffDraft(),amount:"150",detail:"Cena",name:"Ana"}');
+  app.failWrites=true;
+  assert.equal(run('registerStaffSale()'),false);
+  assert.equal(run('data.history.length'),0);
+  assert.equal(run('data.nextNumber'),1);
+  assert.equal(run('staffDraft.detail'),'Cena');
+  app.failWrites=false;
+  assert.equal(run('registerStaffSale()'),true);
+  assert.equal(run('data.history.length'),1);
+  assert.equal(run('staffDraft.amount'),'');
+});
+
+test('la pestaña personal filtra por fecha, escapa detalles y exporta solamente sus ventas',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");startClose();paymentParts[0].method="Pix";confirmClose();staffDraft={...emptyStaffDraft(),amount:"50",detail:"<img src=x onerror=alert(1)>",name:"=Ana"};registerStaffSale()');
+  assert.match(run('renderStaff()'),/&lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.equal(run('staffForDate().length'),1);
+  assert.match(run('buildStaffCsv()'),/'=Ana/);
+  assert.doesNotMatch(run('buildStaffCsv()'),/Papas fritas/);
+  run('staffDate="2020-01-01"');
+  assert.equal(run('staffForDate().length'),0);
+});
+
+test('una venta manual se combina con cambios remotos de otra comanda sin perder el detalle',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");globalThis.base=deepCopy(data);staffDraft={...emptyStaffDraft(),amount:"150",detail:"Cena de Ana"};registerStaffSale();globalThis.remote=deepCopy(base);remote.orders.m1.name="Mesa azul";globalThis.merged=mergeSharedState(base,data,remote)');
+  assert.equal(run('merged.orders.m1.name'),'Mesa azul');
+  assert.equal(run('merged.history[0].saleType'),'staff');
+  assert.equal(run('merged.history[0].lines[0].note'),'Cena de Ana');
+});
+
+test('la sincronización no reconstruye el formulario mientras se escribe el detalle manual',async()=>{
+  const app=boot(),run=app.run;
+  run('document.activeElement={dataset:{staffField:"detail"}};sharedReady=true;globalThis.reads=0;sharedRpc=async()=>{reads++;return {version:1,state:emptyData()}}');
+  await run('refreshShared()');
+  assert.equal(run('reads'),0);
+});

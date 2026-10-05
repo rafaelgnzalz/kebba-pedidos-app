@@ -75,6 +75,13 @@ button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{co
   @media(max-width:759px){.payment-part-head{flex-wrap:wrap}.payment-part-head>strong{flex:1 0 110px;min-width:110px}.payment-part-head>button{flex:0 0 auto;font-size:.78rem;padding:6px 8px;min-height:40px}.payment-modal{height:calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));padding:10px;gap:6px}.payment-heading h2{font-size:1rem}.payment-heading strong{font-size:1.3rem}.payment-person-tabs button{flex-basis:115px;min-height:66px}.payment-modal .payment-body{padding:0 1px 5px;min-height:65px}.allocation-grid{grid-template-columns:1fr;gap:7px}.payment-body.split-pay{display:block}.payment-review{margin-top:12px}.payment-method-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}.payment-footer .modal-actions{flex-wrap:wrap}.payment-footer [data-action="close-confirm"]{flex-basis:100%}.payment-steps button{font-size:.79rem}.payment-tools button{min-height:42px;padding:5px 8px;font-size:.77rem}}
   @media(max-height:600px){.payment-modal{gap:4px;padding:8px}.payment-modal .payment-tools button{min-height:36px}.payment-heading h2{font-size:.95rem}.payment-heading small{font-size:.68rem}.payment-person-tabs button{min-height:54px;padding:5px 8px}.payment-person-tabs small{font-size:.65rem}.payment-person-tabs strong{margin:1px 0}.payment-steps button{min-height:38px;padding:5px}.payment-footer .order-hint{display:none}.payment-footer .modal-actions button{min-height:42px}.payment-allocation-message{margin-top:4px}}
 </style>
+<style>
+.staff-layout{display:grid;grid-template-columns:minmax(280px,420px) minmax(0,1fr);gap:18px;align-items:start}.staff-form{display:grid;gap:14px}.staff-form h2{margin:0}.staff-form label{display:grid;gap:6px}.staff-form input,.staff-form textarea,.staff-form select{width:100%;min-width:0}.staff-form textarea{min-height:100px}.staff-form .primary{padding:14px}.staff-change summary{cursor:pointer;color:var(--muted);padding:6px 0}.staff-change label{margin-top:10px}.staff-feedback{color:#ffd09d;font-weight:800;line-height:1.4;margin:0}.staff-sales{min-width:0}.staff-sales .headline{margin:0 0 12px}.staff-sales h2{margin:0}.staff-sales table{min-width:580px}.staff-description{white-space:pre-wrap;overflow-wrap:anywhere;max-width:350px}.staff-tag{color:#ffd09d;font-size:.8rem;font-weight:800}.staff-error{color:#ff9b8f;margin:0}#main.view-staff{overflow:auto;overscroll-behavior:contain}.view-staff .stat{min-width:140px}.staff-form .note{margin:0}.staff-history-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+@media(max-width:950px){.staff-layout{grid-template-columns:1fr}.staff-form{max-width:600px}.staff-description{max-width:250px}}@media(max-width:650px){.staff-layout{gap:16px}.staff-sales .headline{align-items:start}.staff-sales .headline label{display:grid;gap:6px;width:100%}.staff-sales input{width:100%}.view-staff .stats{gap:8px}.view-staff .stat{min-width:0;flex:1;padding:12px}.staff-form{padding:14px}}
+.staff-field{display:grid;gap:6px}.staff-form label[for="staff-method"]{display:block}
+@media(min-width:951px){.staff-form{gap:10px;padding:14px}.staff-form label{gap:4px;line-height:1.3}.staff-form textarea{min-height:74px}.staff-form input,.staff-form select{padding:9px}.staff-form .note{font-size:.78rem;line-height:1.3}.staff-form .primary{padding:12px}.staff-feedback:empty{display:none}}
+@media(max-width:759px){.staff-sales table{min-width:0}.staff-sales td{max-width:none}.staff-sales td:before{content:attr(data-label)}.staff-sales td>span{min-width:0;text-align:right;overflow-wrap:anywhere}.view-staff .stat:first-child{grid-column:auto}.staff-sales .stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -85,6 +92,7 @@ button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{co
       <button data-action="view" data-view="home" id="nav-home">Mesas / Pedidos <span class="subtle">F1</span></button>
       <button data-action="view" data-view="kitchen" id="nav-kitchen">Cocina <span class="subtle">F2</span></button>
       <button data-action="view" data-view="history" id="nav-history">Historial</button>
+      <button data-action="view" data-view="staff" id="nav-staff">Ventas al personal</button>
       <button data-action="view" data-view="cash" id="nav-cash">Caja</button>
       <button data-action="view" data-view="settings" id="nav-settings">Configuración</button>
       <button data-action="fullscreen" class="small-button" title="Pantalla completa (F11)">⛶ Pantalla completa</button>
@@ -278,6 +286,7 @@ function validateImport(raw){
   }
   for(const order of raw.history){
     if(order.status!=="CERRADO"||!timestamp(order.closedAt)||!text(order.payment))fail("El historial del respaldo es inválido.");
+    if(order.saleType!=null&&order.saleType!=="staff")fail("El tipo de venta del respaldo es inválido.");
     if(order.cashReceived!=null||order.cashChange!=null){
       if(order.payment!=="Efectivo"||!integer(order.cashReceived)||!integer(order.cashChange)||order.cashReceived<order.total||order.cashChange!==order.cashReceived-order.total)fail("El efectivo del respaldo es inválido.");
     }
@@ -319,6 +328,8 @@ function loadData(){
 let data=loadData(),view="home",homeGroup="m",kitchenGroup="pending",selectedSlot=null,selectedLine=null,mobileOrderPane="menu",selectedMenuSection="Comida",selectedMenuCategory="Shawarmas",modal=null,paymentParts=[],selectedPaymentPart=0,showAssignedPaymentLines=false,historyDetail=null,historyDate=dayKey(now()),toastTimer=null;
 let focusBeforeModal=null,inputSession=null,lastActivation={key:"",at:0},lastOpenNumber=null;
 let paymentStep="assign",paymentUndo=[];
+const emptyStaffDraft=()=>({name:"",detail:"",amount:"",method:"Efectivo",cashReceived:"",brlCharged:"",brlReceived:""});
+let staffDraft=emptyStaffDraft(),staffDate=dayKey(now()),staffError="";
 const undoStacks=new Map();
 const settings=()=>data.settings;
 const slots=()=>slotsFor(settings());
@@ -397,7 +408,7 @@ async function rebaseShared(){
   storageWarning="";readBlocked=false;render();return true;
 }
 async function refreshShared(){
-  const busy=()=>sharedWriting||sharedPending||storageConflict||modal==="payment"||["customer-name","line-note","shared-link-input"].includes(document.activeElement?.id);
+  const busy=()=>sharedWriting||sharedPending||storageConflict||modal==="payment"||document.activeElement?.dataset?.staffField!==undefined||["customer-name","line-note","shared-link-input"].includes(document.activeElement?.id);
   if(sharedReading||busy())return;
   const readVersion=sharedVersion,readState=data;sharedReading=true;
   try{
@@ -477,7 +488,7 @@ function openSlot(id){
   homeGroup=id[0];selectedSlot=id;selectedLine=null;mobileOrderPane=current().lines.length?"ticket":"menu";lastOpenNumber=current().number;view="order";modal=null;render();window.scrollTo?.(0,0);
 }
 function releaseEmptyDraft(){const order=current();if(order&&!order.sentAt&&!order.lines.length&&!order.name.trim()){const next=deepCopy(data);delete next.orders[selectedSlot];return commitData(next);}return true;}
-function go(target){if(!["home","kitchen","history","cash","settings"].includes(target))return;releaseEmptyDraft();modal=null;window.KebbaCash?.closeDialog();selectedSlot=null;selectedLine=null;view=target;if(target==="history")historyDate=dayKey(now());render();if(target==="cash")void window.KebbaCash?.refresh();window.scrollTo?.(0,0);}
+function go(target){if(!["home","kitchen","history","staff","cash","settings"].includes(target))return;releaseEmptyDraft();modal=null;window.KebbaCash?.closeDialog();selectedSlot=null;selectedLine=null;view=target;if(target==="history")historyDate=dayKey(now());if(target==="staff")staffDate=dayKey(now());render();if(target==="cash")void window.KebbaCash?.refresh();window.scrollTo?.(0,0);}
 function undo(){
   const order=current();if(!order||!canEdit())return;const previous=stackFor(order).at(-1);if(!previous)return;
   if(!mutateOrder(item=>{item.lines=deepCopy(previous.lines);item.name=previous.name;},{remember:false,renderNow:false}))return;
@@ -650,10 +661,10 @@ function render(){
   const focusedAction=main.contains?.(active)&&active?.dataset?.action?{...active.dataset}:null;
   const scrollable=[".ticket-list",".menu-category",".home-slots",".kitchen-panel",".table-wrap",".history-detail"],scrolls=scrollable.map(selector=>$(selector)?.scrollTop||0),menuScroll=$(".menu-tabs")?.scrollLeft||0;
   main.className="view-"+view;
-  main.innerHTML=view==="home"?renderHome():view==="order"?renderOrder():view==="kitchen"?renderKitchen():view==="history"?renderHistory():view==="cash"?(window.KebbaCash?.render()||'<div class="empty">Cargando Caja…</div>'):renderSettings();
+  main.innerHTML=view==="home"?renderHome():view==="order"?renderOrder():view==="kitchen"?renderKitchen():view==="history"?renderHistory():view==="staff"?renderStaff():view==="cash"?(window.KebbaCash?.render()||'<div class="empty">Cargando Caja…</div>'):renderSettings();
   scrollable.forEach((selector,index)=>{const panel=$(selector);if(panel)panel.scrollTop=scrolls[index];});
   const menuTabs=$(".menu-tabs");if(menuTabs)menuTabs.scrollLeft=menuScroll;
-  for(const name of ["home","kitchen","history","cash","settings"]){const button=$("#nav-"+name);button.classList.toggle("active",view===name);if(view===name)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");}
+  for(const name of ["home","kitchen","history","staff","cash","settings"]){const button=$("#nav-"+name);button.classList.toggle("active",view===name);if(view===name)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");}
   renderStorage();renderModal();window.KebbaCash?.syncDialog();
   if(!modal&&previousView===main.className&&focusedAction){
     const button=[...main.querySelectorAll("[data-action]")].find(element=>!element.disabled&&Object.entries(focusedAction).every(([key,value])=>element.dataset[key]===value));
@@ -731,6 +742,62 @@ function renderKitchen(){
   return `<div class="headline"><h1>COCINA</h1>${last?`<button class="small-button" data-action="open" data-slot="${last.slot}">Volver a ${numberLabel(last.number)} · ${safe(slotLabel(last.slot))}</button>`:""}</div>${overview}<div class="kitchen-panel">${panels[kitchenGroup]||inKitchen}</div>`;
 }
 function historyForDate(){return data.history.filter(order=>dayKey(order.closedAt)===historyDate).sort((a,b)=>b.closedAt-a.closedAt);}
+// Las ventas manuales al personal usan el mismo historial y diario de cobros.
+// No ocupan lugares ni generan comandas de Cocina.
+const staffPaymentMethods=["Efectivo","Efectivo BRL","PREX","Pix","Tarjeta","Transferencia","Otros"];
+function staffForDate(){return data.history.filter(order=>order.saleType==="staff"&&dayKey(order.closedAt)===staffDate).sort((a,b)=>b.closedAt-a.closedAt);}
+function staffFeedback(){
+  const amount=cashAmount(staffDraft.amount);if(!amount)return "";
+  if(staffDraft.method==="Pix")return `${brlMoney(amount)} por Pix · 1 real = $8,30`;
+  if(staffDraft.method==="Efectivo"){
+    const received=staffDraft.cashReceived.trim()?cashAmount(staffDraft.cashReceived):amount;
+    if(received===null)return "Ingresá el efectivo recibido en pesos enteros.";
+    return received<amount?`Faltan ${money(amount-received)} para completar el cobro.`:`Cambio: ${money(received-amount)}`;
+  }
+  if(staffDraft.method==="Efectivo BRL"){
+    if(!staffDraft.brlCharged.trim())return "Ingresá el importe acordado en reales.";
+    const charged=realMinor(staffDraft.brlCharged),received=staffDraft.brlReceived.trim()?realMinor(staffDraft.brlReceived):charged;
+    if(charged===null||received===null||charged<1)return "Revisá los importes en reales.";
+    return received<charged?`Faltan ${realMoneyMinor(charged-received)} para completar el cobro.`:`Cambio: ${realMoneyMinor(received-charged)}`;
+  }
+  return "";
+}
+function renderStaff(){
+  const rows=staffForDate(),total=rows.reduce((sum,order)=>sum+order.total,0);
+  const cashFields=staffDraft.method==="Efectivo"?`<details class="staff-change" ${staffDraft.cashReceived?"open":""}><summary>Calcular cambio (opcional)</summary><label for="staff-cash-received">Efectivo recibido (UYU)<input id="staff-cash-received" data-staff-field="cashReceived" inputmode="numeric" value="${safe(staffDraft.cashReceived)}" placeholder="Importe justo si lo dejás vacío"></label></details>`:staffDraft.method==="Efectivo BRL"?`<label for="staff-brl-charged">Importe a cobrar (BRL)<input id="staff-brl-charged" data-staff-field="brlCharged" inputmode="decimal" value="${safe(staffDraft.brlCharged)}" placeholder="Ej.: 10,50" required></label><label for="staff-brl-received">Efectivo recibido (BRL, opcional)<input id="staff-brl-received" data-staff-field="brlReceived" inputmode="decimal" value="${safe(staffDraft.brlReceived)}" placeholder="Importe justo si lo dejás vacío"></label>`:"";
+  return `<div class="headline"><h1>Ventas al personal</h1><span class="staff-tag">AL COSTE · COBRO EN EL MOMENTO</span></div><div class="staff-layout"><form id="staff-sale-form" class="settings-panel staff-form"><h2>Registrar una venta</h2><label for="staff-amount">Valor al coste (UYU)<input id="staff-amount" data-staff-field="amount" inputmode="numeric" value="${safe(staffDraft.amount)}" placeholder="Ej.: 150" required></label><label for="staff-detail">Detalle manual<textarea id="staff-detail" data-staff-field="detail" maxlength="500" rows="3" placeholder="Ej.: un kebab de pollo y una bebida" required>${safe(staffDraft.detail)}</textarea></label><label for="staff-name">Nombre de la persona (opcional)<input id="staff-name" data-staff-field="name" maxlength="50" value="${safe(staffDraft.name)}" autocomplete="off" placeholder="Ej.: Ana"></label><div class="staff-field"><label for="staff-method">Medio de pago</label><select id="staff-method" data-staff-field="method">${staffPaymentMethods.map(method=>`<option value="${safe(method)}" ${staffDraft.method===method?"selected":""}>${method==="Efectivo"?"Efectivo UYU":safe(method)}</option>`).join("")}</select></div>${cashFields}<p class="staff-feedback" id="staff-feedback" aria-live="polite">${safe(staffFeedback())}</p><p id="staff-error" class="staff-error ${staffError?"":"hidden"}" role="alert">${safe(staffError)}</p><p class="note">Registrá después de recibir el pago. El importe se suma a los cobros de Caja.</p><button type="submit" class="primary">REGISTRAR COBRO</button></form><section class="staff-sales" aria-label="Ventas registradas al personal"><div class="headline"><h2>Ventas registradas</h2><label for="staff-date">Fecha <input id="staff-date" type="date" value="${staffDate}"></label></div><div class="stats"><div class="stat">TOTAL AL COSTE<strong>${money(total)}</strong></div><div class="stat">VENTAS<strong>${rows.length}</strong></div></div><div class="staff-history-tools"><button class="small-button" data-action="staff-today">Ver hoy</button><button class="small-button" data-action="staff-export" ${rows.length?"":"disabled"}>Descargar CSV</button></div>${rows.length?`<div class="table-wrap"><table><thead><tr><th>Nº / HORA</th><th>PERSONA</th><th>DETALLE</th><th>VALOR AL COSTE</th><th>PAGO</th></tr></thead><tbody>${rows.map(order=>`<tr><td data-label="Venta"><span>${numberLabel(order.number)}<br><small class="subtle">${fmtTime(order.closedAt)}</small></span></td><td data-label="Persona"><span>${safe(order.name||"—")}</span></td><td data-label="Detalle" class="staff-description"><span>${safe(order.lines[0]?.note||"")}</span></td><td data-label="Valor al coste"><span>${money(order.total)}</span></td><td data-label="Pago"><span>${safe(order.payment==="Efectivo"?"Efectivo UYU":order.payment)}</span></td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">Todavía no hay ventas al personal en esta fecha.</div>'}</section></div>`;
+}
+function registerStaffSale(){
+  if(!canEdit())return false;
+  const reject=message=>{staffError=message;render();return false;};
+  const amount=cashAmount(staffDraft.amount),detail=staffDraft.detail.trim(),name=staffDraft.name.trim(),method=staffDraft.method;
+  if(amount===null||amount<1)return reject("Ingresá un valor al coste mayor que cero, en pesos enteros.");
+  if(!detail||detail.length>500)return reject("Escribí el detalle de la venta (hasta 500 caracteres).");
+  if(name.length>50)return reject("El nombre admite hasta 50 caracteres.");
+  if(!staffPaymentMethods.includes(method))return reject("Elegí un medio de pago válido.");
+  const at=now(),lineId=uid(),part={payer:name,method,amount,items:[{lineId,qty:1}]};
+  let single={};
+  if(method==="Efectivo"){
+    const received=staffDraft.cashReceived.trim()?cashAmount(staffDraft.cashReceived):amount;
+    if(received===null||received<amount)return reject("El efectivo recibido debe cubrir el valor de la venta.");
+    single={cashReceived:received,cashChange:received-amount};Object.assign(part,single);
+  }
+  if(method==="Efectivo BRL"){
+    const charged=realMinor(staffDraft.brlCharged),received=staffDraft.brlReceived.trim()?realMinor(staffDraft.brlReceived):charged;
+    if(charged===null||charged<1||received===null||received<charged)return reject("Indicá el importe a cobrar en reales y revisá el efectivo recibido.");
+    single={brlChargedMinor:charged,brlReceivedMinor:received,brlChangeMinor:received-charged};Object.assign(part,single);
+  }
+  if(method==="Pix"){part.pixRate=PIX_RATE;part.pixBrl=brlAmount(amount);}
+  const next=deepCopy(data),number=next.nextNumber++;
+  next.history.push({number,slot:"p0",label:"Personal · Al coste",saleType:"staff",name,status:"CERRADO",openedAt:at,sentAt:null,readyAt:null,closedAt:at,payment:method,payments:[part],...single,total:amount,lines:[{id:lineId,productId:"staff-manual",name:"Venta al personal",unitPrice:amount,qty:1,mods:[],note:detail,permiteCombo:false}],sentSnapshot:[],kitchenEvents:[],kitchenAck:0,preparedSnapshot:[],pendingSinceAt:null,movedFrom:null});
+  if(!commitData(next))return false;
+  staffDraft=emptyStaffDraft();staffError="";staffDate=dayKey(at);render();toast(`Venta al personal registrada · ${money(amount)}`);return true;
+}
+function buildStaffCsv(){
+  const headers=["Número","Fecha","Hora","Persona","Detalle","Valor al coste UYU","Medio de pago","Detalle del cobro"];
+  const rows=staffForDate().map(order=>[numberLabel(order.number),fmtDate(order.closedAt),fmtTime(order.closedAt),order.name,order.lines[0]?.note||"",order.total,order.payment,paymentExport(order)]);
+  return "\ufeff"+[headers,...rows].map(row=>row.map(csvValue).join(",")).join("\r\n");
+}
 function historyPayments(order){return order.payments||[{payer:"",method:order.payment,amount:order.total,items:order.lines.map(line=>({lineId:line.id,qty:line.qty})),...(order.cashReceived==null?{}:{cashReceived:order.cashReceived,cashChange:order.cashChange}),...(order.brlChargedMinor==null?{}:{brlChargedMinor:order.brlChargedMinor,brlReceivedMinor:order.brlReceivedMinor,brlChangeMinor:order.brlChangeMinor})}];}
 function historyPaymentLabel(order){return order.payments?.length>1?`Dividido · ${order.payments.length} personas`:order.payment;}
 function renderBrlHistory(part){return part.brlChargedMinor!=null?`<div class="cash-summary"><span>Cobrado: ${realMoneyMinor(part.brlChargedMinor)}</span><span>Recibido: ${realMoneyMinor(part.brlReceivedMinor)}</span><span>Cambio: ${realMoneyMinor(part.brlChangeMinor)}</span></div>`:"";}
@@ -849,6 +916,8 @@ function handleAction(element,event){
   lastActivation={key,at:time};
   switch(action){
     case "view":go(element.dataset.view);break;
+    case "staff-today":staffDate=dayKey(now());render();break;
+    case "staff-export":void download(buildStaffCsv(),`kebba-personal-${staffDate}.csv`,"text/csv;charset=utf-8");break;
     case "home-group":if(["m","p"].includes(element.dataset.group)){homeGroup=element.dataset.group;render();$(".home-slots").scrollTop=0;$(".home-groups button.active")?.focus({preventScroll:true});}break;
     case "kitchen-group":if(["drafts","pending","ready","notices"].includes(element.dataset.group)){kitchenGroup=element.dataset.group;render();$(".kitchen-panel").scrollTop=0;$(".k-overview button.active")?.focus({preventScroll:true});}break;
     case "order-pane":if(["menu","ticket"].includes(element.dataset.pane)){mobileOrderPane=element.dataset.pane;render();window.scrollTo?.(0,0);}break;
@@ -910,6 +979,7 @@ function handleAction(element,event){
 document.addEventListener("click",event=>{const element=event.target.closest("[data-action]");if(element&&!element.disabled)handleAction(element,event);});
 document.addEventListener("focusin",event=>{if(["customer-name","line-note"].includes(event.target.id))inputSession=null;});
 document.addEventListener("input",event=>{
+  if(event.target.dataset.staffField!==undefined){const field=event.target.dataset.staffField;if(Object.hasOwn(staffDraft,field)&&field!=="method"){staffDraft[field]=event.target.value;staffError="";$("#staff-error")?.classList.add("hidden");const feedback=$("#staff-feedback");if(feedback)feedback.textContent=staffFeedback();}return;}
   if(event.target.dataset.cashReceived!==undefined){const part=paymentParts[Number(event.target.dataset.cashReceived)];if(part)part.cashReceived=event.target.value;updatePaymentFeedback();return;}
   if(event.target.dataset.brlCharged!==undefined){const part=paymentParts[Number(event.target.dataset.brlCharged)];if(part)part.brlCharged=event.target.value;updatePaymentFeedback();return;}
   if(event.target.dataset.brlReceived!==undefined){const part=paymentParts[Number(event.target.dataset.brlReceived)];if(part)part.brlReceived=event.target.value;updatePaymentFeedback();return;}
@@ -934,10 +1004,13 @@ document.addEventListener("input",event=>{
   const status=$("#order-status");if(status){status.textContent=order.status;status.className="status "+statusClass(order.status);}const hint=$("#order-hint");if(hint)hint.textContent=orderStatusHint(order);
 });
 document.addEventListener("change",event=>{
+  if(event.target.dataset.staffField==="method"){if(staffPaymentMethods.includes(event.target.value)){staffDraft.method=event.target.value;staffDraft.cashReceived="";staffDraft.brlCharged="";staffDraft.brlReceived="";staffError="";render();$("#staff-method")?.focus();}return;}
+  if(event.target.id==="staff-date"&&/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)){staffDate=event.target.value;render();return;}
   if(event.target.dataset.paymentMethod!==undefined){selectPaymentMethod(Number(event.target.dataset.paymentMethod),event.target.value);return;}
   if(event.target.dataset.payerName!==undefined)return;
   if(event.target.id==="history-date"&&/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)){historyDate=event.target.value;historyDetail=null;render();}
 });
+document.addEventListener("submit",event=>{if(event.target.id==="staff-sale-form"){event.preventDefault();registerStaffSale();}});
 $("#import-file").addEventListener("change",async event=>{
   const file=event.target.files?.[0];event.target.value="";if(!file)return;
   try{const imported=validateImport(JSON.parse(await file.text()));if(!confirm(`Este respaldo contiene ${Object.keys(imported.orders).length} pedidos activos y ${imported.history.length} ventas.\n\n¿Recuperarlo? Reemplazará los datos actuales${sharedMode?" para todos los dispositivos":""}. El registro de Caja no se reemplaza. Guardá un respaldo actual antes de continuar si los necesitás.`))return;importData(imported);}catch{toast("No se pudo recuperar: el archivo no es un respaldo válido de KEBBA. Los datos actuales siguen intactos.",true);}

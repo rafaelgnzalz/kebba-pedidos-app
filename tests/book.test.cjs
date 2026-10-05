@@ -3,6 +3,18 @@ const assert=require('node:assert/strict');
 const B=require('../cash-book.js');
 const entry=(id,kind,person,amount,extra={})=>({id,kind,person,amount_minor:amount,currency:'UYU',occurred_on:'2026-09-01',created_at:'2026-09-01T12:00:00Z',description:'Movimiento',category:'equipment',...extra});
 
+test('el diario conserva el detalle al coste y cuenta el cobro al personal una sola vez',()=>{
+  const sale={number:10,saleType:'staff',label:'Personal · Al coste',name:'Ana',total:150,payment:'Efectivo',lines:[{note:'Un kebab y una bebida'}],payments:[{method:'Efectivo',amount:150,cashReceived:200,cashChange:50}]};
+  const rows=B.journal({sales:[{sold_at:'2026-10-05T18:00:00Z',sale}]});
+  assert.match(rows[0].description,/Personal · Al coste · Ana/);
+  assert.equal(rows[0].note,'Un kebab y una bebida');
+  assert.equal(B.filter(rows,{query:'kebab'}).length,1);
+  assert.equal(B.summary(rows).currencies.UYU.sales,15000);
+  assert.equal(B.summary(rows).payments['Efectivo UYU'].uyu,15000);
+  assert.equal(B.summary(rows).salesCount,1);
+  assert.match(B.csv(rows),/Un kebab y una bebida/);
+});
+
 test('atribuir fondos entre personas conserva el total financiado sin duplicar gastos',()=>{
   const book=[entry('1','personal_payment','Ana',100000),entry('2','personal_payment','Carla',20000),entry('3','partner_transfer','Bruno',30000,{recipient:'Ana'})];
   const people=B.people(book);

@@ -22,6 +22,12 @@ Usá **Caja → Respaldo** para descargar una copia JSON del diario financiero. 
 
 ## Durante el servicio
 
+### Ventas al personal
+
+En **Ventas al personal**, escribí el **valor al coste en UYU** y el **detalle manual**; el nombre es opcional. Elegí el medio de pago y tocá **Registrar cobro** después de recibirlo. El valor se carga en pesos enteros, igual que los pedidos. En efectivo se asume importe justo y podés desplegar **Calcular cambio**; en BRL indicá el importe acordado en reales. Pix usa la tasa habitual de la app.
+
+No ocupa mesas ni pedidos ni genera comandas de Cocina. El cobro queda identificado como **Personal · Al coste** en el historial y se incluye en Caja, en la sincronización y en los respaldos habituales. La pestaña permite revisar una fecha y descargar sus ventas en CSV. No calcula costes ni genera descuentos de sueldo.
+
 - En cada mesa o pedido podés escribir un nombre o una descripción para reconocer a las personas.
 - En **Shawarmas** y **Kebabs**, cada variedad tiene su botón normal y su botón **Combo** con el precio final. El combo incluye papas fritas y Coca-Cola; Cocina ve ese detalle en la comanda.
 - Cocina separa las comandas **por enviar**, **en preparación** y **listas para cobrar**. Las correcciones aparecen resumidas; el historial de ediciones queda plegado dentro de cada comanda.
