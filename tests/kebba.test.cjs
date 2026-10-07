@@ -103,7 +103,13 @@ test('una cuenta grande se asigna por líneas completas a cuatro personas',()=>{
   const app=boot(),run=app.run;
   run('openSlot("m1");for(let i=0;i<18;i++)addProduct("papas");startClose();paymentParts=[newPaymentPart(),newPaymentPart(),newPaymentPart(),newPaymentPart()]');
   const initial=run('renderPaymentAllocation(current())');
-  assert.equal((initial.match(/data-delta="1"/g)||[]).length,18);
+  assert.match(initial,/data-action="payment-page"/);
+  const reachable=new Set();
+  for(let page=0;page<18;page++){
+    const html=run('paymentProductPage='+page+';renderPaymentAllocation(current())');
+    for(const match of html.matchAll(/data-action="payment-unit" data-line="([^"]+)" data-part="0" data-delta="1"/g))reachable.add(match[1]);
+  }
+  assert.equal(reachable.size,18);
   run('for(let i=0;i<4;i++)assignPaymentRest(current().lines[i].id,0);for(let i=4;i<8;i++)assignPaymentRest(current().lines[i].id,1);for(let i=8;i<12;i++)assignPaymentRest(current().lines[i].id,2);selectedPaymentPart=3;assignAllRemaining(3)');
   assert.equal(run('current().lines.reduce((sum,line)=>sum+remainingUnits(line),0)'),0);
   assert.match(run('renderPaymentAllocation(current())'),/Todos los productos están asignados/);
@@ -118,7 +124,7 @@ test('el reparto agrupa kebabs, shawarmas y acompañamientos antes del resto',()
   run('openSlot("m1");["bebida-sprite-350","shawarma-pollo","papas","kebab-pollo","shawarma-carne","kebab-carne","plato-pollo","boniato","coxinha-pollo-1"].forEach(addProduct);startClose();paymentParts=[newPaymentPart(),newPaymentPart()]');
   assert.equal(run('paymentSortedLines(current().lines).map(item=>item.line.name).join(" | ")'),
     'Kebab Carne | Kebab Pollo | Kebab al Plato Pollo | Shawarma Carne | Shawarma Pollo | Boniato frito | Papas fritas | Sprite · lata 350 ml | Coxinha de Pollo · 1 unidad');
-  const rendered=run('renderPaymentAllocation(current())');
+  const rendered=[0,1,2,3,4].map(page=>run('paymentProductPage='+page+';renderPaymentAllocation(current())')).join('');
   assert.ok(rendered.indexOf('class="allocation-group">Kebabs')<rendered.indexOf('class="allocation-group">Shawarmas'));
   assert.ok(rendered.indexOf('class="allocation-group">Shawarmas')<rendered.indexOf('class="allocation-group">Acompañamientos'));
 });
@@ -637,4 +643,131 @@ test('el guardado compartido envía propinas y conserva el foco mientras se escr
   assert.equal(run('sharedBase.tips[0].note'),'Turno');
   run('document.activeElement={dataset:{tipField:"note"}};globalThis.reads=0;sharedRpc=async()=>{reads++;return {version:3,state:emptyData()}}');
   await run('refreshShared()');assert.equal(run('reads'),0);
+});
+
+test('reparto por importes: distintos métodos, cambio, Pix y recuperación del historial',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("kebab-carne");addProduct("papas");sendKitchen();markReady("m1");startClose();setPaymentMode("amounts")');
+  app.events.input({target:{dataset:{paymentAmount:'0'},value:'150'}});
+  run('paymentParts[0].name="Ana";paymentParts[0].method="Efectivo";paymentParts[0].cashReceived="200";assignPaymentBalance(1);paymentParts[1].name="Luis";paymentParts[1].method="Pix"');
+  assert.equal(run('paymentParts[1].amount'),'270');
+  assert.equal(run('paymentStatus(current()).valid'),true);
+  run('confirmClose()');
+  assert.equal(run('data.orders.m1'),undefined);
+  assert.equal(run('data.history[0].paymentSplit'),'amounts');
+  assert.equal(run('data.history[0].payments[0].amount'),150);
+  assert.equal(run('data.history[0].payments[0].cashChange'),50);
+  assert.equal(run('data.history[0].payments[1].pixBrl'),32.53);
+  assert.equal(run('data.history[0].payments[0].items.length'),0);
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+  const recovered=boot(app.storage);
+  assert.equal(recovered.run('data.history[0].payments[1].amount'),270);
+  assert.match(recovered.run('renderHistoryPayments(data.history[0])'),/reparto por importes/);
+  assert.match(recovered.run('buildDayCsv()'),/Ana: Importe de la cuenta — Efectivo \$150/);
+});
+
+test('el reparto por importes impide cerrar con faltantes, excedentes, importes inválidos o método faltante',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");startClose();setPaymentMode("amounts");paymentParts.forEach(part=>part.method="Transferencia")');
+  for(const [first,second,message] of [['40','50',/Faltan \$10/],['60','50',/Sobran \$10/],['-1','101',/pesos enteros/],['50.5','49.5',/pesos enteros/],['','100',/Persona 1/i],['0','100',/Persona 1/i],['9007199254740992','1',/pesos enteros/]]){
+    run(`paymentParts[0].amount=${JSON.stringify(first)};paymentParts[1].amount=${JSON.stringify(second)};confirmClose()`);
+    assert.equal(run('data.history.length'),0);
+    assert.match(run('paymentStatus(current()).message'),message);
+  }
+  run('paymentParts[0].amount="40";paymentParts[1].amount="60";paymentParts[1].method="";confirmClose()');
+  assert.equal(run('data.history.length'),0);
+  assert.match(run('paymentStatus(current()).message'),/falta forma de pago/);
+  run('paymentParts[1].method="Efectivo";paymentParts[1].cashReceived="50";confirmClose()');
+  assert.equal(run('data.history.length'),0);
+  run('paymentParts[1].cashReceived="60";confirmClose()');
+  assert.equal(run('data.history.length'),1);
+});
+
+test('partes iguales conserva exactamente el total y el resto se puede asignar a cualquier persona',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");startClose();setPaymentMode("amounts");handleAction({dataset:{action:"payment-add"}},{detail:1});dividePaymentEqually()');
+  assert.equal(run('paymentParts.map(part=>part.amount).join(",")'),'34,33,33');
+  run('paymentParts[0].amount="20";paymentParts[2].amount="25";assignPaymentBalance(1)');
+  assert.equal(run('paymentParts[1].amount'),'55');
+  run('paymentParts.forEach(part=>part.method="Débito");confirmClose()');
+  assert.equal(run('data.history[0].payments.reduce((sum,part)=>sum+part.amount,0)'),100);
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+});
+
+test('respaldos de importes rechazan totales alterados y productos asignados a ese modo',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");startClose();setPaymentMode("amounts");dividePaymentEqually();paymentParts.forEach(part=>part.method="Crédito");confirmClose()');
+  assert.throws(()=>run('{const wrong=deepCopy(data);wrong.history[0].payments[0].amount=40;validateImport(wrong)}'));
+  assert.throws(()=>run('{const wrong=deepCopy(data);wrong.history[0].payments[0].items=[{lineId:wrong.history[0].lines[0].id,qty:1}];validateImport(wrong)}'));
+  assert.throws(()=>run('{const wrong=deepCopy(data);delete wrong.history[0].paymentSplit;validateImport(wrong)}'));
+  assert.throws(()=>run('{const wrong=deepCopy(data);delete wrong.history[0].payments;validateImport(wrong)}'));
+});
+
+test('un error de guardado mantiene abierto el cobro por importes para reintentar sin duplicar ventas',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");startClose();setPaymentMode("amounts");dividePaymentEqually();paymentParts.forEach(part=>part.method="Transferencia")');
+  app.failWrites=true;run('confirmClose()');
+  assert.equal(run('data.history.length'),0);
+  assert.equal(run('modal'),'payment');
+  assert.equal(run('paymentParts[0].amount'),'50');
+  app.failWrites=false;run('confirmClose();confirmClose()');
+  assert.equal(run('data.history.length'),1);
+});
+
+test('los importes se editan sin reconstruir el diálogo y cambiar de modo conserva nombres y métodos',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");startClose();setPaymentMode("amounts");paymentParts[0].name="Ana";paymentParts[0].method="Débito"');
+  const before=app.nodes.get('#modal-root').innerHTML;
+  app.events.input({target:{dataset:{paymentAmount:'0'},value:'35'}});
+  assert.equal(app.nodes.get('#modal-root').innerHTML,before);
+  assert.equal(run('partAmount(paymentParts[0],current())'),35);
+  run('setPaymentMode("products")');
+  assert.equal(run('paymentParts[0].name'),'Ana');
+  assert.equal(run('paymentParts[0].method'),'Débito');
+  assert.equal(run('paymentStatus(current()).valid'),false);
+  run('setPaymentMode("single")');
+  assert.equal(run('partAmount(paymentParts[0],current())'),100);
+  assert.equal(run('paymentStatus(current()).valid'),true);
+});
+
+test('importes conserva efectivo BRL, PREX y Pix junto a ventas al personal y propinas',()=>{
+  const app=boot(),run=app.run;
+  run('tipDraft={amount:"10,50",currency:"BRL",note:"Turno"};registerTip();staffDraft={...emptyStaffDraft(),amount:"50",detail:"Cena"};registerStaffSale();openSlot("m1");addProduct("kebab-carne");addProduct("papas");sendKitchen();markReady("m1");startClose();setPaymentMode("amounts")');
+  action(app,'payment-add');action(app,'payment-add');
+  run('paymentParts.forEach((part,index)=>part.amount=String([100,110,120,90][index]));paymentParts[0].method="Efectivo";paymentParts[0].cashReceived="150";paymentParts[1].method="Efectivo BRL";paymentParts[1].brlCharged="13,00";paymentParts[1].brlReceived="20";paymentParts[2].method="PREX";paymentParts[3].method="Pix";confirmClose()');
+  assert.equal(run('data.history.length'),2);
+  assert.equal(run('data.history[0].saleType'),'staff');
+  assert.equal(run('data.tips[0].amountMinor'),1050);
+  assert.equal(run('data.history[1].payments.map(part=>part.method).join("|")'),'Efectivo|Efectivo BRL|PREX|Pix');
+  assert.equal(run('data.history[1].payments[1].brlChangeMinor'),700);
+  assert.equal(run('data.history[1].payments[3].pixBrl'),10.84);
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+  assert.match(run('buildDayCsv()'),/cobrado R\$ 13,00, recibido R\$ 20,00, cambio R\$ 7,00/);
+});
+
+test('deshacer importes conserva nombres posteriores y obliga a revisar solamente el efectivo cambiado',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas");startClose();setPaymentMode("amounts");dividePaymentEqually();paymentParts[0].method="Efectivo BRL";paymentParts[0].brlCharged="10";paymentParts[0].brlReceived="20";paymentParts[1].method="Efectivo";paymentParts[1].cashReceived="100"');
+  const input={dataset:{paymentAmount:'0'},value:'4'};
+  app.events.input({target:input});input.value='40';app.events.input({target:input});
+  assert.equal(run('paymentParts[0].brlCharged'),'');
+  assert.equal(run('paymentParts[1].cashReceived'),'100');
+  app.events.input({target:{dataset:{payerName:'0'},value:'Ana'}});
+  action(app,'payment-undo');
+  assert.equal(run('paymentParts[0].amount'),'50');
+  assert.equal(run('paymentParts[0].name'),'Ana');
+  assert.equal(run('paymentParts[1].cashReceived'),'100');
+  action(app,'payment-mode',{mode:'single'});action(app,'payment-undo');
+  assert.equal(run('paymentMode'),'amounts');
+  assert.equal(run('paymentParts.length'),2);
+  assert.equal(run('paymentParts[0].amount'),'50');
+});
+
+test('el guardado compartido conserva reparto por importes y propinas en el mismo estado',async()=>{
+  const app=boot(),run=app.run;
+  run('tipDraft={amount:"50",currency:"UYU",note:"Turno"};registerTip();openSlot("m1");addProduct("papas");startClose();setPaymentMode("amounts");dividePaymentEqually();paymentParts.forEach(part=>part.method="PREX");confirmClose();sharedReady=true;sharedVersion=1;sharedBase=emptyData();sharedPending=deepCopy(data);globalThis.sent=null;sharedRpc=async(name,body)=>{sent=body.next_state;return {ok:true,version:2}}');
+  await run('flushShared()');
+  assert.equal(run('sent.history[0].paymentSplit'),'amounts');
+  assert.equal(run('sharedBase.history[0].payments[1].amount'),50);
+  assert.equal(run('sharedBase.tips[0].amountMinor'),5000);
 });

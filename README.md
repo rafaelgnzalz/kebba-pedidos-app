@@ -35,19 +35,27 @@ En **Propinas**, registrá el importe, la moneda (UYU o BRL) y un detalle manual
 - En cada mesa o pedido podés escribir un nombre o una descripción para reconocer a las personas.
 - En **Shawarmas** y **Kebabs**, cada variedad tiene su botón normal y su botón **Combo** con el precio final. El combo incluye papas fritas y Coca-Cola; Cocina ve ese detalle en la comanda.
 - Cocina separa las comandas **por enviar**, **en preparación** y **listas para cobrar**. Las correcciones aparecen resumidas; el historial de ediciones queda plegado dentro de cada comanda.
-- Al cobrar, elegí un pago único o **Dividir por productos**. La cuenta dividida tiene dos pasos: **Repartir productos** y **Cobrar**, detallados abajo. Cada persona puede pagar con efectivo UYU, efectivo BRL, PREX, Pix, tarjeta u otros.
+- Al cobrar, elegí **Pago único**, **Por productos** o **Por importes**. El reparto por productos conserva los pasos **Repartir productos** y **Cobrar**, detallados abajo. Cada persona puede pagar con efectivo UYU, efectivo BRL, PREX, Pix, tarjeta u otros.
 - En efectivo, escribí cuánto entregó cada persona para ver el cambio. En BRL también escribí el importe acordado en reales; no se convierte automáticamente desde pesos.
 - Para Pix, la app muestra el importe en reales con la tasa fija de **$8,30 uruguayos por R$1** y guarda la tasa utilizada en el historial.
 - En laptop, la app ocupa la altura de la pantalla: las mesas y pedidos sin mesa se alternan con dos botones, Cocina muestra una categoría a la vez y la Carta y la Comanda permanecen lado a lado. Cuando una lista es demasiado larga, se desplaza dentro de su panel sin mover la navegación ni las acciones de cobro.
 
 ### Dividir una cuenta por persona
 
-1. En **Cobrar y cerrar**, tocá **Dividir por productos**. Elegí una persona en la fila superior; podés ponerle nombre y agregar hasta ocho personas.
+1. En **Cobrar y cerrar**, tocá **Por productos**. Elegí una persona en la fila superior; podés ponerle nombre y agregar hasta ocho personas.
 2. Repartí con **+** y **−**. **Los restantes** asigna las unidades pendientes de ese producto; **Asignar todo lo pendiente** completa la cuenta de la persona elegida. Los productos quedan visibles para corregirlos y podés mostrar solo los pendientes. Abajo se ven el importe sin asignar y el subtotal de la persona elegida.
 3. Cuando todas las unidades estén repartidas y cada persona tenga productos, tocá **Continuar al cobro**. Elegí el medio de pago de cada persona. **Siguiente persona** lleva al próximo pago que necesita datos; en efectivo UYU, **Importe justo** completa lo recibido sin cambio.
 4. Revisá el resumen y confirmá después de recibir todos los pagos. Hasta confirmar, la comanda sigue abierta y no se registra ninguna venta.
 
 **Deshacer reparto** recupera la última asignación o una persona quitada. **Volver al reparto** conserva los datos de pago; si cambiás los productos de alguien, revisá sus importes de efectivo UYU o BRL antes de confirmar. En pago único, **Más formas de pago** muestra las demás opciones disponibles.
+
+### Dividir por importes
+
+En **Por importes**, ingresá cuánto paga cada persona en pesos uruguayos enteros y elegí su medio de pago. Por ejemplo, $300 una persona y $500 otra para una cuenta de $800. **Resto** asigna lo que falta a una persona; **Partes iguales** reparte el total sin perder pesos por redondeo. **Deshacer reparto** también recupera importes y personas. Cambiar un importe obliga a revisar el efectivo recibido de esa persona, igual que corregir sus productos.
+
+El cobro se confirma cuando los importes suman exactamente el total y los medios de pago están completos. En BRL se sigue ingresando el precio acordado manualmente; Pix conserva su conversión habitual. El historial, el CSV y los respaldos guardan el importe, el método y el cambio de cada persona. Caja sigue contando una sola venta con sus distintos medios de pago, y las propinas continúan aparte.
+
+La pantalla de cobro muestra tarjetas de pagos y mantiene el total y la confirmación visibles. En laptop entran cuatro pagos juntos; las listas grandes de productos o personas usan botones **← / →** para pasar de página sin scroll. El celular muestra una persona por página. Los respaldos anteriores siguen siendo compatibles. Al publicar la actualización, recargá todos los dispositivos antes de registrar pagos por importes.
 
 ## Pruebas
 
