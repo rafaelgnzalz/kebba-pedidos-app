@@ -13,7 +13,7 @@ Un cierre guardado figura como **Pendiente de envío** hasta que Google confirme
 ## Activación del puente
 
 1. Importar a Google Sheets la Caja preparada, conservando las hojas Caja, Retiros y Socios y la nueva hoja Turnos.
-2. Agregar `GoogleSheets.gs` como proyecto vinculado a esa planilla, desde la cuenta propietaria de Kebba. Usar `appsscript.json` para limitar los permisos a planillas, consultas externas al servidor de Kebba y el disparador periódico; no necesita acceso a Drive, Gmail ni contactos.
+2. Crear el proyecto de Apps Script desde la cuenta propietaria de Kebba y agregar `GoogleSheets.gs`. Puede estar vinculado a la planilla o ser independiente: el destino se abre por el ID configurado. Usar `appsscript.json` para limitar los permisos a planillas, consultas externas al servidor de Kebba y el disparador periódico; no necesita acceso a Drive, Gmail ni contactos.
 3. Guardar en Propiedades del script `KEBBA_URL`, `KEBBA_PUBLIC_KEY`, `KEBBA_SHEET_ID`, `KEBBA_BRIDGE_TOKEN` y `KEBBA_WAKE_TOKEN`. El puente usa una clave nueva limitada a consultar y confirmar resúmenes de turnos; nunca la clave de pedidos, la de Caja ni una clave de administrador.
 4. Ejecutar `instalarKebba`, autorizar el acceso solicitado por Google y publicar como aplicación web ejecutada por el propietario. El endpoint público solo acepta la clave de aviso y no devuelve ventas.
 5. Configurar una sola fila privada en `kebba_private.shift_excel_connection` con el ID y enlace de esa planilla, la URL `/exec`, SHA-256 de la clave del puente y clave de aviso.
