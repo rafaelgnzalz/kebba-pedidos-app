@@ -108,8 +108,9 @@
   function renderClosed(session) {
     const close = closeOf(session.id); if (!close) return "";
     const count = currentCount(session);
-    const diffUyu = count.uyu - minor(close.detail.expected_uyu), diffBrl = count.brl - minor(close.detail.expected_brl);
-    return `<div class="cash-panel cash-closed"><div class="cash-header"><h2>Caja ${safe(session.detail.date)}</h2><span class="status free">CERRADA</span></div><p>Cerrada ${datetime(close.created_at)}</p><div class="cash-counters"><div><span>UYU esperado / contado / diferencia</span><strong>${cashMoney(close.detail.expected_uyu,"UYU")} / ${cashMoney(count.uyu,"UYU")} / ${cashMoney(diffUyu,"UYU")}</strong></div><div><span>BRL esperado / contado / diferencia</span><strong>${cashMoney(close.detail.expected_brl,"BRL")} / ${cashMoney(count.brl,"BRL")} / ${cashMoney(diffBrl,"BRL")}</strong></div></div><button data-cash-action="correct" data-session="${session.id}" ${pending?"disabled":""}>CORREGIR CON MOTIVO</button></div>`;
+    const expectedUyu=expected(session,"UYU"),expectedBrl=expected(session,"BRL");
+    const diffUyu = count.uyu - expectedUyu, diffBrl = count.brl - expectedBrl;
+    return `<div class="cash-panel cash-closed"><div class="cash-header"><h2>Caja ${safe(session.detail.date)}</h2><span class="status free">CERRADA</span></div><p>Cerrada ${datetime(close.created_at)}</p><div class="cash-counters"><div><span>UYU esperado / contado / diferencia</span><strong>${cashMoney(expectedUyu,"UYU")} / ${cashMoney(count.uyu,"UYU")} / ${cashMoney(diffUyu,"UYU")}</strong></div><div><span>BRL esperado / contado / diferencia</span><strong>${cashMoney(expectedBrl,"BRL")} / ${cashMoney(count.brl,"BRL")} / ${cashMoney(diffBrl,"BRL")}</strong></div></div><button data-cash-action="correct" data-session="${session.id}" ${pending?"disabled":""}>CORREGIR CON MOTIVO</button></div>`;
   }
   function renderWithdrawals(active) {
     const withdrawals = eventsOf("withdrawal").slice().reverse();

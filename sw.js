@@ -1,5 +1,5 @@
-const CACHE = "kebba-shell-v22";
-const SHELL = ["./", "./index.html", "./history-excel.js", "./vendor/exceljs-4.4.0.min.js", "./cash-book.js", "./cash-book-ui.js", "./cash.js", "./shifts.js", "./manifest.webmanifest", "./icons/kebba.svg", "./icons/kebba-192.png", "./icons/kebba-512.png"];
+const CACHE = "kebba-shell-v23";
+const SHELL = ["./", "./index.html", "./history-excel.js", "./vendor/exceljs-4.4.0.min.js", "./cash-book.js", "./cash-book-ui.js", "./cash.js", "./shifts.js", "./deletions.js", "./manifest.webmanifest", "./icons/kebba.svg", "./icons/kebba-192.png", "./icons/kebba-512.png"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));

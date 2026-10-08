@@ -68,8 +68,23 @@ function kebbaSync_() {
     if(header[0]!=='Fecha de cierre'||header[4]!=='Medio de pago'||header[10]!=='ID de envío')throw Error('Cambió la estructura de Turnos');
     let sent=0;
     for(const turn of batch.turns){
-      const expected=kebbaFilas_(turn);let seen=kebbaIndices_(sheet),missing=[];
-      for(const row of expected){const found=seen.index.get(row[10]);if(found)kebbaComparar_(found.row,row);else missing.push(row);}
+      const revision=Number(turn.revision||1);
+      if(!Number.isSafeInteger(revision)||revision<1)throw Error('Revisión de turno inválida');
+      const expected=turn.deleted_at?[]:kebbaFilas_(turn);let seen=kebbaIndices_(sheet),missing=[];
+      // Las correcciones afectan solo las filas identificadas de este turno.
+      if(revision>1){
+        const wanted=new Set(expected.map(row=>row[10]));
+        for(const [key,found] of seen.index)if(key.startsWith(turn.id+':')&&!wanted.has(key)){
+          sheet.getRange(found.number,1,1,9).clearContent();
+          sheet.getRange(found.number,11).clearContent();
+          sheet.getRange(found.number,10).setFormula(kebbaCuentaFormula_(found.number,separator));
+        }
+      }
+      for(const row of expected){
+        const found=seen.index.get(row[10]);
+        if(found){if(revision>1)sheet.getRange(found.number,1,1,11).setValues([row]);else kebbaComparar_(found.row,row);}
+        else missing.push(row);
+      }
       if(missing.length){
         const first=seen.lastData+1,last=first+missing.length-1;kebbaCapacidad_(book,sheet,last);
         sheet.getRange(first,1,missing.length,11).setValues(missing);
@@ -84,7 +99,9 @@ function kebbaSync_() {
       }
       SpreadsheetApp.flush();
       for(const row of expected){const found=seen.index.get(row[10]);if(sheet.getRange(found.number,10).getFormula()!==kebbaCuentaFormula_(found.number,separator))throw Error('Falta actualizar la cuenta del cierre');}
-      kebbaRpc_('kebba_shift_excel_ack',{bridge_token:config.KEBBA_BRIDGE_TOKEN,target_id:turn.id,spreadsheet_id:config.KEBBA_SHEET_ID,row_ids:expected.map(row=>row[10]).sort()},config);sent++;
+      if([...seen.index.keys()].some(key=>key.startsWith(turn.id+':')&&!expected.some(row=>row[10]===key)))throw Error('Queda una fila anterior del turno');
+      const ack=kebbaRpc_('kebba_shift_excel_ack_revision',{bridge_token:config.KEBBA_BRIDGE_TOKEN,target_id:turn.id,spreadsheet_id:config.KEBBA_SHEET_ID,row_ids:expected.map(row=>row[10]).sort(),expected_revision:revision},config);
+      if(!ack?.ok)throw Error('Kebba no confirmó la revisión del turno');sent++;
     }
     PropertiesService.getScriptProperties().setProperty('KEBBA_LAST_OK',new Date().toISOString());
     return {ok:true,sent:sent};

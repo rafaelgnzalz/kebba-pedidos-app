@@ -10,6 +10,18 @@ La primera apertura activa el requisito de abrir turno para los nuevos cobros en
 
 Un cierre guardado figura como **Pendiente de envío** hasta que Google confirme las filas del turno. La solicitud de red solo despierta al puente; nunca confirma el envío por sí misma. El puente también consulta pendientes cada minuto, aun con la computadora apagada. Los reintentos conservan el identificador `turno:método` y comprueban importes y fechas existentes antes de confirmar. Si hay filas modificadas, duplicadas o un importe BRL faltante, el cierre permanece pendiente.
 
+## Eliminar pruebas y recuperar errores
+
+En Historial → Ver detalle, **Eliminar pedido** quita esa venta del historial, del registro de Caja y de los totales de su turno. En Turno, **Eliminar turno y sus pedidos** quita todas las ventas del cierre. El turno debe estar cerrado. Los pedidos abiertos conservan su botón habitual de eliminación en la comanda.
+
+Las eliminaciones son recuperables: Historial muestra los pedidos eliminados de la fecha y Turno muestra los turnos eliminados. Restaurar un turno recupera sus ventas, salvo las que se eliminaron individualmente. Para recuperar un pedido de un turno eliminado, primero hay que restaurar el turno. Los respaldos antiguos no recuperan automáticamente las ventas eliminadas.
+
+Cada corrección incrementa la revisión del cierre. El puente actualiza o vacía únicamente las filas con el ID de ese turno, conserva las fórmulas de Cuenta y confirma la revisión que leyó. Si el cierre cambió durante el envío, rechaza la confirmación y vuelve a consultar. Un cierre sin ventas queda sin filas en Sheets. La planilla se actualiza mediante el aviso existente y el disparador de cada minuto.
+
+La actualización de una instalación existente requiere aplicar una vez `eliminaciones.sql`, actualizar `GoogleSheets.gs` y crear una nueva versión de la implementación web existente, conservando su URL, propiedades y permisos. Después publicar la app con `deletions.js` y el nuevo caché. No ejecutar nuevamente `turnos-caja.sql` ni ejecutar `eliminaciones-core.sql` directamente.
+
+Validación: `tests/deletions.test.cjs`, `tests/shift-bridge.test.cjs` y `test-eliminaciones-rollback.sql` comprueban acceso, versiones, reintento idempotente, recuperación, convivencia de eliminación individual y por turno, respaldo viejo, BRL/Pix, aislamiento de otros cierres y rechazo de confirmaciones antiguas. La prueba SQL completa revierte todos sus datos.
+
 ## Activación del puente
 
 1. Importar a Google Sheets la Caja preparada, conservando las hojas Caja, Retiros y Socios y la nueva hoja Turnos.

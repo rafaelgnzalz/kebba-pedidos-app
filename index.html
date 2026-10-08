@@ -415,7 +415,7 @@ function persist(next,{replaceBlocked=false}={}){
 }
 function save(){return persist(data);}
 function commitData(next,options){if(!persist(next,options)){toast("No se completó la acción porque no se pudo guardar.",true);return false;}data=next;return true;}
-function canEdit(){if(readBlocked||storageConflict){toast("Revisá el aviso de guardado antes de continuar.",true);return false;}return true;}
+function canEdit(){if(window.KebbaDeletion?.isBusy()){toast("Esperá a confirmar la eliminación o restauración.",true);return false;}if(readBlocked||storageConflict){toast("Revisá el aviso de guardado antes de continuar.",true);return false;}return true;}
 async function sharedRpc(name,body){
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),15000);
   try{
@@ -501,7 +501,7 @@ async function flushShared(){
       storageConflict=true;storageWarning="Otro dispositivo cambió los pedidos al mismo tiempo. Guardá una copia de esta pantalla y recargá para revisar los datos más recientes.";
       renderStorage();return;
     }
-    sharedVersion=result.version;sharedBase=validateImport(deepCopy(snapshot));readBlocked=false;storageWarning="";
+    sharedVersion=result.version;sharedBase=validateImport(deepCopy(result.state||snapshot));if(result.state&&!sameValue(result.state,snapshot)){const merged=mergeSharedState(snapshot,data,sharedBase);if(merged){data=merged;if(sharedPending)sharedPending=deepCopy(merged);render();}else{storageConflict=true;storageWarning="Los pedidos cambiaron. Recargá para revisar el historial actualizado.";}}readBlocked=false;storageWarning=storageConflict?storageWarning:"";
   }catch{
     try{
       const latest=await sharedRpc("kebba_read",{access_token:sharedToken});
@@ -941,7 +941,7 @@ function renderHistoryPayments(order){
 }
 function renderHistory(){
   const rows=historyForDate(),sales=rows.reduce((sum,o)=>sum+o.total,0),detail=data.history.find(o=>o.number===historyDetail);
-  return `<div class="headline"><h1>Historial de ventas</h1><label>Fecha <input id="history-date" type="date" value="${historyDate}"></label></div><div class="history-tools"><button data-action="history-today">Ver hoy</button><button class="primary" data-action="history-excel">EXPORTAR EXCEL DETALLADO</button><button data-action="export-csv">CSV DEL DÍA</button><button data-action="export-backup">GUARDAR RESPALDO COMPLETO</button></div><div class="stats"><div class="stat">VENTAS DEL DÍA<strong>${money(sales)}</strong></div><div class="stat">PEDIDOS<strong>${rows.length}</strong></div><div class="stat">TICKET PROMEDIO<strong>${money(rows.length?Math.round(sales/rows.length):0)}</strong></div></div>${rows.length?`<div class="table-wrap"><table><thead><tr><th>NÚMERO / DETALLE</th><th>HORA DE CIERRE</th><th>MESA / PEDIDO</th><th>NOMBRE</th><th>TOTAL</th><th>PAGO</th></tr></thead><tbody>${rows.map(o=>`<tr><td><button class="history-link" data-action="history-detail" data-number="${o.number}">${numberLabel(o.number)} · Ver detalle</button></td><td>${fmtTime(o.closedAt)}</td><td>${safe(o.label||slotLabel(o.slot))}</td><td>${safe(o.name)}</td><td>${money(o.total)}</td><td>${safe(historyPaymentLabel(o))}</td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No hay pedidos cerrados en esta fecha.</div>'}${detail?`<section class="history-detail" tabindex="-1"><div class="headline"><h2>${numberLabel(detail.number)} · ${safe(detail.label||slotLabel(detail.slot))}${detail.name?` · ${safe(detail.name)}`:""}</h2><button class="small-button" data-action="hide-history">Cerrar detalle</button></div><p class="subtle">${fmtDate(detail.closedAt)} · ${fmtTime(detail.closedAt)} · ${safe(detail.payment)} · Solo lectura</p>${detail.lines.map(line=>`<div class="line"><div class="line-main"><strong>${line.qty} × ${safe(line.name)}</strong><strong>${money(lineTotal(line))}</strong></div><div class="line-mods">${lineDetails(line)}</div></div>`).join("")}<div class="ticket-total"><span>TOTAL</span><span>${money(detail.total)}</span></div>${renderHistoryPayments(detail)}</section>`:""}`;
+  return `<div class="headline"><h1>Historial de ventas</h1><label>Fecha <input id="history-date" type="date" value="${historyDate}"></label></div><div class="history-tools"><button data-action="history-today">Ver hoy</button><button class="primary" data-action="history-excel">EXPORTAR EXCEL DETALLADO</button><button data-action="export-csv">CSV DEL DÍA</button><button data-action="export-backup">GUARDAR RESPALDO COMPLETO</button></div><div class="stats"><div class="stat">VENTAS DEL DÍA<strong>${money(sales)}</strong></div><div class="stat">PEDIDOS<strong>${rows.length}</strong></div><div class="stat">TICKET PROMEDIO<strong>${money(rows.length?Math.round(sales/rows.length):0)}</strong></div></div>${rows.length?`<div class="table-wrap"><table><thead><tr><th>NÚMERO / DETALLE</th><th>HORA DE CIERRE</th><th>MESA / PEDIDO</th><th>NOMBRE</th><th>TOTAL</th><th>PAGO</th></tr></thead><tbody>${rows.map(o=>`<tr><td><button class="history-link" data-action="history-detail" data-number="${o.number}">${numberLabel(o.number)} · Ver detalle</button></td><td>${fmtTime(o.closedAt)}</td><td>${safe(o.label||slotLabel(o.slot))}</td><td>${safe(o.name)}</td><td>${money(o.total)}</td><td>${safe(historyPaymentLabel(o))}</td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No hay pedidos cerrados en esta fecha.</div>'}${detail?`<section class="history-detail" tabindex="-1"><div class="headline"><h2>${numberLabel(detail.number)} · ${safe(detail.label||slotLabel(detail.slot))}${detail.name?` · ${safe(detail.name)}`:""}</h2>${sharedMode?window.KebbaDeletion?.button("sale","delete",detail.number+":"+detail.openedAt,`el pedido ${numberLabel(detail.number)}`)||"":""}<button class="small-button" data-action="hide-history">Cerrar detalle</button></div><p class="subtle">${fmtDate(detail.closedAt)} · ${fmtTime(detail.closedAt)} · ${safe(detail.payment)} · Cobrado</p>${detail.lines.map(line=>`<div class="line"><div class="line-main"><strong>${line.qty} × ${safe(line.name)}</strong><strong>${money(lineTotal(line))}</strong></div><div class="line-mods">${lineDetails(line)}</div></div>`).join("")}<div class="ticket-total"><span>TOTAL</span><span>${money(detail.total)}</span></div>${renderHistoryPayments(detail)}</section>`:""}${sharedMode?window.KebbaDeletion?.renderDeleted(historyDate)||"":""}`;
 }
 function renderSettings(){
   const storageHelp=sharedMode
@@ -1242,5 +1242,6 @@ if(typeof navigator!=="undefined"&&"serviceWorker" in navigator&&["https:","http
 <script src="./cash-book-ui.js"></script>
 <script src="./cash.js"></script>
 <script src="./shifts.js"></script>
+<script src="./deletions.js"></script>
 </body>
 </html>
