@@ -57,8 +57,24 @@ El cobro se confirma cuando los importes suman exactamente el total y los medios
 
 La pantalla de cobro muestra tarjetas de pagos y mantiene el total y la confirmación visibles. En laptop entran cuatro pagos juntos; las listas grandes de productos o personas usan botones **← / →** para pasar de página sin scroll. El celular muestra una persona por página. Los respaldos anteriores siguen siendo compatibles. Al publicar la actualización, recargá todos los dispositivos antes de registrar pagos por importes.
 
+## Excel detallado del historial
+
+En **Historial → Exportar Excel detallado**, elegí el **día seleccionado** o un **rango de fechas**. El rango incluye los dos días completos y usa la fecha de cierre de cada venta. Los pedidos que siguen abiertos no se exportan.
+
+El archivo `.xlsx` contiene:
+
+- **Resumen:** ventas a clientes y al personal, cantidad de ventas, ticket promedio, unidades de productos a clientes, cobros por medio de pago, ventas por fecha y productos vendidos. Las propinas tienen totales separados en UYU y BRL.
+- **Ventas:** una fila por venta, con mesa o pedido, nombre, fechas y horas de apertura, Cocina y cierre, importe, tipo de reparto, medios de pago y diferencia entre venta y pagos.
+- **Productos:** una fila por línea, con cantidades, precios base, adicionales, precio final, total, opciones, combos, observaciones y reparto por persona. Usa los precios guardados en la venta, aunque después cambie la carta. Las ventas al personal conservan su detalle manual.
+- **Pagos:** una fila por persona y medio de pago, con su parte del total en UYU, moneda e importe cobrado, efectivo recibido, cambio, productos asignados y tasa de Pix guardada. El reparto por importes se identifica sin inventar productos asignados.
+- **Propinas:** fecha, hora, moneda, importe y detalle de cada registro del período. Se mantienen aparte de ventas y Caja.
+
+Las hojas de detalle tienen filtros, encabezados fijos y totales que responden a los filtros. Los números y fechas son datos de Excel. Los cobros antiguos conservan la información disponible; si no guardaron el importe o la tasa de Pix, se indica y no se recalcula con una tasa actual. No se calculan costes ni ganancias.
+
+La exportación se prepara en el dispositivo y funciona sin conexión después de cargar la actualización. **CSV del día** y el respaldo JSON completo siguen disponibles. Para recibir la nueva versión en todos los dispositivos, recargá la app.
+
 ## Pruebas
 
-`node --test tests/kebba.test.cjs tests/cash.test.cjs tests/book.test.cjs`
+`node --test tests/kebba.test.cjs tests/cash.test.cjs tests/book.test.cjs tests/history-excel.test.cjs`
 
 Las pruebas usan almacenamiento, red y un DOM simulados. Cubren pedidos, Cocina, reparto y pagos, errores de guardado, sincronización, conservación del foco, aportes, transferencias, correcciones y exportación del registro. No crean ventas reales ni sustituyen una revisión visual en el navegador.

@@ -37,6 +37,32 @@ function key(app,value,tag='BODY',extra={}){let prevented=false;app.events.keydo
 function type(app,id,value,line){const input={id,value,dataset:line?{line}:{},tagName:id==='line-note'?'TEXTAREA':'INPUT'};app.events.focusin({target:input});app.events.input({target:input});return input;}
 function action(app,name,data={},detail=1){app.run(`handleAction({dataset:${JSON.stringify({action:name,...data})}},{detail:${detail}})`);}
 
+test('Excel del historial elige día o rango y descarga una copia sin modificar ventas',async()=>{
+  const app=boot(),run=app.run;
+  run('historyDate="2026-10-07";openHistoryExport()');
+  assert.match(run('renderHistory()'),/EXPORTAR EXCEL DETALLADO/);
+  assert.equal(run('historyExportFrom'),'2026-10-07');
+  assert.match(run('renderHistoryExport()'),/Día seleccionado/);
+  app.events.change({target:{dataset:{historyExport:'scope'},value:'range'}});
+  app.events.change({target:{dataset:{historyExport:'from'},value:'2026-10-01'}});
+  app.events.change({target:{dataset:{historyExport:'to'},value:'2026-10-07'}});
+  const before=run('JSON.stringify(data)'),writes=app.writes;
+  run('globalThis.exportedSource=null;globalThis.exportedOptions=null;globalThis.downloaded=null;window.KebbaHistoryExcel={createExport:async(source,options)=>{exportedSource=source;exportedOptions=options;return {buffer:"EXCEL",fileName:"historial.xlsx",mime:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}}};download=async(buffer,name,mime)=>{downloaded={buffer,name,mime};return true}');
+  await run('exportHistoryExcel()');
+  assert.equal(run('exportedOptions.from'),'2026-10-01');assert.equal(run('exportedOptions.to'),'2026-10-07');
+  assert.equal(run('downloaded.name'),'historial.xlsx');assert.equal(run('downloaded.buffer'),'EXCEL');
+  assert.equal(run('JSON.stringify(data)'),before);assert.equal(app.writes,writes);
+  assert.equal(run('modal'),null);assert.equal(run('historyExportBusy'),false);
+});
+
+test('el error de exportación conserva el rango y permite reintentar',async()=>{
+  const app=boot(),run=app.run;
+  run('openHistoryExport();historyExportScope="range";historyExportFrom="2026-10-08";historyExportTo="2026-10-07";window.KebbaHistoryExcel={createExport:async()=>{throw Error("La fecha desde debe ser anterior o igual a la fecha hasta.")}}');
+  await run('exportHistoryExcel()');
+  assert.equal(run('modal'),'history-export');assert.equal(run('historyExportFrom'),'2026-10-08');
+  assert.match(run('renderHistoryExport()'),/anterior o igual/);assert.equal(run('historyExportBusy'),false);
+});
+
 test('las mesas admiten una referencia visible y persistente',()=>{
   const app=boot(),run=app.run;
   run('openSlot("m1");addProduct("papas")');

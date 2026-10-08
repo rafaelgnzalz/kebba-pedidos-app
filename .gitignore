@@ -2,6 +2,7 @@
 kebba-respaldo-*.json
 kebba-datos-a-recuperar-*.json
 kebba-dia-*.csv
+kebba-historial-*.xlsx
 kebba-caja-*.json
 kebba-registro-*.csv
 respaldos/
