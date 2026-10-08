@@ -125,9 +125,78 @@ test('los combos de shawarma y kebab se agregan con precio final y contenido par
   assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
 });
 
-test('una cuenta grande se asigna por líneas completas a cuatro personas',()=>{
+test('repetir un producto desde la carta o el teclado suma cantidades y conserva deshacer',()=>{
   const app=boot(),run=app.run;
-  run('openSlot("m1");for(let i=0;i<18;i++)addProduct("papas");startClose();paymentParts=[newPaymentPart(),newPaymentPart(),newPaymentPart(),newPaymentPart()]');
+  run('openSlot("m1")');
+  action(app,'add-product',{product:'shawarma-pollo'});
+  const id=run('current().lines[0].id');
+  action(app,'add-product',{product:'shawarma-pollo'},2);
+  assert.equal(key(app,'Q'),true);
+  assert.equal(run('current().lines.length'),1);
+  assert.equal(run('current().lines[0].id'),id);
+  assert.equal(run('current().lines[0].qty'),3);
+  assert.equal(run('orderTotal(current())'),780);
+  assert.match(run('renderOrder()'),/3 × Shawarma Pollo/);
+  const reopened=boot(app.storage);
+  assert.equal(reopened.run('data.orders.m1.lines.length'),1);
+  assert.equal(reopened.run('data.orders.m1.lines[0].qty'),3);
+  run('undo()');
+  assert.equal(run('current().lines[0].qty'),2);
+  action(app,'qty',{line:id,delta:'-1'});
+  assert.equal(run('current().lines[0].qty'),1);
+  assert.equal(run('orderTotal(current())'),260);
+});
+
+test('cada combo suma sus unidades sin mezclarse con el producto individual',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("shawarma-pollo");addProduct("combo-shawarma-pollo");addProduct("shawarma-pollo");addProduct("combo-shawarma-pollo")');
+  assert.equal(run('current().lines.length'),2);
+  assert.equal(run('current().lines.map(line=>line.qty).join(",")'),'2,2');
+  assert.equal(run('current().lines.map(line=>line.unitPrice).join(",")'),'260,330');
+  assert.equal(run('current().lines[0].mods.length'),0);
+  assert.match(run('lineDetails(current().lines[1])'),/Combo incluido.*Papas fritas \+ Coca-Cola/);
+  assert.equal(run('orderTotal(current())'),1180);
+  run('addProduct("shawarma-carne");addProduct("shawarma-carne")');
+  assert.equal(run('current().lines.length'),3);
+  assert.equal(run('current().lines[2].qty'),2);
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+});
+
+test('los pedidos anteriores conservan sus combos, observaciones y precios al sumar productos',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("shawarma-pollo");toggleMod(current().lines[0].id,"hacer-combo");addProduct("shawarma-pollo");modifyLine(current().lines[1].id,line=>line.note="Sin salsa");addProduct("shawarma-pollo");addProduct("shawarma-pollo")');
+  assert.equal(run('current().lines.length'),3);
+  assert.equal(run('current().lines.map(line=>line.qty).join(",")'),'1,1,2');
+  assert.equal(run('current().lines[0].mods[0].id'),'hacer-combo');
+  assert.equal(run('current().lines[1].note'),'Sin salsa');
+  run('data.catalog.find(product=>product.id==="shawarma-pollo").precio=270;addProduct("shawarma-pollo");addProduct("shawarma-pollo")');
+  assert.equal(run('current().lines.length'),4);
+  assert.equal(run('current().lines[2].unitPrice'),260);
+  assert.equal(run('current().lines[2].qty'),2);
+  assert.equal(run('current().lines[3].unitPrice'),270);
+  assert.equal(run('current().lines[3].qty'),2);
+});
+
+test('sumar un producto enviado conserva la línea y avisa la cantidad corregida a Cocina',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("shawarma-pollo");sendKitchen();markReady("m1")');
+  const id=run('current().lines[0].id');
+  run('addProduct("shawarma-pollo")');
+  assert.equal(run('current().lines.length'),1);
+  assert.equal(run('current().lines[0].id'),id);
+  assert.equal(run('current().lines[0].qty'),2);
+  assert.equal(run('current().status'),'EN COCINA');
+  assert.equal(run('current().kitchenEvents.at(-1).kind'),'MODIFICADO');
+  assert.equal(run('current().kitchenEvents.at(-1).before.qty'),1);
+  assert.equal(run('current().kitchenEvents.at(-1).after.qty'),2);
+  run('undo()');
+  assert.equal(run('current().lines[0].qty'),1);
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+});
+
+test('una cuenta con muchas líneas separadas se asigna a cuatro personas',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");for(let i=0;i<18;i++)addProduct("papas");for(let i=0;i<17;i++)splitLine(current().lines[0].id);startClose();paymentParts=[newPaymentPart(),newPaymentPart(),newPaymentPart(),newPaymentPart()]');
   const initial=run('renderPaymentAllocation(current())');
   assert.match(initial,/data-action="payment-page"/);
   const reachable=new Set();
@@ -157,7 +226,8 @@ test('el reparto agrupa kebabs, shawarmas y acompañamientos antes del resto',()
 
 test('dos unidades iguales pueden pagarlas personas distintas',()=>{
   const app=boot(),run=app.run;
-  run('openSlot("p0");addProduct("papas");changeQty(current().lines[0].id,1);sendKitchen();markReady("p0");startClose();paymentParts=[newPaymentPart(),newPaymentPart()]');
+  run('openSlot("p0");addProduct("papas");addProduct("papas");sendKitchen();markReady("p0");startClose();paymentParts=[newPaymentPart(),newPaymentPart()]');
+  assert.equal(run('current().lines.length'),1);
   run('assignPaymentUnit(current().lines[0].id,0,1);assignPaymentUnit(current().lines[0].id,1,1);paymentParts[0].method="Transferencia";paymentParts[1].method="Efectivo";paymentParts[1].cashReceived="200"');
   assert.equal(run('paymentStatus(current()).valid'),true);
   run('confirmClose()');
@@ -366,8 +436,9 @@ test('un fallo de guardado no agrega productos ni consume deshacer',()=>{
   const app=boot(),run=app.run;
   run('openSlot("m1");addProduct("papas")');
   app.failWrites=true;
-  run('addProduct("boniato")');
+  run('addProduct("boniato");addProduct("papas")');
   assert.equal(run('current().lines.length'),1);
+  assert.equal(run('current().lines[0].qty'),1);
   assert.equal(run('stackFor(current()).length'),1);
   run('undo()');
   assert.equal(run('current().lines.length'),1);
