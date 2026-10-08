@@ -89,7 +89,10 @@ function kebbaSync_() {
         const first=seen.lastData+1,last=first+missing.length-1;kebbaCapacidad_(book,sheet,last);
         sheet.getRange(first,1,missing.length,11).setValues(missing);
         sheet.getRange(first,10,missing.length,1).setFormulas(missing.map((_,i)=>[kebbaCuentaFormula_(first+i,separator)]));
-        sheet.getRange(first,1,missing.length,1).setNumberFormat('dd/mm/yyyy');sheet.getRange(first,3,missing.length,2).setNumberFormat('dd/mm/yyyy hh:mm');sheet.getRange(first,7,missing.length,2).setNumberFormat('#,##0.00');
+        sheet.getRange(first,1,missing.length,1).setNumberFormat('dd/mm/yyyy');
+        // Las tablas nativas exigen formatear una columna por llamada.
+        for(const column of [3,4])sheet.getRange(first,column,missing.length,1).setNumberFormat('dd/mm/yyyy hh:mm');
+        for(const column of [7,8])sheet.getRange(first,column,missing.length,1).setNumberFormat('#,##0.00');
       }
       SpreadsheetApp.flush();seen=kebbaIndices_(sheet);
       for(const row of expected){

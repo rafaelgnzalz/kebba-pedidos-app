@@ -45,3 +45,9 @@ test('una revisión nueva vacía quita una fila que el usuario ya había borrado
  assert.equal(a.data.get('7,11'),undefined);assert.equal(a.data.get('8,11'),undefined);
  assert.deepEqual(a.acks.at(-1).row_ids,[]);
 });
+
+test('el formato de un cierre respeta la restricción de una columna por llamada en tablas nativas',()=>{
+ const a=boot(),original=a.sheet.getRange;
+ a.sheet.getRange=(r,c,n,m)=>{const range=original(r,c,n,m);range.setNumberFormat=()=>{assert.equal(m,1);return range;};return range;};
+ a.failAck=false;a.run('sincronizarKebba()');assert.equal(a.acks.length,1);
+});
