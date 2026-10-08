@@ -9,6 +9,15 @@ const path=require('node:path');
 const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
 const source=html.slice(html.indexOf('<script>')+8,html.indexOf('</script>'));
 const KEY='kebba-pedidos-v1';
+test('cobros normales y al personal conservan su turno después de recuperar el respaldo',()=>{
+  const app=boot(),run=app.run;
+  run('window.KebbaShifts={canCharge:()=>true,receiptTag:()=>({shiftId:"11111111-1111-4111-8111-111111111111"}),banner:()=>""};openSlot("m1");addProduct("papas");startClose();paymentParts[0].method="Pix";confirmClose();staffDraft={...emptyStaffDraft(),amount:"50",detail:"Cena",method:"PREX"};registerStaffSale()');
+  assert.equal(run('data.history.length'),2);
+  assert.equal(run('data.history.every(s=>s.shiftId==="11111111-1111-4111-8111-111111111111")'),true);
+  const restored=boot(app.storage);assert.equal(restored.run('data.history[1].shiftId'),'11111111-1111-4111-8111-111111111111');
+  run('window.KebbaShifts.canCharge=()=>false;openSlot("m2");addProduct("papas");startClose();staffDraft={...emptyStaffDraft(),amount:"50",detail:"Cena"};registerStaffSale()');
+  assert.equal(run('data.history.length'),2);assert.equal(run('modal'),null);
+});
 function boot(storage=new Map()){
   const nodes=new Map(),events={},windowEvents={},intervals=[],downloads=[];
   let writes=0,failWrites=false,confirmation=true;
