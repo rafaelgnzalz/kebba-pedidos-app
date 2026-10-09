@@ -421,9 +421,19 @@ async function sharedRpc(name,body){
   try{
     const response=await fetch(`${SHARED_CONFIG.url}/rest/v1/rpc/${name}`,{method:"POST",headers:{apikey:SHARED_CONFIG.publishableKey,"Content-Type":"application/json"},body:JSON.stringify(body),signal:controller.signal});
     const payload=await response.json().catch(()=>null);
-    if(!response.ok){const error=Error(payload?.message||`Error de conexión (${response.status})`);error.status=response.status;throw error;}
+    if(!response.ok){const error=Error(payload?.message||`Error de conexión (${response.status})`);error.status=response.status;error.code=payload?.code;throw error;}
     return payload;
   }finally{clearTimeout(timeout);}
+}
+// Mantiene la compatibilidad si el servidor todavía no tiene las lecturas pequeñas.
+const sharedLegacyReads=new Set();
+async function sharedRead(name,body,known){
+  if(sharedLegacyReads.has(name))return sharedRpc(name,body);
+  try{return await sharedRpc(`${name}_if_changed`,{...body,...known});}
+  catch(error){
+    if(error.code!=="PGRST202")throw error;
+    sharedLegacyReads.add(name);return sharedRpc(name,body);
+  }
 }
 function applySharedState(snapshot){
   data=validateImport(deepCopy(snapshot.state));sharedVersion=snapshot.version;sharedReady=true;
@@ -474,8 +484,13 @@ async function refreshShared(){
   if(sharedReading||busy())return;
   const readVersion=sharedVersion,readState=data;sharedReading=true;
   try{
-    const snapshot=await sharedRpc("kebba_read",{access_token:sharedToken});
+    const snapshot=await sharedRead("kebba_read",{access_token:sharedToken},{known_version:sharedReady?readVersion:null});
     if(busy()||sharedVersion!==readVersion||data!==readState)return;
+    if(snapshot?.unchanged===true){
+      if(!sharedReady||snapshot.version!==readVersion)throw Error("No pudimos comprobar los pedidos. Reintentá.");
+      if(readBlocked){readBlocked=false;storageWarning="";renderStorage();}
+      return;
+    }
     if(snapshot.state===null){
       const initial=emptyData();
       const created=await sharedRpc("kebba_write",{access_token:sharedToken,expected_version:snapshot.version,next_state:initial});
@@ -1233,7 +1248,7 @@ window.addEventListener("resize",()=>{if(modal==="payment")renderModal();});
 setInterval(()=>document.querySelectorAll("[data-elapsed]").forEach(el=>{el.textContent=elapsed(Number(el.dataset.elapsed));}),15000);
 if(!sharedMode&&!readBlocked){const upgraded=withLatestCatalog(data);if(upgraded)commitData(upgraded);}
 render();
-if(sharedMode){void refreshShared();setInterval(()=>void refreshShared(),1800);window.addEventListener("focus",()=>void refreshShared());}
+if(sharedMode){void refreshShared();setInterval(()=>{if(document.visibilityState!=="hidden")void refreshShared();},1800);window.addEventListener("focus",()=>void refreshShared());document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="hidden")void refreshShared();});}
 if(typeof navigator!=="undefined"&&"serviceWorker" in navigator&&["https:","http:"].includes(window.location.protocol))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 
 </script>

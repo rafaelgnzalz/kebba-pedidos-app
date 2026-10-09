@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const STORE='kebba-delete-pending-v1';
-  let deleted=[],ready=false,loading=false,busy=false,pending=null,error='';
+  let deleted=[],ready=false,loading=false,busy=false,pending=null,error='',fingerprint=null;
   try{pending=JSON.parse(sessionStorage.getItem(STORE)||'null');}catch{}
   const rerender=()=>{if(['history','shifts','staff'].includes(view)&&!modal)render();};
   function clear(){pending=null;try{sessionStorage.removeItem(STORE);}catch{}}
@@ -10,10 +10,14 @@
     if(!sharedMode||!sharedReady||loading||busy)return;
     loading=true;
     try{
-      const result=await sharedRpc('kebba_deleted_sales',{access_token:sharedToken});
+      const result=await sharedRead('kebba_deleted_sales',{access_token:sharedToken},{known_fingerprint:ready?fingerprint:null});
+      if(result?.unchanged===true){
+        if(!ready||!fingerprint||result.fingerprint!==fingerprint)throw Error('No pudimos comprobar los pedidos eliminados.');
+        const changed=!!error;error='';if(changed)rerender();return;
+      }
       if(!Array.isArray(result.sales))throw Error('No pudimos leer los pedidos eliminados.');
       const changed=!ready||error||JSON.stringify(deleted)!==JSON.stringify(result.sales);
-      deleted=result.sales;ready=true;error='';if(changed)rerender();
+      deleted=result.sales;fingerprint=result.fingerprint||null;ready=true;error='';if(changed)rerender();
     }catch(e){error=e.message;ready=false;rerender();}finally{loading=false;}
   }
   async function durable(){
@@ -66,5 +70,5 @@
     else if(el.hasAttribute('data-delete-refresh'))void refresh();
     else void command(el.dataset.deleteKind,el.dataset.deleteAction,el.dataset.deleteTarget,el.dataset.deleteLabel);
   });
-  setInterval(()=>void refresh(),4000);window.addEventListener('focus',()=>void refresh());void refresh();
+  setInterval(()=>{if(document.visibilityState!=='hidden')void refresh();},4000);window.addEventListener('focus',()=>void refresh());document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='hidden')void refresh();});void refresh();
 })();

@@ -76,6 +76,8 @@ La exportación se prepara en el dispositivo y funciona sin conexión después d
 
 ## Pruebas
 
+La sincronización usa [lecturas pequeñas](docs/lecturas-ligeras.md) cuando no cambian los datos y se actualiza al volver a una pestaña que estaba oculta. Después de publicar una versión, recargá cada dispositivo cuando termine de guardar para recibir la mejora.
+
 `node --test tests/kebba.test.cjs tests/cash.test.cjs tests/book.test.cjs tests/history-excel.test.cjs`
 
 Las pruebas usan almacenamiento, red y un DOM simulados. Cubren pedidos, Cocina, reparto y pagos, errores de guardado, sincronización, conservación del foco, aportes, transferencias, correcciones y exportación del registro. No crean ventas reales ni sustituyen una revisión visual en el navegador.

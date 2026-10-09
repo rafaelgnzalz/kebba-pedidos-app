@@ -46,6 +46,46 @@ function key(app,value,tag='BODY',extra={}){let prevented=false;app.events.keydo
 function type(app,id,value,line){const input={id,value,dataset:line?{line}:{},tagName:id==='line-note'?'TEXTAREA':'INPUT'};app.events.focusin({target:input});app.events.input({target:input});return input;}
 function action(app,name,data={},detail=1){app.run(`handleAction({dataset:${JSON.stringify({action:name,...data})}},{detail:${detail}})`);}
 
+test('dos dispositivos reciben cambios sin volver a descargar el historial cuando no cambia',async()=>{
+ const a=boot(),b=boot();a.run('openSlot("m1");addProduct("papas");sendKitchen();markReady("m1");startClose();paymentParts[0].method="PREX";confirmClose()');
+ const state=JSON.parse(a.run('JSON.stringify(data)'));let server={version:12,state},bytes=0,calls=0;
+ for(const app of [a,b])app.run('sharedToken="fixture"');
+ function connect(app){const rpc=async(name,body)=>{
+   assert.equal(name,'kebba_read_if_changed');calls++;
+   const response=body.known_version===server.version?{version:server.version,unchanged:true}:server;
+   bytes+=Buffer.byteLength(JSON.stringify(response));return JSON.parse(JSON.stringify(response));
+ };app.run('globalThis.installRpc=fn=>{sharedRpc=fn}');app.run('installRpc')(rpc);}
+ connect(a);connect(b);await a.run('refreshShared()');await b.run('refreshShared()');
+ const initialBytes=bytes;await a.run('refreshShared()');await b.run('refreshShared()');
+ assert.ok(bytes-initialBytes<100);assert.equal(calls,4);assert.equal(b.run('data.history[0].total'),100);
+ server={version:13,state:{...state,settings:{...state.settings,cantidadMesas:8}}};
+ await b.run('refreshShared()');assert.equal(b.run('sharedVersion'),13);assert.equal(b.run('data.history.length'),1);
+});
+
+test('sin cambios conserva el foco y deshacer, y confirma la reconexión',async()=>{
+ const a=boot(),run=a.run;run('openSlot("m1");addProduct("papas");sharedReady=true;sharedVersion=8;readBlocked=true;storageWarning="Sin conexión";globalThis.beforeData=data;globalThis.beforeUndo=stackFor(current()).length;document.activeElement={id:"qty-button",dataset:{}};sharedRpc=async()=>({version:8,unchanged:true})');
+ await run('refreshShared()');assert.equal(run('data===beforeData'),true);assert.equal(run('stackFor(current()).length'),run('beforeUndo'));assert.equal(run('document.activeElement.id'),'qty-button');assert.equal(run('readBlocked'),false);
+});
+
+test('respuesta pequeña inválida bloquea edición y no inicializa ni borra pedidos',async()=>{
+ const a=boot(),run=a.run;run('openSlot("m1");addProduct("papas");globalThis.writes=0;sharedRpc=async(name)=>{if(name==="kebba_write")writes++;return {version:9,unchanged:true}}');
+ await run('refreshShared()');assert.equal(run('writes'),0);assert.equal(run('data.orders.m1.lines.length'),1);assert.equal(run('readBlocked'),true);
+ run('sharedReady=true;sharedVersion=8');await run('refreshShared()');assert.equal(run('readBlocked'),true);assert.equal(run('sharedVersion'),8);
+});
+
+test('servidor anterior tiene compatibilidad y un error real no usa otra lectura',async()=>{
+ const a=boot(),run=a.run;run('globalThis.requests=[];sharedRpc=async(name)=>{requests.push(name);if(name.endsWith("_if_changed")){const e=Error("No function");e.code="PGRST202";throw e;}return {version:1,state:emptyData()}}');
+ await run('refreshShared()');await run('refreshShared()');assert.equal(run('requests.join(",")'),'kebba_read_if_changed,kebba_read,kebba_read');
+ const b=boot();b.run('globalThis.calls=0;sharedRpc=async()=>{calls++;const e=Error("Restringido");e.status=402;throw e}');await b.run('refreshShared()');assert.equal(b.run('calls'),1);assert.equal(b.run('readBlocked'),true);
+});
+
+test('la consulta automática se pausa al ocultar la página y vuelve inmediatamente al mostrarla',async()=>{
+ const a=boot(new Map([['kebba-shared-token-v1','a'.repeat(64)]]));await new Promise(resolve=>setImmediate(resolve));
+ a.run('sharedReady=true;sharedVersion=7;readBlocked=false;globalThis.reads=0;sharedRpc=async()=>{reads++;return {version:7,unchanged:true}};document.visibilityState="hidden"');
+ a.intervals.at(-1)();await new Promise(resolve=>setImmediate(resolve));assert.equal(a.run('reads'),0);
+ a.run('document.visibilityState="visible"');a.events.visibilitychange();await new Promise(resolve=>setImmediate(resolve));assert.equal(a.run('reads'),1);assert.equal(a.run('readBlocked'),false);
+});
+
 test('Excel del historial elige día o rango y descarga una copia sin modificar ventas',async()=>{
   const app=boot(),run=app.run;
   run('historyDate="2026-10-07";openHistoryExport()');

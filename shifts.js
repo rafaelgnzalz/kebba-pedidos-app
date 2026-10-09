@@ -2,7 +2,7 @@
 (() => {
   "use strict";
   const STORE="kebba-shift-pending-v1";
-  let snapshot={active:null,closed:[],connection:null,enabled:false},ready=false,loading=false,busy=false,error="",pending=null;
+  let snapshot={active:null,closed:[],connection:null,enabled:false},ready=false,loading=false,busy=false,error="",pending=null,fingerprint=null;
   try{pending=JSON.parse(sessionStorage.getItem(STORE)||"null");}catch{}
   const datetime=value=>new Date(value).toLocaleString("es-UY",{dateStyle:"short",timeStyle:"short"});
   const nativeMoney=p=>p.amountMinor===null?"Importe pendiente":(p.currency==="BRL"?"R$ ":"$ ")+(Number(p.amountMinor)/100).toLocaleString("es-UY",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -20,7 +20,13 @@
   async function refresh(){
     if(!sharedMode||!sharedReady||loading||busy)return;
     loading=true;let changed=false;
-    try{changed=apply(await sharedRpc("kebba_shift_read",{access_token:sharedToken}));}
+    try{
+      const result=await sharedRead("kebba_shift_read",{access_token:sharedToken},{known_fingerprint:ready?fingerprint:null});
+      if(result?.unchanged===true){
+        if(!ready||!fingerprint||result.fingerprint!==fingerprint)throw Error("No pudimos comprobar el turno. Reintentá.");
+        changed=!!error;error="";
+      }else{changed=apply(result);fingerprint=result.fingerprint||null;}
+    }
     catch(e){changed=true;ready=false;error=e.message;}
     finally{loading=false;if(changed)rerender();}
   }
@@ -80,7 +86,8 @@
   }
   window.KebbaShifts={refresh,render:renderShift,banner,canCharge,receiptTag:()=>snapshot.active?{shiftId:snapshot.active.id}:{}};
   document.addEventListener("click",event=>{const button=event.target.closest?.("[data-shift-action]");if(!button||button.disabled)return;const kind=button.dataset.shiftAction;if(kind==="refresh")void refresh();else void action(kind);});
-  setInterval(()=>void refresh(),4000);
+  setInterval(()=>{if(document.visibilityState!=="hidden")void refresh();},4000);
   window.addEventListener("focus",()=>void refresh());
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="hidden")void refresh();});
   void refresh();
 })();
