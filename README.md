@@ -56,7 +56,9 @@ En **Por importes**, ingresá cuánto paga cada persona en pesos uruguayos enter
 
 El cobro se confirma cuando los importes suman exactamente el total y los medios de pago están completos. En BRL se sigue ingresando el precio acordado manualmente; Pix conserva su conversión habitual. El historial, el CSV y los respaldos guardan el importe, el método y el cambio de cada persona. Caja sigue contando una sola venta con sus distintos medios de pago, y las propinas continúan aparte.
 
-La pantalla de cobro muestra tarjetas de pagos y mantiene el total y la confirmación visibles. En laptop entran cuatro pagos juntos; las listas grandes de productos o personas usan botones **← / →** para pasar de página sin scroll. El celular muestra una persona por página. Los respaldos anteriores siguen siendo compatibles. Al publicar la actualización, recargá todos los dispositivos antes de registrar pagos por importes.
+En **Por productos**, todas las líneas del pedido se muestran juntas, incluidas las que ya se asignaron. La grilla ajusta columnas y espacio de las tarjetas para aprovechar la pantalla de la laptop, sin páginas de productos ni filtro de pendientes. Conserva nombres, cantidades y observaciones, y permite corregir el reparto con **−**, **+**, **Resto** y **Deshacer reparto**. Si una cuenta excepcional supera el espacio de la ventana, muestra un aviso para ampliarla o usar **F11** y conserva acceso a todas las líneas.
+
+La pantalla de cobro mantiene el total y la confirmación visibles. En laptop entran cuatro pagos juntos; las personas adicionales usan botones **← / →**. El celular muestra una persona por página. Los respaldos anteriores siguen siendo compatibles. Después de publicar una actualización, esperá a terminar cualquier guardado y recargá los dispositivos.
 
 ## Excel detallado del historial
 

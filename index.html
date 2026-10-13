@@ -79,7 +79,7 @@ button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{co
 </style>
 <style>.shift-banner,.shift-total,.shift-status{color:#19252c}.shift-total strong{color:#19252c}.shift-meta,.shift-empty{color:#b9b9ad}.shift-total small{color:#596572}.view-shifts .cash-panel>a,.view-shifts .cash-panel>a:visited{color:#ffd09d;font-weight:800}.view-shifts .cash-panel>a:focus-visible{outline:3px solid var(--focus);outline-offset:4px}</style>
 <style>
-/* Cobro completo dentro de la pantalla; las listas grandes se recorren por páginas. */
+/* Cobro dentro de la pantalla; los productos del reparto se muestran juntos. */
 .payment-modal{width:min(1500px,calc(100vw - 24px));height:calc(100dvh - 24px);max-height:calc(100dvh - 24px);padding:12px;gap:7px;overflow:hidden}
 .payment-heading h2{font-size:1.15rem}.payment-totals{display:flex;align-items:center;gap:14px;font-size:.82rem;color:var(--muted)}.payment-heading .payment-totals strong{font-size:.9rem;white-space:nowrap;color:var(--text)}.payment-heading .payment-totals>strong{color:#ffafa3}.payment-heading .payment-totals .complete{color:#a8f2c9}
 .payment-tools{gap:5px;flex-wrap:wrap}.payment-tools button{min-height:36px;padding:6px 10px;font-size:.8rem;border:1px solid var(--line)}.payment-tools button.active{background:var(--orange);color:#16110d;border-color:var(--orange)}.payment-steps button{min-height:34px;padding:5px;font-size:.82rem}
@@ -123,6 +123,54 @@ button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{co
 @media(min-width:1101px) and (max-width:1450px){.topbar>.subtle{display:none}}
 
 .shift-banner{margin-bottom:12px;background:#fff5dc;border:1px solid #dfb860;border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}.shift-banner.open{background:#e8f4ec;border-color:#99c7a5}.shift-banner button{white-space:nowrap}.shift-totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0}.shift-total{background:#f5f7f9;border:1px solid #dce2e8;border-radius:12px;padding:16px}.shift-total strong{display:block;font-size:26px;margin:8px 0}.shift-total small{color:#596572}.shift-closed{margin-top:16px}.shift-status{display:inline-block;border-radius:20px;background:#fff1cf;padding:5px 12px;font-size:14px}.shift-status.sent{background:#e6f4e9}.shift-meta{color:#596572;line-height:1.7}.shift-summary{font-size:22px;font-weight:700}.shift-empty{padding:18px 0;color:#596572}.view-shifts .cash-panel{margin-bottom:16px}
+</style>
+<style>
+/* El reparto aprovecha el espacio disponible sin esconder productos asignados. */
+.payment-modal .allocation-grid{align-content:start;grid-auto-rows:max-content;overflow:visible}
+.allocation-grid .allocation-line{min-height:0;align-self:start}
+.allocation-grid .allocation-title strong{display:block;-webkit-line-clamp:unset;overflow:visible;overflow-wrap:anywhere}
+.allocation-grid .allocation-title span{white-space:nowrap}
+.allocation-grid .allocation-line small{max-height:none;white-space:normal;overflow:visible;overflow-wrap:anywhere}
+.allocation-grid .allocation-compact,.allocation-grid .allocation-assigned{flex-wrap:wrap;overflow:visible}
+.allocation-grid .allocation-assigned>span{max-width:none;white-space:normal;overflow:visible;overflow-wrap:anywhere}
+.allocation-grid[data-density="compact"],.allocation-grid[data-density="dense"]{gap:5px}
+.allocation-grid[data-density="compact"] .allocation-line,.allocation-grid[data-density="dense"] .allocation-line{padding:6px;gap:3px}
+.allocation-grid[data-density="compact"] .allocation-actions,.allocation-grid[data-density="dense"] .allocation-actions{margin-top:0}
+.allocation-grid[data-density="compact"] .allocation-actions,.allocation-grid[data-density="dense"] .allocation-actions{grid-template-columns:32px minmax(28px,1fr) 32px;gap:4px}
+.allocation-grid[data-density="compact"] .allocation-actions.has-rest,.allocation-grid[data-density="dense"] .allocation-actions.has-rest{grid-template-columns:32px minmax(28px,.6fr) 32px minmax(74px,1.4fr)}
+.allocation-grid[data-density="compact"] .allocation-actions .allocation-rest,.allocation-grid[data-density="dense"] .allocation-actions .allocation-rest{grid-column:auto;font-size:.72rem;min-height:32px;padding:4px}
+.allocation-grid[data-density="compact"] .allocation-actions button,.allocation-grid[data-density="dense"] .allocation-actions button{min-height:32px}
+.allocation-grid[data-density="compact"] .allocation-mine,.allocation-grid[data-density="dense"] .allocation-mine{font-size:.65rem}
+.allocation-grid[data-density="compact"] .allocation-mine strong,.allocation-grid[data-density="dense"] .allocation-mine strong{font-size:.85rem}
+.allocation-grid[data-density="compact"] .allocation-compact,.allocation-grid[data-density="dense"] .allocation-compact{margin:0;gap:4px}
+.allocation-grid[data-density="dense"] .allocation-group,.allocation-grid[data-density="dense"] .allocation-assigned{display:none}
+.allocation-grid[data-density="dense"] .allocation-combo-details{display:none}
+.allocation-grid[data-density="dense"] .allocation-line{padding:4px;gap:3px}
+.allocation-grid[data-density="dense"] .allocation-title span{display:none}
+.allocation-grid[data-density="dense"] .allocation-actions{grid-template-columns:32px minmax(20px,1fr) 32px}
+.allocation-grid[data-density="dense"] .allocation-actions.has-rest{grid-template-columns:32px minmax(20px,.6fr) 32px minmax(64px,1.4fr)}
+.allocation-grid[data-density="dense"] .allocation-actions button{padding:2px;line-height:1.2}
+.allocation-grid[data-density="dense"] .allocation-line:has(.allocation-rest) .allocation-compact{display:none}
+.allocation-grid[data-density="dense"] .allocation-title strong{font-size:.78rem}
+.allocation-grid[data-density="dense"] .allocation-title span{font-size:.7rem}
+.allocation-grid[data-density="dense"] .allocation-mine-label{display:none}
+.allocation-space-note{display:none;margin:0;color:var(--muted);font-size:.75rem}
+.payment-modal .payment-allocation.needs-space .allocation-space-note{display:block}
+.payment-modal .payment-allocation.needs-space .allocation-grid{overflow:auto;overscroll-behavior:contain}
+@media(min-width:760px){
+  .payment-modal .payment-person-tabs:has(>button:nth-child(5)){grid-template-columns:repeat(8,minmax(0,1fr))}
+  .payment-modal .payment-allocation{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr);align-content:stretch}
+  .payment-allocation .payment-person-editor{grid-column:1;grid-row:1}
+  .payment-allocation .payment-person-editor>div{display:flex;align-items:center;gap:7px}
+  .payment-allocation .payment-person-editor label{white-space:nowrap;margin:0}
+  .payment-allocation .payment-person-editor input{min-width:0;flex:1}
+  .payment-allocation .payment-assign-tools{grid-column:2;grid-row:1}
+  .payment-allocation .payment-all-done{display:none}
+  .payment-allocation .allocation-grid{grid-column:1/-1;grid-row:2}
+  .payment-allocation.needs-space{grid-template-rows:auto auto minmax(0,1fr)}
+  .payment-allocation.needs-space .allocation-space-note{grid-column:1/-1;grid-row:2}
+  .payment-allocation.needs-space .allocation-grid{grid-row:3}
+}
 </style>
 </head>
 <body>
@@ -375,10 +423,10 @@ function loadData(){
   try{savedRaw=localStorage.getItem(CONFIG.almacenamiento);return savedRaw?validateImport(JSON.parse(savedRaw)):emptyData();}
   catch{recoveryRaw=savedRaw;readBlocked=!!savedRaw;storageWarning=readBlocked?"No pudimos leer los datos guardados. Se conservaron sin cambios. Importá un respaldo desde Configuración para recuperarlos.":"El navegador no permite guardar. Exportá un respaldo antes de salir y revisá su configuración.";return emptyData();}
 }
-let data=loadData(),view="home",homeGroup="m",kitchenGroup="pending",selectedSlot=null,selectedLine=null,mobileOrderPane="menu",selectedMenuSection="Comida",selectedMenuCategory="Shawarmas",modal=null,paymentParts=[],selectedPaymentPart=0,showAssignedPaymentLines=false,historyDetail=null,historyDate=dayKey(now()),toastTimer=null;
+let data=loadData(),view="home",homeGroup="m",kitchenGroup="pending",selectedSlot=null,selectedLine=null,mobileOrderPane="menu",selectedMenuSection="Comida",selectedMenuCategory="Shawarmas",modal=null,paymentParts=[],selectedPaymentPart=0,historyDetail=null,historyDate=dayKey(now()),toastTimer=null;
 let historyExportScope="day",historyExportFrom=historyDate,historyExportTo=historyDate,historyExportError="",historyExportBusy=false;
 let focusBeforeModal=null,inputSession=null,lastActivation={key:"",at:0},lastOpenNumber=null;
-let paymentStep="assign",paymentUndo=[],paymentMode="products",paymentProductPage=0,paymentPeoplePage=0,paymentAmountSession=null;
+let paymentStep="assign",paymentUndo=[],paymentMode="products",paymentPeoplePage=0,paymentAmountSession=null;
 const emptyStaffDraft=()=>({name:"",detail:"",amount:"",method:"Efectivo",cashReceived:"",brlCharged:"",brlReceived:""});
 let staffDraft=emptyStaffDraft(),staffDate=dayKey(now()),staffError="";
 const emptyTipDraft=()=>({amount:"",currency:"UYU",note:""});
@@ -619,13 +667,13 @@ function kitchenNotice(target,order,reason){
 }
 function deleteOrder(){const order=current();if(!order||!canEdit())return;const warning=order.sentAt?"\n\nYa fue enviado a Cocina. El cocinero verá un aviso de cancelación.":"";if(!confirm(`¿Seguro que querés eliminar el pedido completo de ${slotLabel(selectedSlot)}?${warning}`))return;const next=deepCopy(data);if(order.sentAt)kitchenNotice(next,order,"PEDIDO CANCELADO");delete next.orders[selectedSlot];if(!commitData(next))return;undoStacks.delete(order.number);selectedSlot=null;go("home");toast("Pedido eliminado. El número no se reutiliza.");}
 function openModal(type){focusBeforeModal=document.activeElement;modal=type;renderModal();}
-function closeModal(){modal=null;paymentParts=[];selectedPaymentPart=0;showAssignedPaymentLines=true;paymentUndo=[];paymentStep="assign";paymentMode="products";paymentAmountSession=null;renderModal();focusBeforeModal?.focus?.();}
+function closeModal(){modal=null;paymentParts=[];selectedPaymentPart=0;paymentUndo=[];paymentStep="assign";paymentMode="products";paymentAmountSession=null;renderModal();focusBeforeModal?.focus?.();}
 function newPaymentPart(assigned={}){return {id:uid(),name:"",method:"",assigned,amount:"",cashReceived:"",brlCharged:"",brlReceived:""};}
 function startClose(){
   if(window.KebbaShifts&&!window.KebbaShifts.canCharge())return;
   const order=current();if(!order?.lines.length){toast("Un pedido vacío no se puede cobrar.",true);return;}
   paymentParts=[newPaymentPart(Object.fromEntries(order.lines.map(line=>[line.id,line.qty])))];
-  selectedPaymentPart=0;showAssignedPaymentLines=true;paymentUndo=[];paymentStep="assign";paymentMode="products";paymentProductPage=0;paymentPeoplePage=0;paymentAmountSession=null;
+  selectedPaymentPart=0;paymentUndo=[];paymentStep="assign";paymentMode="products";paymentPeoplePage=0;paymentAmountSession=null;
   clearTimeout(toastTimer);$("#toast").classList.add("hidden");
   openModal("payment");
 }
@@ -643,7 +691,7 @@ function setPaymentMode(mode){
   }else if(paymentMode!==mode){
     paymentParts=paymentParts.map(part=>({...part,amount:mode==="amounts"?String(partAmount(part,current())||""):"",assigned:{},cashReceived:"",brlCharged:"",brlReceived:""}));paymentMode=mode;
   }
-  selectedPaymentPart=0;showAssignedPaymentLines=true;paymentStep=mode==="amounts"?"pay":"assign";paymentProductPage=0;paymentPeoplePage=0;paymentAmountSession=null;renderModal();
+  selectedPaymentPart=0;paymentStep=mode==="amounts"?"pay":"assign";paymentPeoplePage=0;paymentAmountSession=null;renderModal();
 }
 function assignPaymentBalance(index){
   const order=current(),part=paymentParts[index];if(paymentMode!=="amounts"||!order||!part)return;
@@ -976,22 +1024,40 @@ function paymentSortedLines(lines){
 }
 function paymentPageSizes(){
   const width=window.innerWidth||1366,height=window.innerHeight||768,mobile=width<760;
-  const productColumns=width>=1100?3:width>=850?2:1,productRows=Math.max(1,Math.min(3,Math.floor((height-(mobile?510:560)-(paymentParts.length>4?50:0))/160)));
   const peopleColumns=width>=1200?4:width>=760?2:1,peopleRows=!mobile&&height>=1100?2:1;
-  return {products:productColumns*productRows,people:peopleColumns*peopleRows,productColumns,peopleColumns};
+  return {people:peopleColumns*peopleRows,peopleColumns};
 }
-function paymentPager(kind,page,count,size){
+function paymentPeoplePager(page,count,size){
   const pages=Math.ceil(count/size);if(pages<=1)return "";
-  return '<div class="payment-pager" aria-label="Páginas de '+(kind==='products'?'productos':'personas')+'"><button data-action="payment-page" data-kind="'+kind+'" data-delta="-1" '+(page===0?'disabled':'')+' aria-label="Página anterior">←</button><span>'+(page+1)+' / '+pages+' · '+count+' '+(kind==='products'?'productos':'personas')+'</span><button data-action="payment-page" data-kind="'+kind+'" data-delta="1" '+(page>=pages-1?'disabled':'')+' aria-label="Página siguiente">→</button></div>';
+  return '<div class="payment-pager" aria-label="Páginas de personas"><button data-action="payment-page" data-kind="people" data-delta="-1" '+(page===0?'disabled':'')+' aria-label="Página anterior">←</button><span>'+(page+1)+' / '+pages+' · '+count+' personas</span><button data-action="payment-page" data-kind="people" data-delta="1" '+(page>=pages-1?'disabled':'')+' aria-label="Página siguiente">→</button></div>';
 }
 function renderPaymentAllocation(order){
-  const selected=Math.min(selectedPaymentPart,paymentParts.length-1),pending=order.lines.filter(line=>remainingUnits(line)>0),visible=paymentSortedLines(showAssignedPaymentLines?order.lines:pending),part=paymentParts[selected],sizes=paymentPageSizes();
-  paymentProductPage=Math.min(paymentProductPage,Math.max(0,Math.ceil(visible.length/sizes.products)-1));
-  const page=visible.slice(paymentProductPage*sizes.products,(paymentProductPage+1)*sizes.products);
-  return '<section class="payment-allocation"><div class="payment-person-editor"><div><label for="payer-name-'+selected+'">Nombre o referencia (opcional)</label><input id="payer-name-'+selected+'" data-payer-name="'+selected+'" maxlength="50" value="'+safe(part.name)+'" placeholder="Persona '+(selected+1)+'"></div><button data-action="payment-remove" data-part="'+selected+'" aria-label="Quitar a '+safe(payerName(selected))+'">Quitar persona</button></div><div class="payment-assign-tools"><button data-action="payment-all-remaining" data-part="'+selected+'" '+(pending.length?'':'disabled')+'>Asignar todo lo pendiente</button><button data-action="payment-show-assigned" aria-pressed="'+!showAssignedPaymentLines+'">'+(showAssignedPaymentLines?'Ver solo pendientes':'Ver todos los productos')+'</button><span class="note">+ y −: una unidad</span></div>'+(!pending.length?'<p class="payment-all-done">Todos los productos están asignados. Podés corregir con − y + o continuar al cobro.</p>':'')+'<div class="allocation-grid" style="--product-columns:'+sizes.productColumns+'">'+page.map(({line,category})=>{
+  const selected=Math.min(selectedPaymentPart,paymentParts.length-1),pending=order.lines.filter(line=>remainingUnits(line)>0),visible=paymentSortedLines(order.lines),part=paymentParts[selected];
+  const columns=Math.min(visible.length,(window.innerWidth||1366)>=1100?4:(window.innerWidth||1366)>=760?2:1)||1;
+  return '<section class="payment-allocation"><div class="payment-person-editor"><div><label for="payer-name-'+selected+'">Nombre o referencia (opcional)</label><input id="payer-name-'+selected+'" data-payer-name="'+selected+'" maxlength="50" value="'+safe(part.name)+'" placeholder="Persona '+(selected+1)+'"></div><button data-action="payment-remove" data-part="'+selected+'" aria-label="Quitar a '+safe(payerName(selected))+'">Quitar persona</button></div><div class="payment-assign-tools"><button data-action="payment-all-remaining" data-part="'+selected+'" '+(pending.length?'':'disabled')+'>Asignar todo lo pendiente</button><span class="note">'+visible.length+' '+(visible.length===1?'producto':'productos')+' · + y −: una unidad</span></div>'+(!pending.length?'<p class="payment-all-done">Todos los productos están asignados. Podés corregir con − y + o continuar al cobro.</p>':'')+'<p class="allocation-space-note" role="status">Este pedido necesita más espacio. Usá pantalla completa (F11) o ampliá la ventana para ver más productos juntos.</p><div class="allocation-grid" style="--product-columns:'+columns+'">'+visible.map(({line,category})=>{
     const remaining=remainingUnits(line),mine=part.assigned[line.id]||0;
-    return '<div class="allocation-line '+(mine?'has-mine':'')+'"><h4 class="allocation-group">'+safe(category)+'</h4><div class="allocation-title"><strong>'+line.qty+' × '+safe(line.name)+'</strong><span>'+money(unitPrice(line))+' c/u</span></div>'+(line.mods.length||line.note?'<small title="'+safe(line.mods.map(mod=>mod.name).concat(line.note||[]).join(' · '))+'">'+lineDetails(line,false)+'</small>':'')+'<div class="allocation-compact"><span class="allocation-left">'+(remaining?remaining+' '+(remaining===1?'pendiente':'pendientes'):'Todo asignado')+'</span><span class="allocation-assigned">'+paymentParts.map((owner,index)=>{const count=owner.assigned[line.id]||0;return count?'<span title="'+safe(payerName(index))+'"><span data-payer-label="'+index+'">'+safe(payerName(index))+'</span>: '+count+'</span>':'';}).join('')+'</span></div><div class="allocation-actions"><button data-action="payment-unit" data-line="'+safe(line.id)+'" data-part="'+selected+'" data-delta="-1" '+(mine?'':'disabled')+' aria-label="Quitar una unidad de '+safe(line.name)+' a '+safe(payerName(selected))+'">−</button><span class="allocation-mine"><strong>'+mine+'</strong> para esta persona</span><button class="primary" data-action="payment-unit" data-line="'+safe(line.id)+'" data-part="'+selected+'" data-delta="1" '+(remaining?'':'disabled')+' aria-label="Asignar una unidad de '+safe(line.name)+' a '+safe(payerName(selected))+'">+</button>'+(line.qty>1?'<button class="allocation-rest" data-action="payment-rest" data-line="'+safe(line.id)+'" data-part="'+selected+'" '+(remaining?'':'disabled')+'>'+(remaining===1?'El restante':remaining?'Los '+remaining+' restantes':'Sin pendientes')+'</button>':'')+'</div></div>';
-  }).join('')+'</div>'+paymentPager('products',paymentProductPage,visible.length,sizes.products)+'</section>';
+    const customMods=line.mods.filter(mod=>mod.id!=='combo-incluido');
+    const details=(line.mods.some(mod=>mod.id==='combo-incluido')?'<small class="allocation-combo-details">'+line.mods.filter(mod=>mod.id==='combo-incluido').map(mod=>safe(mod.description||mod.name)).join(' · ')+'</small>':'')+(customMods.length||line.note?'<small>'+lineDetails({...line,mods:customMods},false)+'</small>':'');
+    return '<div class="allocation-line '+(mine?'has-mine':'')+'"><h4 class="allocation-group">'+safe(category)+'</h4><div class="allocation-title"><strong>'+line.qty+' × '+safe(line.name)+'</strong><span>'+money(unitPrice(line))+' c/u</span></div>'+details+'<div class="allocation-compact"><span class="allocation-left">'+(remaining?remaining+' '+(remaining===1?'pendiente':'pendientes'):'Todo asignado')+'</span><span class="allocation-assigned">'+paymentParts.map((owner,index)=>{const count=owner.assigned[line.id]||0;return count?'<span title="'+safe(payerName(index))+'"><span data-payer-label="'+index+'">'+safe(payerName(index))+'</span>: '+count+'</span>':'';}).join('')+'</span></div><div class="allocation-actions '+(line.qty>1?'has-rest':'')+'"><button data-action="payment-unit" data-line="'+safe(line.id)+'" data-part="'+selected+'" data-delta="-1" '+(mine?'':'disabled')+' aria-label="Quitar una unidad de '+safe(line.name)+' a '+safe(payerName(selected))+'">−</button><span class="allocation-mine"><strong>'+mine+'</strong><span class="allocation-mine-label"> para esta persona</span></span><button class="primary" data-action="payment-unit" data-line="'+safe(line.id)+'" data-part="'+selected+'" data-delta="1" '+(remaining?'':'disabled')+' aria-label="Asignar una unidad de '+safe(line.name)+' a '+safe(payerName(selected))+'">+</button>'+(line.qty>1?'<button class="allocation-rest" data-action="payment-rest" data-line="'+safe(line.id)+'" data-part="'+selected+'" '+(remaining?'':'disabled')+'>'+(remaining===1?'El restante':remaining?'Resto ('+remaining+')':'Asignado')+'</button>':'')+'</div></div>';
+  }).join('')+'</div></section>';
+}
+function fitPaymentProducts(root){
+  const grid=root.querySelector('.allocation-grid');
+  if(!grid?.clientWidth||!grid.clientHeight)return;
+  const allocation=root.querySelector('.payment-allocation'),cards=[...grid.querySelectorAll('.allocation-line')];
+  allocation.classList.remove('needs-space');
+  // Primero prueba tarjetas amplias; solo compacta cuando hace falta.
+  for(const [density,minWidth] of [['normal',270],['compact',230],['dense',180]]){
+    grid.dataset.density=density;
+    const maxColumns=Math.max(1,Math.min(cards.length,Math.floor((grid.clientWidth+5)/(minWidth+5))));
+    for(let columns=1;columns<=maxColumns;columns++){
+      grid.style.setProperty('--product-columns',columns);
+      const bounds=grid.getBoundingClientRect();
+      if(grid.scrollWidth<=grid.clientWidth+1&&cards.every(card=>card.getBoundingClientRect().bottom<=bounds.bottom+1&&card.scrollWidth<=card.clientWidth+1))return;
+    }
+  }
+  // Una cantidad excepcional debe seguir siendo accesible, nunca recortarse.
+  allocation.classList.add('needs-space');
 }
 function renderBrlFields(part,index){
   const feedback=brlFeedback(part.brlCharged,part.brlReceived);
@@ -1019,7 +1085,7 @@ function renderPaymentModal(order){
   const covered=paymentParts.reduce((sum,part)=>sum+partAmount(part,order),0),balance=orderTotal(order)-covered,remaining=order.lines.reduce((sum,line)=>sum+remainingUnits(line),0);
   paymentPeoplePage=Math.min(paymentPeoplePage,Math.max(0,Math.ceil(paymentParts.length/sizes.people)-1));
   const first=paymentPeoplePage*sizes.people,parts=paymentParts.slice(first,first+sizes.people);
-  const content=assigning?renderPaymentAllocation(order):'<section class="payment-people"><div class="payment-parts" style="--people-columns:'+(split?sizes.peopleColumns:1)+'">'+parts.map((part,index)=>split||byAmount||(window.innerWidth||1366)<760?renderPaymentCompactPart(part,first+index,order):renderPaymentPart(part,first+index,order)).join('')+'</div>'+paymentPager('people',paymentPeoplePage,paymentParts.length,sizes.people)+'</section>';
+  const content=assigning?renderPaymentAllocation(order):'<section class="payment-people"><div class="payment-parts" style="--people-columns:'+(split?sizes.peopleColumns:1)+'">'+parts.map((part,index)=>split||byAmount||(window.innerWidth||1366)<760?renderPaymentCompactPart(part,first+index,order):renderPaymentPart(part,first+index,order)).join('')+'</div>'+paymentPeoplePager(paymentPeoplePage,paymentParts.length,sizes.people)+'</section>';
   return '<div class="payment-heading"><h2 id="dialog-title">Cobrar '+numberLabel(order.number)+' · '+safe(slotLabel(order.slot))+'</h2><div class="payment-totals"><span>Total <strong>'+money(orderTotal(order))+'</strong></span>'+(split||byAmount?'<span>Repartido <strong data-payment-covered>'+money(covered)+'</strong></span><strong data-payment-balance class="'+(balance===0?'complete':'')+'">'+(balance<0?'Sobran '+money(-balance):'Falta '+money(balance))+'</strong>':'')+'</div></div><div class="payment-tools" role="group" aria-label="Cómo dividir la cuenta">'+[['single','Pago único'],['products','Por productos'],['amounts','Por importes']].map(([mode,label])=>'<button data-action="payment-mode" data-mode="'+mode+'" aria-pressed="'+(active===mode)+'" class="'+(active===mode?'active':'')+'">'+label+'</button>').join('')+'<button data-action="payment-undo" '+(paymentUndo.length?'':'disabled')+'>Deshacer reparto</button>'+(split||byAmount?'<button data-action="payment-add" '+(paymentParts.length>=8?'disabled':'')+'>+ Persona</button>':'')+(byAmount?'<button data-action="payment-equal">Partes iguales</button>':'')+'</div>'+(split&&!byAmount?'<div class="payment-steps" role="group" aria-label="Pasos del cobro"><button class="'+(assigning?'active':'')+'" data-action="payment-step" data-step="assign" aria-pressed="'+assigning+'">1. Repartir productos</button><button class="'+(assigning?'':'active')+'" data-action="payment-step" data-step="pay" aria-pressed="'+!assigning+'" '+(allocation.valid?'':'disabled')+'>2. Cobrar</button></div>':'')+(assigning?renderPaymentPeople(order):'')+(byAmount?'<p class="payment-instructions">Ingresá cuánto paga cada persona. Resto completa lo que falta; cada pago tiene su método.</p>':'')+'<div class="payment-body '+(assigning?'split-assign':'payment-card-body')+'">'+content+'</div><div class="payment-footer">'+(assigning?'<p class="payment-progress" role="status" aria-live="polite"><span>'+(remaining?'Faltan '+remaining+' '+(remaining===1?'unidad':'unidades'):'Todo repartido')+'<strong>'+money(balance)+' sin asignar</strong></span><span>Para <b data-payer-label="'+selected+'">'+safe(payerName(selected))+'</b><strong>'+money(partAmount(paymentParts[selected],order))+'</strong></span></p><p class="note payment-allocation-message">'+(allocation.valid?'Revisá el reparto y continuá con las formas de pago.':allocation.message)+'</p>':'<p id="payment-summary" class="payment-summary '+(status.valid?'':'error')+'" role="status" aria-live="polite">'+status.message+'</p>')+((order.status==='EN COCINA'||!order.sentAt)&&!assigning?'<p class="order-hint">'+(order.status==='EN COCINA'?'Sigue EN COCINA. Al cerrar ahora, Cocina recibirá un aviso.':'Todavía no fue enviado a Cocina.')+'</p>':'')+'<div class="modal-actions"><button data-action="'+(split&&!byAmount&&!assigning?'payment-step':'modal-close')+'" '+(split&&!byAmount&&!assigning?'data-step="assign"':'')+'>'+(split&&!byAmount&&!assigning?'VOLVER AL REPARTO':'VOLVER SIN CERRAR')+'</button>'+(assigning?'<button class="primary" data-action="payment-step" data-step="pay" '+(allocation.valid?'':'disabled')+'>CONTINUAR AL COBRO</button>':(split&&!status.valid?'<button class="primary" data-action="payment-next">SIGUIENTE PERSONA</button>':'')+'<button class="success" data-action="close-confirm" '+(status.valid?'':'disabled')+'>CONFIRMAR COBRO</button>')+'</div></div>';
 }
 function openHistoryExport(){
@@ -1056,6 +1122,7 @@ function renderModal(){
   const focusedMethod=document.activeElement?.dataset?.method,focusedStep=document.activeElement?.dataset?.step,focusedMode=document.activeElement?.dataset?.mode,focusedKind=document.activeElement?.dataset?.kind;
   root.innerHTML=`<div class="modal-backdrop"><div class="modal ${modal==="help"?"help-modal":modal==="payment"?"payment-modal":""}" role="dialog" aria-modal="true" aria-labelledby="dialog-title" tabindex="-1">${content}</div></div>`;$(".app").inert=true;
   const dialog=root.querySelector(".modal");if(dialog)dialog.scrollTop=previousScroll;
+  fitPaymentProducts(root);
   const allocation=root.querySelector(".payment-allocation"),parts=root.querySelector(".payment-parts");if(allocation)allocation.scrollTop=allocationScroll;if(parts)parts.scrollTop=partsScroll;
   const paymentBody=root.querySelector(".payment-body"),people=root.querySelector(".payment-person-tabs");if(paymentBody)paymentBody.scrollTop=paymentBodyScroll;if(people){people.scrollLeft=peopleScroll;people.querySelector("button.active")?.scrollIntoView?.({block:"nearest",inline:"nearest"});}
   const matchingAction=focusedAction?[...root.querySelectorAll("[data-action]")].find(button=>!button.disabled&&button.dataset.action===focusedAction&&button.dataset.line===focusedLine&&button.dataset.part===focusedPart&&button.dataset.delta===focusedDelta&&button.dataset.method===focusedMethod&&button.dataset.step===focusedStep&&button.dataset.mode===focusedMode&&button.dataset.kind===focusedKind):null;
@@ -1135,7 +1202,7 @@ function handleAction(element,event){
     case "payment-mode":setPaymentMode(element.dataset.mode);break;
     case "payment-balance":assignPaymentBalance(Number(element.dataset.part));break;
     case "payment-equal":dividePaymentEqually();break;
-    case "payment-page":{const delta=Number(element.dataset.delta);if(![-1,1].includes(delta))break;if(element.dataset.kind==="products")paymentProductPage=Math.max(0,paymentProductPage+delta);else if(element.dataset.kind==="people")paymentPeoplePage=Math.max(0,paymentPeoplePage+delta);renderModal();break;}
+    case "payment-page":{const delta=Number(element.dataset.delta);if(![-1,1].includes(delta)||element.dataset.kind!=="people")break;paymentPeoplePage=Math.max(0,paymentPeoplePage+delta);renderModal();break;}
     case "payment-edit":if(paymentParts[Number(element.dataset.part)]){selectedPaymentPart=Number(element.dataset.part);setPaymentStep("assign");}break;
     case "payment-add":if(paymentParts.length<8){rememberPaymentAllocation();paymentParts.push(newPaymentPart());selectedPaymentPart=paymentParts.length-1;paymentStep=paymentMode==="amounts"?"pay":"assign";paymentPeoplePage=Math.floor(selectedPaymentPart/paymentPageSizes().people);renderModal();}break;
     case "payment-remove":if(paymentParts.length>1){const removed=Number(element.dataset.part);if(!Number.isInteger(removed)||removed<0||removed>=paymentParts.length)break;rememberPaymentAllocation();paymentParts.splice(removed,1);if(selectedPaymentPart>removed)selectedPaymentPart--;selectedPaymentPart=Math.min(selectedPaymentPart,paymentParts.length-1);if(paymentParts.length===1){if(paymentMode==="amounts")paymentParts[0].amount=String(orderTotal(current()));else paymentParts[0].assigned=Object.fromEntries(current().lines.map(line=>[line.id,line.qty]));clearPaymentAmounts(paymentParts[0]);}paymentStep=paymentMode==="amounts"?"pay":"assign";renderModal();}break;
@@ -1145,7 +1212,6 @@ function handleAction(element,event){
     case "payment-method":selectPaymentMethod(Number(element.dataset.part),element.dataset.method);break;
     case "payment-exact":{const part=paymentParts[Number(element.dataset.part)];if(part?.method==="Efectivo"){part.cashReceived=String(partAmount(part,current()));renderModal();}break;}
     case "payment-next":{const index=paymentParts.map((part,index)=>index).find(index=>index>selectedPaymentPart&&!paymentPartStatus(paymentParts[index],current()).valid)??paymentParts.findIndex(part=>!paymentPartStatus(part,current()).valid);if(index>=0){selectedPaymentPart=index;paymentPeoplePage=Math.floor(index/paymentPageSizes().people);renderModal();const body=$(".payment-body");if(body)body.scrollTop=0;document.getElementById(`payment-method-${index}`)?.focus({preventScroll:true});}break;}
-    case "payment-show-assigned":showAssignedPaymentLines=!showAssignedPaymentLines;paymentProductPage=0;renderModal();break;
     case "payment-all-remaining":assignAllRemaining(Number(element.dataset.part));break;
     case "payment-unit":assignPaymentUnit(element.dataset.line,Number(element.dataset.part),Number(element.dataset.delta));break;
     case "payment-rest":assignPaymentRest(element.dataset.line,Number(element.dataset.part));break;
@@ -1185,7 +1251,7 @@ document.addEventListener("input",event=>{
   if(event.target.dataset.cashReceived!==undefined){const part=paymentParts[Number(event.target.dataset.cashReceived)];if(part)part.cashReceived=event.target.value;updatePaymentFeedback();return;}
   if(event.target.dataset.brlCharged!==undefined){const part=paymentParts[Number(event.target.dataset.brlCharged)];if(part)part.brlCharged=event.target.value;updatePaymentFeedback();return;}
   if(event.target.dataset.brlReceived!==undefined){const part=paymentParts[Number(event.target.dataset.brlReceived)];if(part)part.brlReceived=event.target.value;updatePaymentFeedback();return;}
-  if(event.target.dataset.payerName!==undefined){const index=Number(event.target.dataset.payerName),part=paymentParts[index];if(part){part.name=event.target.value;document.querySelectorAll(`[data-payer-label="${index}"]`).forEach(label=>{label.textContent=payerName(index);});document.querySelectorAll(`[data-action="payment-remove"][data-part="${index}"], [data-action="payment-unit"][data-part="${index}"]`).forEach(button=>{if(button.dataset.action==="payment-remove")button.setAttribute("aria-label",`Quitar a ${payerName(index)}`);else{const line=current()?.lines.find(item=>item.id===button.dataset.line);if(line)button.setAttribute("aria-label",`${Number(button.dataset.delta)<0?"Quitar":"Asignar"} una unidad de ${line.name} a ${payerName(index)}`);}});}return;}
+  if(event.target.dataset.payerName!==undefined){const index=Number(event.target.dataset.payerName),part=paymentParts[index];if(part){part.name=event.target.value;document.querySelectorAll(`[data-payer-label="${index}"]`).forEach(label=>{label.textContent=payerName(index);});document.querySelectorAll(`[data-action="payment-remove"][data-part="${index}"], [data-action="payment-unit"][data-part="${index}"]`).forEach(button=>{if(button.dataset.action==="payment-remove")button.setAttribute("aria-label",`Quitar a ${payerName(index)}`);else{const line=current()?.lines.find(item=>item.id===button.dataset.line);if(line)button.setAttribute("aria-label",`${Number(button.dataset.delta)<0?"Quitar":"Asignar"} una unidad de ${line.name} a ${payerName(index)}`);}});fitPaymentProducts($("#modal-root"));}return;}
   const input=event.target,original=current();if(!original||!["customer-name","line-note"].includes(input.id))return;
   const oldLine=input.id==="line-note"?findLine(input.dataset.line):null;if(input.id==="line-note"&&!oldLine)return;
   const previous=oldLine?oldLine.note:original.name;if(previous===input.value)return;

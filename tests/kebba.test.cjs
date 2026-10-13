@@ -243,20 +243,17 @@ test('sumar un producto enviado conserva la línea y avisa la cantidad corregida
   assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
 });
 
-test('una cuenta con muchas líneas separadas se asigna a cuatro personas',()=>{
+test('las 18 líneas se ven juntas y se asignan a cuatro personas sin páginas de productos',()=>{
   const app=boot(),run=app.run;
   run('openSlot("m1");for(let i=0;i<18;i++)addProduct("papas");for(let i=0;i<17;i++)splitLine(current().lines[0].id);startClose();paymentParts=[newPaymentPart(),newPaymentPart(),newPaymentPart(),newPaymentPart()]');
   const initial=run('renderPaymentAllocation(current())');
-  assert.match(initial,/data-action="payment-page"/);
-  const reachable=new Set();
-  for(let page=0;page<18;page++){
-    const html=run('paymentProductPage='+page+';renderPaymentAllocation(current())');
-    for(const match of html.matchAll(/data-action="payment-unit" data-line="([^"]+)" data-part="0" data-delta="1"/g))reachable.add(match[1]);
-  }
+  assert.doesNotMatch(initial,/data-action="payment-page"|payment-show-assigned/);
+  const reachable=new Set([...initial.matchAll(/data-action="payment-unit" data-line="([^"]+)" data-part="0" data-delta="1"/g)].map(match=>match[1]));
   assert.equal(reachable.size,18);
   run('for(let i=0;i<4;i++)assignPaymentRest(current().lines[i].id,0);for(let i=4;i<8;i++)assignPaymentRest(current().lines[i].id,1);for(let i=8;i<12;i++)assignPaymentRest(current().lines[i].id,2);selectedPaymentPart=3;assignAllRemaining(3)');
   assert.equal(run('current().lines.reduce((sum,line)=>sum+remainingUnits(line),0)'),0);
   assert.match(run('renderPaymentAllocation(current())'),/Todos los productos están asignados/);
+  assert.equal((run('renderPaymentAllocation(current())').match(/class="allocation-line /g)||[]).length,18);
   run('paymentParts.forEach(part=>part.method="Transferencia");confirmClose()');
   assert.equal(run('data.history[0].payments.length'),4);
   assert.equal(run('data.history[0].payments[3].amount'),600);
@@ -268,7 +265,7 @@ test('el reparto agrupa kebabs, shawarmas y acompañamientos antes del resto',()
   run('openSlot("m1");["bebida-sprite-350","shawarma-pollo","papas","kebab-pollo","shawarma-carne","kebab-carne","plato-pollo","boniato","coxinha-pollo-1"].forEach(addProduct);startClose();paymentParts=[newPaymentPart(),newPaymentPart()]');
   assert.equal(run('paymentSortedLines(current().lines).map(item=>item.line.name).join(" | ")'),
     'Kebab Carne | Kebab Pollo | Kebab al Plato Pollo | Shawarma Carne | Shawarma Pollo | Boniato frito | Papas fritas | Sprite · lata 350 ml | Coxinha de Pollo · 1 unidad');
-  const rendered=[0,1,2,3,4].map(page=>run('paymentProductPage='+page+';renderPaymentAllocation(current())')).join('');
+  const rendered=run('renderPaymentAllocation(current())');
   assert.ok(rendered.indexOf('class="allocation-group">Kebabs')<rendered.indexOf('class="allocation-group">Shawarmas'));
   assert.ok(rendered.indexOf('class="allocation-group">Shawarmas')<rendered.indexOf('class="allocation-group">Acompañamientos'));
 });
@@ -341,7 +338,7 @@ test('repartir de a una unidad acepta toques rápidos y nunca duplica ni resta d
   run('assignPaymentUnit(current().lines[0].id,0,1.5)');
   assert.equal(run('partAmount(paymentParts[0],current())'),300);
   assert.match(run('renderPaymentAllocation(current())'),/Quitar una unidad/);
-  assert.match(run('renderPaymentAllocation(current())'),/Los|Sin pendientes/);
+  assert.match(run('renderPaymentAllocation(current())'),/data-action="payment-rest"[^>]*disabled>Asignado/);
 });
 
 test('el paso de cobro exige todo asignado y permite quitar una persona vacía',()=>{
@@ -406,7 +403,7 @@ test('una corrección del reparto obliga a revisar el efectivo UYU y BRL del imp
   assert.equal(run('paymentStatus(current()).valid'),false);
 });
 
-test('al repartir mantiene el lugar de la lista y los controles para corregir',()=>{
+test('al repartir conserva todos los productos y los controles para corregir a cada persona',()=>{
   const app=boot(),run=app.run;
   run('openSlot("m1");addProduct("papas");addProduct("boniato");startClose()');
   action(app,'payment-split');
@@ -414,9 +411,12 @@ test('al repartir mantiene el lugar de la lista y los controles para corregir',(
   action(app,'payment-unit',{line:run('current().lines[0].id'),part:'0',delta:'1'});
   assert.equal(app.nodes.get('.payment-body').scrollTop,230);
   assert.equal((run('renderPaymentAllocation(current())').match(/data-delta="-1"/g)||[]).length,2);
-  action(app,'payment-show-assigned');
-  assert.equal((run('renderPaymentAllocation(current())').match(/data-delta="-1"/g)||[]).length,1);
-  action(app,'payment-show-assigned');
+  action(app,'payment-select',{part:'1'});
+  assert.equal((run('renderPaymentAllocation(current())').match(/data-delta="-1"/g)||[]).length,2);
+  assert.doesNotMatch(run('renderPaymentAllocation(current())'),/payment-show-assigned|payment-page/);
+  run('assignAllRemaining(1)');
+  assert.equal((run('renderPaymentAllocation(current())').match(/data-delta="-1"/g)||[]).length,2);
+  action(app,'payment-undo');
   assert.equal((run('renderPaymentAllocation(current())').match(/data-delta="-1"/g)||[]).length,2);
 });
 
