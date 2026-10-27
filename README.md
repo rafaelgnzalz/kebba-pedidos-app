@@ -41,6 +41,12 @@ En **Propinas**, registrá el importe, la moneda (UYU o BRL) y un detalle manual
 - Para Pix, la app muestra el importe en reales con la tasa fija de **$8,30 uruguayos por R$1** y guarda la tasa utilizada en el historial.
 - En laptop, la app ocupa la altura de la pantalla: las mesas y pedidos sin mesa se alternan con dos botones, Cocina muestra una categoría a la vez y la Carta y la Comanda permanecen lado a lado. Cuando una lista es demasiado larga, se desplaza dentro de su panel sin mover la navegación ni las acciones de cobro.
 
+### Productos fuera de carta
+
+En cualquier mesa o pedido sin mesa, tocá **+ Fuera de carta** junto al nombre del cliente. Ingresá el **concepto**, el **precio unitario en UYU** (pesos enteros), la **cantidad** y, si hace falta, una observación para Cocina. **Agregar a la comanda** incorpora esas unidades al pedido sin cambiar el menú.
+
+En la línea, **Concepto / precio** permite corregir los datos; también podés sumar o quitar unidades, eliminarla y deshacer. Si ya se envió a Cocina, las altas, los cambios de concepto o cantidad y las cancelaciones se avisan como en los demás productos. Al cobrar con **Por productos**, aparecen en **Fuera de carta** y se pueden asignar sus unidades a distintas personas. También podés usar **Por importes** para compartir el valor de un único concepto. El concepto y el precio quedan en el historial, los respaldos y las exportaciones.
+
 ### Dividir una cuenta por persona
 
 1. En **Cobrar y cerrar**, tocá **Por productos**. Elegí una persona en la fila superior; podés ponerle nombre y agregar hasta ocho personas.
