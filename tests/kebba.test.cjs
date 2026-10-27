@@ -25,7 +25,7 @@ function boot(storage=new Map()){
     if(!nodes.has(selector)){
       const classes=new Set();
       const el={innerHTML:'',textContent:'',value:'',dataset:{},style:{},scrollTop:0,disabled:false,inert:false,
-        classList:{toggle(name,on){on?classes.add(name):classes.delete(name)},add(name){classes.add(name)},contains(name){return classes.has(name)}},
+        classList:{toggle(name,on){on?classes.add(name):classes.delete(name)},add(name){classes.add(name)},remove(name){classes.delete(name)},contains(name){return classes.has(name)}},
         addEventListener(type,fn){events[selector+':'+type]=fn},setAttribute(){},removeAttribute(){},focus(){document.activeElement=this},
         querySelector:node,querySelectorAll(){return[]},getBoundingClientRect(){return{top:250}},scrollIntoView(){},scrollTo(){},click(){},remove(){}};
       Object.defineProperty(el,'childElementCount',{get(){return el.innerHTML?1:0}});nodes.set(selector,el);
@@ -916,4 +916,176 @@ test('el guardado compartido conserva reparto por importes y propinas en el mism
   assert.equal(run('sent.history[0].paymentSplit'),'amounts');
   assert.equal(run('sharedBase.history[0].payments[1].amount'),50);
   assert.equal(run('sharedBase.tips[0].amountMinor'),5000);
+});
+
+function customInput(app,field,value){app.events.input({target:{dataset:{customField:field},value}});}
+function addCustom(app,name,amount,qty='1',note=''){
+  action(app,'custom-line');
+  for(const [field,value] of Object.entries({name,amount,qty,note}))customInput(app,field,value);
+  let prevented=false;app.events.submit({target:{id:'custom-line-form'},preventDefault(){prevented=true}});
+  assert.equal(prevented,true);
+}
+
+test('fuera de carta agrega concepto, precio y cantidad en mesas y pedidos sin cambiar el menú',()=>{
+  for(const slot of ['m1','p0']){
+    const app=boot(),run=app.run;
+    run(`openSlot("${slot}");globalThis.catalogBefore=JSON.stringify(data.catalog)`);
+    assert.match(run('renderOrder()'),/\+ Fuera de carta/);
+    addCustom(app,'  Postre especial  ','150','2','  Sin azúcar  ');
+    assert.equal(run('current().lines[0].name'),'Postre especial');
+    assert.equal(run('current().lines[0].unitPrice'),150);
+    assert.equal(run('current().lines[0].qty'),2);
+    assert.equal(run('current().lines[0].note'),'Sin azúcar');
+    assert.equal(run('orderTotal(current())'),300);
+    assert.equal(run('JSON.stringify(data.catalog)'),run('catalogBefore'));
+    assert.equal(run('mobileOrderPane'),'ticket');
+    assert.equal(run('modal'),null);
+    assert.match(run('renderOrder()'),/Fuera de carta · \$150 c\/u/);
+    assert.match(run('renderOrder()'),/Concepto \/ precio/);
+    const restored=boot(app.storage);
+    assert.equal(restored.run(`data.orders.${slot}.lines[0].unitPrice`),150);
+    assert.doesNotThrow(()=>restored.run('validateImport(deepCopy(data))'));
+  }
+});
+
+test('reparte unidades fuera de carta entre personas y cobra junto con productos del menú',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1");addProduct("papas")');
+  addCustom(app,'Postre especial','150','2');
+  run('sendKitchen();markReady("m1");startClose()');
+  action(app,'payment-split');
+  assert.match(run('renderPaymentAllocation(current())'),/Fuera de carta/);
+  run('assignPaymentRest(current().lines[0].id,0);assignPaymentUnit(current().lines[1].id,0,1);assignPaymentRest(current().lines[1].id,1);paymentParts[0].method="Efectivo";paymentParts[0].cashReceived="300";paymentParts[1].method="Pix"');
+  assert.equal(run('partAmount(paymentParts[0],current())'),250);
+  assert.equal(run('partAmount(paymentParts[1],current())'),150);
+  assert.equal(run('paymentStatus(current()).valid'),true);
+  run('confirmClose()');
+  assert.equal(run('data.orders.m1'),undefined);
+  assert.equal(run('data.history[0].total'),400);
+  assert.equal(run('data.history[0].payments[0].cashChange'),50);
+  assert.equal(run('data.history[0].payments[1].pixBrl'),18.07);
+  assert.equal(run('data.history[0].payments[1].items[0].qty'),1);
+  assert.match(run('renderHistoryPayments(data.history[0])'),/1 × Postre especial/);
+  assert.match(run('buildDayCsv()'),/Postre especial/);
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+});
+
+test('editar fuera de carta conserva la identidad, avisa a Cocina y permite deshacer',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("p0")');addCustom(app,'Postre','150','2');
+  run('sendKitchen();markReady("p0");globalThis.customId=current().lines[0].id');
+  action(app,'custom-line',{line:run('customId')});
+  customInput(app,'name','Postre de chocolate');customInput(app,'amount','175');customInput(app,'note','Sin azúcar');
+  assert.equal(run('saveCustomLine()'),true);
+  assert.equal(run('current().lines[0].id'),run('customId'));
+  assert.equal(run('current().lines.length'),1);
+  assert.equal(run('orderTotal(current())'),350);
+  assert.equal(run('current().status'),'EN COCINA');
+  assert.equal(run('current().kitchenEvents.at(-1).after.name'),'Postre de chocolate');
+  assert.match(run('kitchenLines(current())'),/Sin azúcar/);
+  run('undo()');
+  assert.equal(run('current().lines[0].unitPrice'),150);
+  assert.equal(run('current().lines[0].name'),'Postre');
+  run('removeLine(customId);undo()');
+  assert.equal(run('current().lines[0].productId'),'custom');
+  assert.equal(run('orderTotal(current())'),300);
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+});
+
+test('dos conceptos manuales con el mismo nombre conservan precios y asignaciones independientes',()=>{
+  const app=boot(),run=app.run;
+  run('openSlot("m1")');addCustom(app,'Especial','120');addCustom(app,'Especial','180');
+  assert.notEqual(run('current().lines[0].id'),run('current().lines[1].id'));
+  run('startClose();paymentParts=[newPaymentPart(),newPaymentPart()];assignPaymentRest(current().lines[0].id,0);assignPaymentRest(current().lines[1].id,1)');
+  assert.equal(run('partAmount(paymentParts[0],current())'),120);
+  assert.equal(run('partAmount(paymentParts[1],current())'),180);
+});
+
+test('fuera de carta rechaza conceptos vacíos, importes y cantidades inválidas antes de guardar',()=>{
+  const invalid=[{name:' '},{name:'x'.repeat(121)},{amount:''},{amount:'0'},{amount:'-50'},{amount:'12,50'},{amount:'Infinity'},{amount:'9007199254740992'},{qty:'0'},{qty:'1.5'},{qty:'-1'},{amount:'9007199254740991',qty:'2'},{note:'x'.repeat(501)}];
+  for(const values of invalid){
+    const app=boot(),run=app.run;run('openSlot("m1");startCustomLine()');
+    for(const [field,value] of Object.entries({name:'Especial',amount:'100',qty:'1',...values}))customInput(app,field,value);
+    const writes=app.writes;
+    assert.equal(run('saveCustomLine()'),false,JSON.stringify(values));
+    assert.equal(run('current().lines.length'),0);
+    assert.equal(app.writes,writes);
+    assert.equal(run('stackFor(current()).length'),0);
+    assert.ok(run('customError'));
+    assert.equal(run('modal'),'custom-line');
+  }
+});
+
+test('un guardado fallido conserva el concepto y un reintento agrega una sola línea',()=>{
+  const app=boot(),run=app.run;run('openSlot("m1")');
+  app.failWrites=true;addCustom(app,'Especial','200','2');
+  assert.equal(run('current().lines.length'),0);
+  assert.equal(run('customDraft.name'),'Especial');
+  assert.equal(run('stackFor(current()).length'),0);
+  assert.equal(run('modal'),'custom-line');
+  app.failWrites=false;assert.equal(run('saveCustomLine()'),true);
+  assert.equal(run('saveCustomLine()'),false);
+  assert.equal(run('current().lines.length'),1);
+  assert.equal(run('orderTotal(current())'),400);
+});
+
+test('cancelar la edición fuera de carta conserva el pedido y escapa el texto en pantalla y CSV',()=>{
+  const app=boot(),run=app.run;run('openSlot("m1")');
+  addCustom(app,'=Especial <img src=x onerror=alert(1)>','100','1','<script>alert(1)</script>');
+  assert.doesNotMatch(run('renderOrder()'),/<img src=x/);
+  assert.match(run('renderOrder()'),/&lt;img/);
+  run('globalThis.orderBefore=JSON.stringify(current());startCustomLine(current().lines[0].id)');
+  assert.doesNotMatch(run('renderCustomLine()'),/<script>alert/);
+  customInput(app,'amount','999');const writes=app.writes;action(app,'modal-close');
+  assert.equal(run('JSON.stringify(current())'),run('orderBefore'));
+  assert.equal(app.writes,writes);
+  run('startClose();paymentParts[0].method="Tarjeta";confirmClose()');
+  assert.match(run('buildDayCsv()'),/1 x =Especial/);
+  assert.match(run('csvValue(data.history[0].lines[0].name)'),/^"'=Especial/);
+});
+
+test('una lectura compartida pendiente no reemplaza el formulario fuera de carta ni su borrador',async()=>{
+  const app=boot(),run=app.run;run('openSlot("m1");sharedReady=true;sharedVersion=1;globalThis.oldState=deepCopy(data);globalThis.reads=0;sharedRpc=()=>{reads++;return new Promise(resolve=>{globalThis.finishRead=resolve})};globalThis.reading=refreshShared()');
+  action(app,'custom-line');customInput(app,'name','Postre');customInput(app,'amount','150');
+  run('finishRead({version:2,state:oldState})');await run('reading');
+  assert.equal(run('customDraft.name'),'Postre');
+  assert.equal(run('modal'),'custom-line');
+  assert.equal(run('sharedVersion'),1);
+  await run('refreshShared()');assert.equal(run('reads'),1);
+});
+
+test('los conceptos manuales se sincronizan junto con cambios de otra mesa y sobreviven al respaldo',()=>{
+  const app=boot(),run=app.run;run('openSlot("m1");go("home");openSlot("m2");addProduct("papas");globalThis.base=deepCopy(data);go("home");openSlot("m1")');
+  addCustom(app,'Especial','130','2');
+  run('globalThis.remote=deepCopy(base);remote.orders.m2.name="Ana";globalThis.merged=mergeSharedState(base,data,remote)');
+  assert.equal(run('merged.orders.m1.lines[0].unitPrice'),130);
+  assert.equal(run('merged.orders.m2.name'),'Ana');
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(merged))'));
+  run('importData(validateImport(deepCopy(merged)))');
+  assert.equal(run('data.orders.m1.lines[0].qty'),2);
+});
+
+test('un precio manual grande no permite desbordar el total al repetir o agregar productos',()=>{
+  const app=boot(),run=app.run;run('openSlot("m1")');
+  addCustom(app,'Especial','9007199254740991');
+  const writes=app.writes,undos=run('stackFor(current()).length');
+  run('changeQty(current().lines[0].id,1);addProduct("papas")');
+  assert.equal(run('current().lines.length'),1);
+  assert.equal(run('current().lines[0].qty'),1);
+  assert.equal(app.writes,writes);
+  assert.equal(run('stackFor(current()).length'),undos);
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
+});
+
+test('un único concepto fuera de carta también se comparte por importes sin perder pesos',()=>{
+  const app=boot(),run=app.run;run('openSlot("m1")');addCustom(app,'Especial para compartir','303');
+  run('startClose();setPaymentMode("amounts");dividePaymentEqually();paymentParts[0].method="Tarjeta";paymentParts[1].method="PREX"');
+  assert.equal(run('partAmount(paymentParts[0],current())'),152);
+  assert.equal(run('partAmount(paymentParts[1],current())'),151);
+  run('confirmClose()');
+  assert.equal(run('data.history[0].total'),303);
+  assert.equal(run('data.history[0].paymentSplit'),'amounts');
+  assert.equal(run('data.history[0].lines[0].name'),'Especial para compartir');
+  assert.equal(run('data.history[0].lines[0].unitPrice'),303);
+  assert.doesNotThrow(()=>run('validateImport(deepCopy(data))'));
 });
