@@ -204,7 +204,7 @@ button{min-height:42px}button:disabled:hover{filter:none}.nav .active .subtle{co
 
 // CONFIGURACIÓN CENTRAL: editar esta sección para cambiar carta, precios y atajos.
 const CONFIG = { nombreLocal: "KEBBA", cantidadMesas: 9, cantidadPedidosSinMesa: 10, dataVersion: 1, almacenamiento: "kebba-pedidos-v1", comboPrecio: 70, comboDescripcion: "Papas fritas + Coca-Cola" };
-const CATALOG_REVISION = 5;
+const CATALOG_REVISION = 6;
 // La clave publicable identifica la app; el acceso a los pedidos requiere el token del enlace.
 const SHARED_CONFIG = { url: "https://rlkbzqorlwpqfhuphuje.supabase.co", publishableKey: "sb_publishable_w_eTGTtzexFMnVPPCIGrGA_zuCu72tP" };
 const SHARED_TOKEN_KEY = "kebba-shared-token-v1";
@@ -222,6 +222,7 @@ const productos = [
   {id:"combo-shawarma-mixto",categoria:"Shawarmas",nombre:"Combo Shawarma Mixto",precio:280+CONFIG.comboPrecio,shortcut:"",permiteCombo:false,incluyeCombo:true},
   {id:"shawarma-vegetal",categoria:"Shawarmas",nombre:"Shawarma Vegetal",precio:260,shortcut:"R",permiteCombo:true},
   {id:"combo-shawarma-vegetal",categoria:"Shawarmas",nombre:"Combo Shawarma Vegetal",precio:260+CONFIG.comboPrecio,shortcut:"",permiteCombo:false,incluyeCombo:true},
+  {id:"shawarma-xxl",categoria:"Shawarmas",nombre:"Shawarma XXL",precio:450,shortcut:"",permiteCombo:false},
   {id:"kebab-pollo",categoria:"Kebabs",nombre:"Kebab Pollo",precio:250,shortcut:"A",permiteCombo:true},
   {id:"combo-kebab-pollo",categoria:"Kebabs",nombre:"Combo Kebab Pollo",precio:250+CONFIG.comboPrecio,shortcut:"",permiteCombo:false,incluyeCombo:true},
   {id:"kebab-carne",categoria:"Kebabs",nombre:"Kebab Carne",precio:320,shortcut:"S",permiteCombo:true},
@@ -230,6 +231,11 @@ const productos = [
   {id:"combo-kebab-mixto",categoria:"Kebabs",nombre:"Combo Kebab Mixto",precio:270+CONFIG.comboPrecio,shortcut:"",permiteCombo:false,incluyeCombo:true},
   {id:"kebab-vegetal",categoria:"Kebabs",nombre:"Kebab Vegetal",precio:260,shortcut:"F",permiteCombo:true},
   {id:"combo-kebab-vegetal",categoria:"Kebabs",nombre:"Combo Kebab Vegetal",precio:260+CONFIG.comboPrecio,shortcut:"",permiteCombo:false,incluyeCombo:true},
+  {id:"smash-clasica",categoria:"Hamburguesas",nombre:"Smash clásica",precio:280,shortcut:"",permiteCombo:false},
+  {id:"smash-triple",categoria:"Hamburguesas",nombre:"Smash triple",precio:340,shortcut:"",permiteCombo:false},
+  {id:"cuarto-de-libra",categoria:"Hamburguesas",nombre:"Cuarto de libra",precio:330,shortcut:"",permiteCombo:false},
+  {id:"hamburguesa-pollo-frito",categoria:"Hamburguesas",nombre:"Pollo frito",precio:330,shortcut:"",permiteCombo:false},
+  {id:"hamburguesa-vegetal",categoria:"Hamburguesas",nombre:"Vegetal",precio:270,shortcut:"",permiteCombo:false},
   {id:"plato-pollo",categoria:"Kebab al plato",nombre:"Kebab al Plato Pollo",precio:310,shortcut:"",permiteCombo:false},
   {id:"plato-carne",categoria:"Kebab al plato",nombre:"Kebab al Plato Carne",precio:390,shortcut:"",permiteCombo:false},
   {id:"plato-mixto",categoria:"Kebab al plato",nombre:"Kebab al Plato Mixto",precio:330,shortcut:"",permiteCombo:false},
@@ -239,6 +245,7 @@ const productos = [
   {id:"coxinha-ternera-1",categoria:"Coxinhas",nombre:"Coxinha de Carne · 1 unidad",precio:80,shortcut:"X",permiteCombo:false},
   {id:"coxinha-ternera-3",categoria:"Coxinhas",nombre:"Coxinha de Carne · 3 unidades",precio:210,shortcut:"",permiteCombo:false},
   {id:"papas",categoria:"Acompañamientos",nombre:"Papas fritas",precio:100,shortcut:"",permiteCombo:false},
+  {id:"papas-panceta-cheddar",categoria:"Acompañamientos",nombre:"Papas con panceta y cheddar",precio:190,shortcut:"",permiteCombo:false},
   {id:"boniato",categoria:"Acompañamientos",nombre:"Boniato frito",precio:150,shortcut:"",permiteCombo:false},
   {id:"trago-caipirinha-250",categoria:"Tragos",trago:"Caipirinha",medida:"250 ml",nombre:"Caipirinha · 250 ml",precio:110,shortcut:"",permiteCombo:false},
   {id:"trago-caipirinha-500",categoria:"Tragos",trago:"Caipirinha",medida:"500 ml",nombre:"Caipirinha · 500 ml",precio:180,shortcut:"",permiteCombo:false},
@@ -1052,7 +1059,7 @@ function renderSettings(){
 
 function helpContent(){return `<h2 id="dialog-title">Cómo atender con KEBBA</h2><ol class="help-steps"><li><strong>Elegí el lugar.</strong> Una Mesa para quien se sienta; Pedido A–J para retirar, llevar o WhatsApp. Podés anotar nombre o descripción en ambos.</li><li><strong>Cargá la comanda.</strong> Elegí Comida o Bebidas y tragos, y después la categoría. En Tragos, tocá 250 o 500 ml. Cada toque agrega una unidad y + la repite. Para algo que no está en el menú, tocá “+ Fuera de carta” e ingresá concepto, precio unitario en UYU y cantidad; también se reparte al dividir la cuenta. “Cambios / salsa” personaliza la línea y “+ Combo” suma papas y Coca-Cola por $70 a un shawarma o kebab.</li><li><strong>Mandá a Cocina.</strong> Antes del envío nadie está preparando el pedido. Después, los cambios y cancelaciones se avisan automáticamente.</li><li><strong>Prepará y marcá LISTO.</strong> Cocina separa por enviar, en preparación y listos para cobrar. Las correcciones aparecen resumidas; tocá Ver historial de ediciones si necesitás el detalle.</li><li><strong>Cobrá y cerrá.</strong> Abrí el pedido y tocá “Cobrar y cerrar”. Elegí Por productos para asignar lo que consume cada persona, o Por importes para indicar cuánto paga cada una. Cada persona elige su método. Resto completa lo que falta y Partes iguales reparte el total. Deshacer reparto permite corregir importes, productos y personas. En efectivo, ingresá cuánto entregó para ver el cambio. Pix muestra el importe en reales a $8,30 por real. Confirmá cuando todos los pagos estén cubiertos.</li></ol><p class="order-hint"><strong>Si te equivocás:</strong> usá Deshacer. Para trasladar una comanda usá Mover pedido y elegí un lugar libre. Al terminar el turno, guardá un respaldo desde Configuración.</p><details><summary>Atajos de teclado (opcionales)</summary><p><strong>${safe(shortcuts.cambiarMesas)}</strong> Mesas / Pedidos · <strong>${safe(shortcuts.cambiarCocina)}</strong> Cocina · <strong>Esc</strong> volver · <strong>${safe(shortcuts.ayuda)}</strong> ayuda · <strong>F11</strong> pantalla completa · <strong>Ctrl+${safe(shortcuts.deshacer.toUpperCase())}</strong> deshacer</p><p>Desde Mesas / Pedidos: 1–9 abre las mesas y A–J abre los pedidos sin mesa. En la comanda, cada botón muestra su tecla. Mientras escribís un nombre u observación, las letras no agregan productos.</p></details><div class="modal-actions"><button class="primary" data-action="modal-close">ENTENDIDO · VOLVER</button></div>`;}
 function paymentSortedLines(lines){
-  const priority=["Kebabs","Kebab al plato","Shawarmas","Acompañamientos"];
+  const priority=["Kebabs","Kebab al plato","Shawarmas","Hamburguesas","Acompañamientos"];
   return lines.map(line=>({line,category:line.productId==="custom"?"Fuera de carta":data.catalog.find(product=>product.id===line.productId)?.categoria||"Otros"})).sort((a,b)=>{
     const aRank=priority.indexOf(a.category),bRank=priority.indexOf(b.category);
     if(aRank!==bRank)return (aRank<0?priority.length:aRank)-(bRank<0?priority.length:bRank);
